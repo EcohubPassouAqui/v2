@@ -36,7 +36,9 @@ local TOPBAR = 62
 
 local function ni(class, props, parent)
 	local o = Instance.new(class)
-	for k, v in pairs(props) do o[k] = v end
+	for k, v in pairs(props) do
+		pcall(function() o[k] = v end)
+	end
 	if parent then o.Parent = parent end
 	return o
 end
