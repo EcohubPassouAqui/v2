@@ -1,8 +1,8 @@
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
+local Players          = game:GetService("Players")
+local TweenService     = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local LocalPlayer      = Players.LocalPlayer
+local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
 local ICONS = {
 	aim     = "rbxassetid://10709818534",
@@ -18,28 +18,23 @@ local Theme = {
 	TitleBarLine    = Color3.fromRGB(65, 65, 65),
 	InElementBorder = Color3.fromRGB(55, 55, 55),
 	bg              = Color3.fromRGB(20, 20, 20),
-	pageArea        = Color3.fromRGB(22, 22, 22),
 	card            = Color3.fromRGB(30, 30, 30),
 	tabbar          = Color3.fromRGB(18, 18, 18),
 	accentHi        = Color3.fromRGB(160, 100, 255),
 	accentLo        = Color3.fromRGB(55, 20, 100),
 	text            = Color3.fromRGB(235, 235, 235),
 	muted           = Color3.fromRGB(130, 130, 130),
-	dim             = Color3.fromRGB(70, 70, 70),
+	dim             = Color3.fromRGB(60, 60, 60),
 	section         = Color3.fromRGB(26, 26, 26),
-	sectionBorder   = Color3.fromRGB(50, 50, 50),
-	sectionTitle    = Color3.fromRGB(160, 100, 255),
 }
 
-local W, H = 550, 350
+local W, H   = 550, 350
 local TOPBAR = 62
 local ELEM_H = 28
 
 local function ni(class, props, parent)
 	local o = Instance.new(class)
-	for k, v in pairs(props) do
-		pcall(function() o[k] = v end)
-	end
+	for k, v in pairs(props) do pcall(function() o[k] = v end) end
 	if parent then o.Parent = parent end
 	return o
 end
@@ -50,7 +45,7 @@ end
 
 local function tw(obj, props, dur, style, dir)
 	TweenService:Create(obj,
-		TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
+		TweenInfo.new(dur or 0.22, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out),
 		props):Play()
 end
 
@@ -122,7 +117,7 @@ function Lib.new(config)
 		ZIndex                 = 2,
 	}, TopBar)
 
-	local blockW = 170
+	local blockW    = 170
 	local UserBlock = ni("Frame", {
 		Size                   = UDim2.new(0, blockW, 0, TOPBAR),
 		Position               = UDim2.new(1, -blockW, 0, 0),
@@ -152,26 +147,18 @@ function Lib.new(config)
 	corner(av, 8)
 
 	ni("TextLabel", {
-		Size                   = UDim2.new(1, -56, 0, 17),
-		Position               = UDim2.new(0, 55, 0.5, -18),
-		BackgroundTransparency = 1,
-		Text                   = LocalPlayer.DisplayName,
-		TextColor3             = Theme.text,
-		TextSize               = 12,
-		Font                   = Enum.Font.GothamBold,
-		TextXAlignment         = Enum.TextXAlignment.Left,
-		TextTruncate           = Enum.TextTruncate.AtEnd,
+		Size = UDim2.new(1,-56,0,17), Position = UDim2.new(0,55,0.5,-18),
+		BackgroundTransparency = 1, Text = LocalPlayer.DisplayName,
+		TextColor3 = Theme.text, TextSize = 12,
+		Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 	}, UserBlock)
 	ni("TextLabel", {
-		Size                   = UDim2.new(1, -56, 0, 13),
-		Position               = UDim2.new(0, 55, 0.5, 2),
-		BackgroundTransparency = 1,
-		Text                   = "@" .. LocalPlayer.Name,
-		TextColor3             = Theme.muted,
-		TextSize               = 9,
-		Font                   = Enum.Font.Gotham,
-		TextXAlignment         = Enum.TextXAlignment.Left,
-		TextTruncate           = Enum.TextTruncate.AtEnd,
+		Size = UDim2.new(1,-56,0,13), Position = UDim2.new(0,55,0.5,2),
+		BackgroundTransparency = 1, Text = "@"..LocalPlayer.Name,
+		TextColor3 = Theme.muted, TextSize = 9,
+		Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 	}, UserBlock)
 
 	local PageArea = ni("Frame", {
@@ -183,7 +170,7 @@ function Lib.new(config)
 	corner(PageArea, 10)
 
 	local TABBAR_H = 52
-	local TabBar = ni("Frame", {
+	local TabBar   = ni("Frame", {
 		Size             = UDim2.new(1, 0, 0, TABBAR_H),
 		Position         = UDim2.new(0, 0, 1, -TABBAR_H),
 		BackgroundColor3 = Theme.tabbar,
@@ -191,16 +178,8 @@ function Lib.new(config)
 		ClipsDescendants = true,
 	}, Main)
 	corner(TabBar, 12)
-	ni("Frame", {
-		Size             = UDim2.new(1, 0, 0, 12),
-		BackgroundColor3 = Theme.tabbar,
-		BorderSizePixel  = 0,
-	}, TabBar)
-	ni("Frame", {
-		Size             = UDim2.new(1, 0, 0, 1),
-		BackgroundColor3 = Theme.TitleBarLine,
-		BorderSizePixel  = 0,
-	}, TabBar)
+	ni("Frame", {Size = UDim2.new(1,0,0,12), BackgroundColor3 = Theme.tabbar, BorderSizePixel = 0}, TabBar)
+	ni("Frame", {Size = UDim2.new(1,0,0,1),  BackgroundColor3 = Theme.TitleBarLine, BorderSizePixel = 0}, TabBar)
 
 	local ICON_SIZE  = 18
 	local SMALL_W    = 44
@@ -212,21 +191,18 @@ function Lib.new(config)
 	local animating  = false
 
 	local function calcPositions(activeIdx)
-		local total    = EXPANDED_W + (#tabList - 1) * SMALL_W
-		local maxTotal = W - 20
-		local expW     = EXPANDED_W
-		if total > maxTotal then
-			expW = math.max(SMALL_W + 20, maxTotal - (#tabList - 1) * SMALL_W)
+		local expW = EXPANDED_W
+		if EXPANDED_W + (#tabList-1)*SMALL_W > W-20 then
+			expW = math.max(SMALL_W+20, W-20 - (#tabList-1)*SMALL_W)
 		end
 		local pos = {}
 		local x   = 0
 		for i = 1, #tabList do
-			local w  = (i == activeIdx) and expW or SMALL_W
-			pos[i]   = {x = x, w = w}
-			x        = x + w
+			local w = (i == activeIdx) and expW or SMALL_W
+			pos[i]  = {x=x, w=w}
+			x       = x + w
 		end
-		local realTotal = expW + (#tabList - 1) * SMALL_W
-		local offset    = math.max(4, math.floor((W - realTotal) / 2))
+		local offset = math.max(4, math.floor((W - (expW + (#tabList-1)*SMALL_W)) / 2))
 		for i = 1, #tabList do pos[i].x = pos[i].x + offset end
 		return pos, expW
 	end
@@ -237,31 +213,29 @@ function Lib.new(config)
 		curTab              = name
 		pages[name].Visible = true
 		local activeIdx     = 1
-		for i, t in ipairs(tabList) do
-			if t.name == name then activeIdx = i break end
-		end
+		for i, t in ipairs(tabList) do if t.name == name then activeIdx = i break end end
 		local positions = calcPositions(activeIdx)
 		for i, tb in ipairs(tabBtns) do
 			local active = tabList[i].name == name
 			local p      = positions[i]
-			tw(tb.bg, {Position = UDim2.new(0, p.x, 0, 0), Size = UDim2.new(0, p.w, 1, 0)}, 0.3)
+			tw(tb.bg,  {Position = UDim2.new(0,p.x,0,0), Size = UDim2.new(0,p.w,1,0)}, 0.3)
 			if active then
-				tw(tb.sq,  {BackgroundColor3 = Theme.accentLo},         0.25)
-				tw(tb.str, {Color = Theme.accentHi, Thickness = 1.5},   0.25)
-				tw(tb.img, {ImageColor3 = Theme.accentHi},              0.25)
-				tw(tb.lbl, {TextColor3 = Theme.text,  TextTransparency = 0}, 0.25)
-				tw(tb.sub, {TextColor3 = Theme.muted, TextTransparency = 0}, 0.25)
+				tw(tb.sq,  {BackgroundColor3 = Theme.accentLo},           0.25)
+				tw(tb.str, {Color = Theme.accentHi, Thickness = 1.5},     0.25)
+				tw(tb.img, {ImageColor3 = Theme.accentHi},                0.25)
+				tw(tb.lbl, {TextColor3 = Theme.text,  TextTransparency=0},0.25)
+				tw(tb.sub, {TextColor3 = Theme.muted, TextTransparency=0},0.25)
 			else
-				tw(tb.sq,  {BackgroundColor3 = Theme.card},             0.25)
-				tw(tb.str, {Color = Theme.InElementBorder, Thickness = 1}, 0.25)
-				tw(tb.img, {ImageColor3 = Theme.dim},                   0.25)
-				tw(tb.lbl, {TextTransparency = 1},                      0.18)
-				tw(tb.sub, {TextTransparency = 1},                      0.18)
+				tw(tb.sq,  {BackgroundColor3 = Theme.card},               0.25)
+				tw(tb.str, {Color = Theme.InElementBorder, Thickness=1},  0.25)
+				tw(tb.img, {ImageColor3 = Theme.dim},                     0.25)
+				tw(tb.lbl, {TextTransparency=1},                          0.18)
+				tw(tb.sub, {TextTransparency=1},                          0.18)
 			end
 		end
 	end
 
-	local centerP = UDim2.new(0.5, -W/2, 0.5, -H/2)
+	local centerP = UDim2.new(0.5,-W/2,0.5,-H/2)
 
 	local function setChildrenVisible(state)
 		for _, v in ipairs(Main:GetChildren()) do
@@ -275,7 +249,7 @@ function Lib.new(config)
 		Main.Visible            = true
 		Main.BackgroundTransparency = 1
 		setChildrenVisible(false)
-		tw(Main, {BackgroundTransparency = 0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		tw(Main, {BackgroundTransparency=0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 		task.delay(0.1,  function() setChildrenVisible(true) end)
 		task.delay(0.28, function() animating = false end)
 	end
@@ -284,11 +258,8 @@ function Lib.new(config)
 		if animating then return end
 		animating = true
 		setChildrenVisible(false)
-		tw(Main, {BackgroundTransparency = 1}, 0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-		task.delay(0.24, function()
-			Main.Visible = false
-			animating    = false
-		end)
+		tw(Main, {BackgroundTransparency=1}, 0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+		task.delay(0.24, function() Main.Visible = false animating = false end)
 	end
 
 	local visible   = true
@@ -297,13 +268,8 @@ function Lib.new(config)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then return end
 		if input.KeyCode == toggleKey or input.KeyCode == Enum.KeyCode.RightAlt then
-			if visible then
-				visible = false
-				hideGui()
-			else
-				visible = true
-				showGui()
-			end
+			visible = not visible
+			if visible then showGui() else hideGui() end
 		end
 	end)
 
@@ -311,7 +277,7 @@ function Lib.new(config)
 
 	function win:AddTab(cfg)
 		cfg           = cfg or {}
-		local name    = cfg.Name or ("Tab" .. tostring(#tabList + 1))
+		local name    = cfg.Name or ("Tab"..tostring(#tabList+1))
 		local subText = cfg.Sub  or ""
 		local iconId  = cfg.Icon or ICONS.aim
 		if type(iconId) == "string" and not iconId:match("rbxasset") then
@@ -319,89 +285,65 @@ function Lib.new(config)
 		end
 
 		local pg = ni("Frame", {
-			Name                   = name,
-			Size                   = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			Visible                = false,
+			Name = name, Size = UDim2.new(1,0,1,0),
+			BackgroundTransparency = 1, Visible = false,
 		}, PageArea)
 		pages[name] = pg
-		table.insert(tabList, {name = name, sub = subText, icon = iconId})
+		table.insert(tabList, {name=name, sub=subText, icon=iconId})
 
 		local idx       = #tabList
 		local positions = calcPositions(idx)
-
 		for i, tb in ipairs(tabBtns) do
-			local p        = positions[i]
-			tb.bg.Position = UDim2.new(0, p.x, 0, 0)
-			tb.bg.Size     = UDim2.new(0, SMALL_W, 1, 0)
+			local p = positions[i]
+			tb.bg.Position = UDim2.new(0,p.x,0,0)
+			tb.bg.Size     = UDim2.new(0,SMALL_W,1,0)
 		end
 
 		local p  = positions[idx]
 		local bg = ni("Frame", {
-			Size                   = UDim2.new(0, SMALL_W, 1, 0),
-			Position               = UDim2.new(0, p.x, 0, 0),
-			BackgroundTransparency = 1,
-			BorderSizePixel        = 0,
-			ClipsDescendants       = true,
+			Size = UDim2.new(0,SMALL_W,1,0), Position = UDim2.new(0,p.x,0,0),
+			BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true,
 		}, TabBar)
 		local sq = ni("Frame", {
-			Size             = UDim2.new(0, 34, 0, 34),
-			Position         = UDim2.new(0, 5, 0.5, -17),
-			BackgroundColor3 = Theme.card,
-			BorderSizePixel  = 0,
+			Size = UDim2.new(0,34,0,34), Position = UDim2.new(0,5,0.5,-17),
+			BackgroundColor3 = Theme.card, BorderSizePixel = 0,
 		}, bg)
 		corner(sq, 8)
 		local sqStr = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, sq)
-		local img = ni("ImageLabel", {
-			Size                   = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE),
-			Position               = UDim2.new(0.5, -ICON_SIZE/2, 0.5, -ICON_SIZE/2),
-			BackgroundTransparency = 1,
-			Image                  = iconId,
-			ImageColor3            = Theme.dim,
+		local img   = ni("ImageLabel", {
+			Size = UDim2.new(0,ICON_SIZE,0,ICON_SIZE),
+			Position = UDim2.new(0.5,-ICON_SIZE/2,0.5,-ICON_SIZE/2),
+			BackgroundTransparency = 1, Image = iconId, ImageColor3 = Theme.dim,
 		}, sq)
 		local lbl = ni("TextLabel", {
-			Size                   = UDim2.new(1, -46, 0, 15),
-			Position               = UDim2.new(0, 44, 0.5, -13),
-			BackgroundTransparency = 1,
-			Text                   = name,
-			TextColor3             = Theme.text,
-			TextSize               = 11,
-			Font                   = Enum.Font.GothamBold,
-			TextXAlignment         = Enum.TextXAlignment.Left,
-			TextTransparency       = 1,
+			Size = UDim2.new(1,-46,0,15), Position = UDim2.new(0,44,0.5,-13),
+			BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
+			TextSize = 11, Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
 		}, bg)
 		local sub_lbl = ni("TextLabel", {
-			Size                   = UDim2.new(1, -46, 0, 10),
-			Position               = UDim2.new(0, 44, 0.5, 3),
-			BackgroundTransparency = 1,
-			Text                   = subText,
-			TextColor3             = Theme.muted,
-			TextSize               = 8,
-			Font                   = Enum.Font.Gotham,
-			TextXAlignment         = Enum.TextXAlignment.Left,
-			TextTransparency       = 1,
+			Size = UDim2.new(1,-46,0,10), Position = UDim2.new(0,44,0.5,3),
+			BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
+			TextSize = 8, Font = Enum.Font.Gotham,
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
 		}, bg)
 		local btn = ni("TextButton", {
-			Size                   = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			Text                   = "",
-			BorderSizePixel        = 0,
-			ZIndex                 = 10,
+			Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
+			Text = "", BorderSizePixel = 0, ZIndex = 10,
 		}, bg)
 
-		tabBtns[idx] = {name = name, bg = bg, sq = sq, str = sqStr, img = img, lbl = lbl, sub = sub_lbl}
-
+		tabBtns[idx] = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl}
 		btn.MouseButton1Click:Connect(function() switchTo(name) end)
 		btn.MouseEnter:Connect(function()
 			if curTab ~= name then
-				tw(sq,  {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.12)
-				tw(img, {ImageColor3 = Theme.muted},                      0.12)
+				tw(sq,  {BackgroundColor3=Color3.fromRGB(40,40,40)}, 0.12)
+				tw(img, {ImageColor3=Theme.muted}, 0.12)
 			end
 		end)
 		btn.MouseLeave:Connect(function()
 			if curTab ~= name then
-				tw(sq,  {BackgroundColor3 = Theme.card}, 0.12)
-				tw(img, {ImageColor3 = Theme.dim},       0.12)
+				tw(sq,  {BackgroundColor3=Theme.card}, 0.12)
+				tw(img, {ImageColor3=Theme.dim}, 0.12)
 			end
 		end)
 
@@ -409,12 +351,10 @@ function Lib.new(config)
 
 		local function makeSection(secName)
 			local f = ni("Frame", {
-				Name             = secName,
-				BackgroundColor3 = Theme.section,
-				BorderSizePixel  = 0,
+				Name=secName, BackgroundColor3=Theme.section, BorderSizePixel=0,
 			}, pg)
 			corner(f, 10)
-			ni("UIStroke", {Color = Theme.accentHi, Thickness = 1}, f)
+			ni("UIStroke", {Color=Theme.accentHi, Thickness=1}, f)
 			return f
 		end
 
@@ -423,94 +363,75 @@ function Lib.new(config)
 		local sectionRight  = makeSection("SectionRight")
 
 		local function layoutSections()
-			local totalW = PageArea.AbsoluteSize.X - PAD * 2
-			local totalH = PageArea.AbsoluteSize.Y - PAD * 2
+			local totalW = PageArea.AbsoluteSize.X - PAD*2
+			local totalH = PageArea.AbsoluteSize.Y - PAD*2
 			local gap    = PAD
-			local eachW  = math.floor((totalW - gap * 2) / 3)
-			local xL = PAD
-			local xC = PAD + eachW + gap
-			local xR = PAD + (eachW + gap) * 2
-			sectionLeft.Position   = UDim2.new(0, xL, 0, PAD)
-			sectionLeft.Size       = UDim2.new(0, eachW, 0, totalH)
-			sectionCenter.Position = UDim2.new(0, xC, 0, PAD)
-			sectionCenter.Size     = UDim2.new(0, eachW, 0, totalH)
-			sectionRight.Position  = UDim2.new(0, xR, 0, PAD)
-			sectionRight.Size      = UDim2.new(0, eachW, 0, totalH)
+			local eachW  = math.floor((totalW - gap*2) / 3)
+			sectionLeft.Position   = UDim2.new(0,PAD,0,PAD)
+			sectionLeft.Size       = UDim2.new(0,eachW,0,totalH)
+			sectionCenter.Position = UDim2.new(0,PAD+eachW+gap,0,PAD)
+			sectionCenter.Size     = UDim2.new(0,eachW,0,totalH)
+			sectionRight.Position  = UDim2.new(0,PAD+(eachW+gap)*2,0,PAD)
+			sectionRight.Size      = UDim2.new(0,eachW,0,totalH)
 		end
 
 		layoutSections()
 		PageArea:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutSections)
 
-		local tab           = {}
-		tab.Page            = pg
-		tab.SectionLeft     = sectionLeft
-		tab.SectionCenter   = sectionCenter
-		tab.SectionRight    = sectionRight
+		local tab = {}
+		tab.Page          = pg
+		tab.SectionLeft   = sectionLeft
+		tab.SectionCenter = sectionCenter
+		tab.SectionRight  = sectionRight
 
 		function tab:AddSection(cfg2)
-			cfg2           = cfg2 or {}
-			local side     = cfg2.Side  or "Left"
-			local title    = cfg2.Title or ""
-			local iconId2  = cfg2.Icon  or ""
+			cfg2          = cfg2 or {}
+			local side    = cfg2.Side  or "Left"
+			local title   = cfg2.Title or ""
+			local iconId2 = cfg2.Icon  or ""
 			local target
 			if side == "Left"        then target = sectionLeft
 			elseif side == "Center"  then target = sectionCenter
 			elseif side == "Right"   then target = sectionRight
 			end
-
-			if iconId2 ~= "" and type(iconId2) == "string" and not iconId2:match("rbxasset") then
+			if iconId2 ~= "" and not iconId2:match("rbxasset") then
 				iconId2 = ICONS[iconId2] or iconId2
 			end
 
 			local HEADER_H = 32
-
 			if title ~= "" then
 				local titleBar = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, HEADER_H),
-					BackgroundColor3 = Theme.section,
-					BorderSizePixel  = 0,
+					Size = UDim2.new(1,0,0,HEADER_H),
+					BackgroundColor3 = Theme.section, BorderSizePixel = 0,
 				}, target)
-
 				local txtX = 10
 				if iconId2 ~= "" then
 					ni("ImageLabel", {
-						Size                   = UDim2.new(0, 14, 0, 14),
-						Position               = UDim2.new(0, 10, 0.5, -7),
-						BackgroundTransparency = 1,
-						Image                  = iconId2,
-						ImageColor3            = Theme.accentHi,
+						Size = UDim2.new(0,14,0,14), Position = UDim2.new(0,10,0.5,-7),
+						BackgroundTransparency = 1, Image = iconId2, ImageColor3 = Theme.accentHi,
 					}, titleBar)
 					txtX = 28
 				end
-
 				ni("TextLabel", {
-					Size                   = UDim2.new(1, -txtX - 4, 1, 0),
-					Position               = UDim2.new(0, txtX, 0, 0),
-					BackgroundTransparency = 1,
-					Text                   = title,
-					TextColor3             = Theme.accentHi,
-					TextSize               = 11,
-					Font                   = Enum.Font.GothamBold,
-					TextXAlignment         = Enum.TextXAlignment.Left,
+					Size = UDim2.new(1,-txtX-4,1,0), Position = UDim2.new(0,txtX,0,0),
+					BackgroundTransparency = 1, Text = title,
+					TextColor3 = Theme.accentHi, TextSize = 11,
+					Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left,
 				}, titleBar)
-
 				ni("Frame", {
-					Size             = UDim2.new(1, -10, 0, 1),
-					Position         = UDim2.new(0, 5, 1, -1),
-					BackgroundColor3 = Theme.accentLo,
-					BorderSizePixel  = 0,
+					Size = UDim2.new(1,-10,0,1), Position = UDim2.new(0,5,1,-1),
+					BackgroundColor3 = Theme.accentLo, BorderSizePixel = 0,
 				}, titleBar)
 			end
 
-			-- ScrollingFrame for elements
 			local scroll = ni("ScrollingFrame", {
-				Size                 = UDim2.new(1, -4, 1, -HEADER_H),
-				Position             = UDim2.new(0, 2, 0, HEADER_H),
+				Size                 = UDim2.new(1,-4,1,-HEADER_H),
+				Position             = UDim2.new(0,2,0,HEADER_H),
 				BackgroundTransparency = 1,
 				BorderSizePixel      = 0,
 				ScrollBarThickness   = 3,
 				ScrollBarImageColor3 = Theme.accentHi,
-				CanvasSize           = UDim2.new(0, 0, 0, 0),
+				CanvasSize           = UDim2.new(0,0,0,0),
 				ScrollingDirection   = Enum.ScrollingDirection.Y,
 				ClipsDescendants     = true,
 			}, target)
@@ -530,27 +451,25 @@ function Lib.new(config)
 			pad.Parent        = scroll
 
 			local function updateCanvas()
-				local h = layout.AbsoluteContentSize.Y + 12
-				scroll.CanvasSize = UDim2.new(0, 0, 0, h)
+				scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 12)
 			end
 			layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
 
-			local list = scroll
-
-			local sec   = {}
-			sec.Frame   = target
-			sec.Scroll  = scroll
+			local sec      = {}
+			sec.Frame      = target
+			sec.Scroll     = scroll
 
 			local rowCount = 0
-			local function newRow(h, zidx)
+			local function newRow(h)
 				rowCount = rowCount + 1
-				return ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, h),
+				local r  = ni("Frame", {
+					Size             = UDim2.new(1,0,0,h),
 					BackgroundColor3 = Theme.card,
 					BorderSizePixel  = 0,
 					LayoutOrder      = rowCount,
-					ZIndex           = zidx or 1,
 				}, scroll)
+				corner(r, 6)
+				return r
 			end
 
 			-- TOGGLE
@@ -559,57 +478,71 @@ function Lib.new(config)
 				local label    = cfg3.Name     or "Toggle"
 				local default  = cfg3.Default  or false
 				local callback = cfg3.Callback or function() end
-				local state    = default
+				local state    = not not default
 
 				local row = newRow(ELEM_H)
-				corner(row, 6)
-
 				ni("TextLabel", {
-					Size                   = UDim2.new(1, -50, 1, 0),
-					Position               = UDim2.new(0, 8, 0, 0),
-					BackgroundTransparency = 1,
-					Text                   = label,
-					TextColor3             = Theme.text,
-					TextSize               = 10,
-					Font                   = Enum.Font.Gotham,
-					TextXAlignment         = Enum.TextXAlignment.Left,
+					Size = UDim2.new(1,-50,1,0), Position = UDim2.new(0,8,0,0),
+					BackgroundTransparency = 1, Text = label,
+					TextColor3 = Theme.text, TextSize = 10,
+					Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
 				}, row)
 
-				local trkW, trkH = 28, 14
+				local trkW, trkH = 30, 16
 				local track = ni("Frame", {
-					Size             = UDim2.new(0, trkW, 0, trkH),
-					Position         = UDim2.new(1, -trkW - 6, 0.5, -trkH/2),
+					Size             = UDim2.new(0,trkW,0,trkH),
+					Position         = UDim2.new(1,-trkW-6,0.5,-trkH/2),
 					BackgroundColor3 = state and Theme.accentHi or Theme.dim,
 					BorderSizePixel  = 0,
 				}, row)
 				corner(track, trkH)
+				local stroke = ni("UIStroke", {
+					Color     = state and Theme.accentHi or Theme.InElementBorder,
+					Thickness = 1,
+				}, track)
 
+				local knobSz = 12
 				local knob = ni("Frame", {
-					Size             = UDim2.new(0, 10, 0, 10),
-					Position         = state and UDim2.new(1, -12, 0.5, -5) or UDim2.new(0, 2, 0.5, -5),
+					Size             = UDim2.new(0,knobSz,0,knobSz),
+					Position         = state and UDim2.new(1,-knobSz-2,0.5,-knobSz/2) or UDim2.new(0,2,0.5,-knobSz/2),
 					BackgroundColor3 = Theme.text,
 					BorderSizePixel  = 0,
 				}, track)
-				corner(knob, 10)
+				corner(knob, knobSz)
+
+				local function applyState(v, animate)
+					local dur = animate and 0.22 or 0
+					tw(track, {BackgroundColor3 = v and Theme.accentHi or Theme.dim}, dur)
+					tw(stroke, {Color = v and Theme.accentHi or Theme.InElementBorder}, dur)
+					tw(knob,  {Position = v and UDim2.new(1,-knobSz-2,0.5,-knobSz/2) or UDim2.new(0,2,0.5,-knobSz/2)}, dur)
+				end
 
 				local btn = ni("TextButton", {
-					Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
+					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
 					Text = "", BorderSizePixel = 0, ZIndex = 5,
 				}, row)
 				btn.MouseButton1Click:Connect(function()
 					state = not state
-					tw(track, {BackgroundColor3 = state and Theme.accentHi or Theme.dim}, 0.18)
-					tw(knob,  {Position = state and UDim2.new(1,-12,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.18)
+					applyState(state, true)
 					callback(state)
 				end)
 
 				local el = {Value = state}
 				function el:Set(v)
-					state = v
-					tw(track, {BackgroundColor3 = state and Theme.accentHi or Theme.dim}, 0.18)
-					tw(knob,  {Position = state and UDim2.new(1,-12,0.5,-5) or UDim2.new(0,2,0.5,-5)}, 0.18)
+					state    = not not v
+					el.Value = state
+					applyState(state, true)
 					callback(state)
 				end
+				function el:OnChanged(fn)
+					local oldCb = callback
+					callback = function(val)
+						oldCb(val)
+						fn(val)
+					end
+					fn(state)
+				end
+				applyState(state, false)
 				return el
 			end
 
@@ -619,67 +552,107 @@ function Lib.new(config)
 				local label    = cfg3.Name     or "Slider"
 				local minV     = cfg3.Min      or 0
 				local maxV     = cfg3.Max      or 100
+				local rounding = cfg3.Rounding or 1
 				local default  = cfg3.Default  or minV
 				local suffix   = cfg3.Suffix   or ""
 				local callback = cfg3.Callback or function() end
 				local value    = math.clamp(default, minV, maxV)
 
-				local row = newRow(ELEM_H + 10)
-				corner(row, 6)
+				local function roundVal(v)
+					return math.floor(v / rounding + 0.5) * rounding
+				end
 
+				local row = newRow(ELEM_H + 14)
 				ni("TextLabel", {
-					Size = UDim2.new(1,-50,0,14), Position = UDim2.new(0,8,0,4),
+					Size = UDim2.new(1,-50,0,14), Position = UDim2.new(0,8,0,5),
 					BackgroundTransparency = 1, Text = label,
 					TextColor3 = Theme.text, TextSize = 10,
 					Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
 				}, row)
 
 				local valLbl = ni("TextLabel", {
-					Size = UDim2.new(0,40,0,14), Position = UDim2.new(1,-46,0,4),
-					BackgroundTransparency = 1, Text = tostring(value)..suffix,
+					Size = UDim2.new(0,44,0,14), Position = UDim2.new(1,-48,0,5),
+					BackgroundTransparency = 1,
+					Text = tostring(roundVal(value))..suffix,
 					TextColor3 = Theme.accentHi, TextSize = 10,
 					Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Right,
 				}, row)
 
-				local tBg = ni("Frame", {
-					Size = UDim2.new(1,-16,0,4), Position = UDim2.new(0,8,0,24),
+				local railBg = ni("Frame", {
+					Size = UDim2.new(1,-20,0,4), Position = UDim2.new(0,10,0,26),
 					BackgroundColor3 = Theme.dim, BorderSizePixel = 0,
 				}, row)
-				corner(tBg, 4)
+				corner(railBg, 4)
 
 				local pct  = (value - minV) / (maxV - minV)
 				local fill = ni("Frame", {
 					Size = UDim2.new(pct,0,1,0),
 					BackgroundColor3 = Theme.accentHi, BorderSizePixel = 0,
-				}, tBg)
+				}, railBg)
 				corner(fill, 4)
 
-				local dragging = false
-				local function update(absX)
-					local rel  = math.clamp((absX - tBg.AbsolutePosition.X) / tBg.AbsoluteSize.X, 0, 1)
-					value      = math.floor(minV + rel*(maxV-minV) + 0.5)
-					fill.Size  = UDim2.new((value-minV)/(maxV-minV), 0, 1, 0)
-					valLbl.Text = tostring(value)..suffix
+				local dot = ni("Frame", {
+					Size             = UDim2.new(0,12,0,12),
+					AnchorPoint      = Vector2.new(0.5,0.5),
+					Position         = UDim2.new(pct,0,0.5,0),
+					BackgroundColor3 = Theme.text,
+					BorderSizePixel  = 0,
+					ZIndex           = 3,
+				}, railBg)
+				corner(dot, 12)
+				ni("UIStroke", {Color = Theme.accentHi, Thickness = 1.5}, dot)
+
+				local function setVal(v, animate)
+					value        = roundVal(math.clamp(v, minV, maxV))
+					local p      = (value - minV) / (maxV - minV)
+					local dur    = animate and 0.1 or 0
+					tw(fill, {Size = UDim2.new(p,0,1,0)}, dur)
+					tw(dot,  {Position = UDim2.new(p,0,0.5,0)}, dur)
+					valLbl.Text  = tostring(value)..suffix
 					callback(value)
 				end
 
-				local btn = ni("TextButton", {
-					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-					Text = "", BorderSizePixel = 0, ZIndex = 5,
+				local dragging = false
+				local function onDrag(absX)
+					local rel = math.clamp((absX - railBg.AbsolutePosition.X) / railBg.AbsoluteSize.X, 0, 1)
+					setVal(minV + rel*(maxV-minV), false)
+				end
+
+				local hitBtn = ni("TextButton", {
+					Size = UDim2.new(1,0,0,ELEM_H+14), Position = UDim2.new(0,0,0,0),
+					BackgroundTransparency = 1, Text = "", BorderSizePixel = 0, ZIndex = 5,
 				}, row)
-				btn.MouseButton1Down:Connect(function(x) dragging = true update(x) end)
-				btn.MouseButton1Up:Connect(function() dragging = false end)
+				hitBtn.MouseButton1Down:Connect(function(x) dragging = true onDrag(x) end)
+				hitBtn.MouseButton1Up:Connect(function() dragging = false end)
+				dot.InputBegan:Connect(function(i)
+					if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+				end)
+				dot.InputEnded:Connect(function(i)
+					if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+				end)
 				UserInputService.InputChanged:Connect(function(i)
-					if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then update(i.Position.X) end
+					if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+						onDrag(i.Position.X)
+					end
+				end)
+				UserInputService.InputEnded:Connect(function(i)
+					if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
 				end)
 
 				local el = {Value = value}
 				function el:Set(v)
-					value       = math.clamp(v, minV, maxV)
-					fill.Size   = UDim2.new((value-minV)/(maxV-minV), 0, 1, 0)
-					valLbl.Text = tostring(value)..suffix
-					callback(value)
+					setVal(v, true)
+					el.Value = value
 				end
+				function el:OnChanged(fn)
+					local oldCb = callback
+					callback = function(val)
+						oldCb(val)
+						fn(val)
+					end
+					fn(value)
+				end
+				setVal(value, false)
 				return el
 			end
 
@@ -691,10 +664,9 @@ function Lib.new(config)
 				local callback = cfg3.Callback or function() end
 				local key      = default
 				local listening = false
+				local toggled   = false
 
 				local row = newRow(ELEM_H)
-				corner(row, 6)
-
 				ni("TextLabel", {
 					Size = UDim2.new(1,-70,1,0), Position = UDim2.new(0,8,0,0),
 					BackgroundTransparency = 1, Text = label,
@@ -703,17 +675,19 @@ function Lib.new(config)
 				}, row)
 
 				local kBox = ni("Frame", {
-					Size = UDim2.new(0,58,0,18), Position = UDim2.new(1,-64,0.5,-9),
+					Size = UDim2.new(0,60,0,18), Position = UDim2.new(1,-66,0.5,-9),
 					BackgroundColor3 = Theme.bg, BorderSizePixel = 0,
 				}, row)
 				corner(kBox, 4)
-				ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, kBox)
+				local kStr = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, kBox)
 
+				local keyName = type(key) == "userdata" and key.Name or tostring(key)
 				local kLbl = ni("TextLabel", {
 					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-					Text = key.Name, TextColor3 = Theme.accentHi,
+					Text = keyName, TextColor3 = Theme.accentHi,
 					TextSize = 9, Font = Enum.Font.GothamBold,
 					TextXAlignment = Enum.TextXAlignment.Center,
+					TextTruncate = Enum.TextTruncate.AtEnd,
 				}, kBox)
 
 				local btn = ni("TextButton", {
@@ -724,24 +698,41 @@ function Lib.new(config)
 					listening      = true
 					kLbl.Text      = "..."
 					kLbl.TextColor3 = Theme.muted
-					ni("UIStroke", {Color = Theme.accentHi, Thickness = 1}, kBox)
+					tw(kStr, {Color = Theme.accentHi}, 0.12)
 				end)
 				UserInputService.InputBegan:Connect(function(input, processed)
-					if not listening then return end
-					if input.UserInputType == Enum.UserInputType.Keyboard then
-						listening       = false
-						key             = input.KeyCode
-						kLbl.Text       = key.Name
-						kLbl.TextColor3 = Theme.accentHi
-						ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, kBox)
-						callback(key)
+					if listening then
+						if input.UserInputType == Enum.UserInputType.Keyboard then
+							listening       = false
+							key             = input.KeyCode
+							kLbl.Text       = key.Name
+							kLbl.TextColor3 = Theme.accentHi
+							tw(kStr, {Color = Theme.InElementBorder}, 0.12)
+							callback(key)
+						end
 					end
 				end)
 
-				return {Value = key}
+				local el = {Value = key, Toggled = toggled}
+				function el:Set(k)
+					key           = k
+					el.Value      = k
+					local n       = type(k) == "userdata" and k.Name or tostring(k)
+					kLbl.Text     = n
+					callback(key)
+				end
+				function el:OnChanged(fn)
+					local oldCb = callback
+					callback = function(val)
+						oldCb(val)
+						fn(val)
+					end
+					fn(key)
+				end
+				return el
 			end
 
-			-- DROPDOWN (MENU) — expands inside scroll
+			-- DROPDOWN
 			function sec:AddDropdown(cfg3)
 				cfg3           = cfg3 or {}
 				local label    = cfg3.Name     or "Menu"
@@ -751,23 +742,19 @@ function Lib.new(config)
 				local selected = default
 				local open     = false
 
-				local OPT_H   = 20
+				local OPT_H     = 22
 				local totalOptH = #options * OPT_H
 
-				-- wrapper that grows when open
 				rowCount = rowCount + 1
 				local wrapper = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, ELEM_H),
-					BackgroundTransparency = 1,
-					BorderSizePixel  = 0,
-					LayoutOrder      = rowCount,
-					ClipsDescendants = false,
+					Size = UDim2.new(1,0,0,ELEM_H),
+					BackgroundTransparency = 1, BorderSizePixel = 0,
+					LayoutOrder = rowCount, ClipsDescendants = false,
 				}, scroll)
 
 				local row = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, ELEM_H),
-					BackgroundColor3 = Theme.card,
-					BorderSizePixel  = 0,
+					Size = UDim2.new(1,0,0,ELEM_H),
+					BackgroundColor3 = Theme.card, BorderSizePixel = 0,
 				}, wrapper)
 				corner(row, 6)
 
@@ -779,57 +766,67 @@ function Lib.new(config)
 				}, row)
 
 				local selBox = ni("Frame", {
-					Size = UDim2.new(0,68,0,18), Position = UDim2.new(1,-74,0.5,-9),
+					Size = UDim2.new(0,70,0,18), Position = UDim2.new(1,-76,0.5,-9),
 					BackgroundColor3 = Theme.bg, BorderSizePixel = 0,
 				}, row)
 				corner(selBox, 4)
 				ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, selBox)
 
 				local selLbl = ni("TextLabel", {
-					Size = UDim2.new(1,-14,1,0), Position = UDim2.new(0,4,0,0),
+					Size = UDim2.new(1,-16,1,0), Position = UDim2.new(0,4,0,0),
 					BackgroundTransparency = 1, Text = selected,
 					TextColor3 = Theme.accentHi, TextSize = 9,
-					Font = Enum.Font.GothamBold,
-					TextXAlignment = Enum.TextXAlignment.Left,
+					Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left,
 					TextTruncate = Enum.TextTruncate.AtEnd,
 				}, selBox)
-
 				ni("TextLabel", {
 					Size = UDim2.new(0,12,1,0), Position = UDim2.new(1,-13,0,0),
-					BackgroundTransparency = 1, Text = "v",
-					TextColor3 = Theme.muted, TextSize = 8,
+					BackgroundTransparency = 1, Text = "▾",
+					TextColor3 = Theme.muted, TextSize = 10,
 					Font = Enum.Font.GothamBold,
 				}, selBox)
 
 				local dropdown = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, 0),
-					Position         = UDim2.new(0, 0, 0, ELEM_H + 2),
-					BackgroundColor3 = Theme.card,
-					BorderSizePixel  = 0,
-					ClipsDescendants = true,
-					ZIndex           = 20,
-					Visible          = false,
+					Size = UDim2.new(1,0,0,0),
+					Position = UDim2.new(0,0,0,ELEM_H+2),
+					BackgroundColor3 = Theme.card, BorderSizePixel = 0,
+					ClipsDescendants = true, ZIndex = 20, Visible = false,
 				}, wrapper)
 				corner(dropdown, 6)
 				ni("UIStroke", {Color = Theme.accentHi, Thickness = 1}, dropdown)
 
-				local optList = ni("Frame", {
+				local optHolder = ni("Frame", {
 					Size = UDim2.new(1,0,0,totalOptH),
 					BackgroundTransparency = 1, ZIndex = 21,
 				}, dropdown)
-				ni("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0,0)}, optList)
+				ni("UIListLayout", {
+					SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0,0),
+				}, optHolder)
 
 				for i2, opt in ipairs(options) do
+					local isSelected = (opt == selected)
 					local optBtn = ni("TextButton", {
 						Size = UDim2.new(1,0,0,OPT_H),
-						BackgroundTransparency = 1,
-						Text = "  "..opt,
-						TextColor3 = Theme.muted,
+						BackgroundColor3 = isSelected and Theme.accentLo or Theme.card,
+						BorderSizePixel = 0, Text = "",
+						ZIndex = 22, LayoutOrder = i2,
+					}, optHolder)
+					ni("TextLabel", {
+						Size = UDim2.new(1,-8,1,0), Position = UDim2.new(0,8,0,0),
+						BackgroundTransparency = 1, Text = opt,
+						TextColor3 = isSelected and Theme.accentHi or Theme.muted,
 						TextSize = 9, Font = Enum.Font.Gotham,
 						TextXAlignment = Enum.TextXAlignment.Left,
-						ZIndex = 22, LayoutOrder = i2,
-					}, optList)
+					}, optBtn)
 					optBtn.MouseButton1Click:Connect(function()
+						for _, ch in ipairs(optHolder:GetChildren()) do
+							if ch:IsA("TextButton") then
+								local lbl2 = ch:FindFirstChildWhichIsA("TextLabel")
+								local sel2 = lbl2 and lbl2.Text == opt
+								tw(ch, {BackgroundColor3 = sel2 and Theme.accentLo or Theme.card}, 0.12)
+								if lbl2 then tw(lbl2, {TextColor3 = sel2 and Theme.accentHi or Theme.muted}, 0.12) end
+							end
+						end
 						selected    = opt
 						selLbl.Text = opt
 						open        = false
@@ -838,8 +835,12 @@ function Lib.new(config)
 						task.delay(0.19, function() dropdown.Visible = false end)
 						callback(selected)
 					end)
-					optBtn.MouseEnter:Connect(function() tw(optBtn,{TextColor3=Theme.text},0.1) end)
-					optBtn.MouseLeave:Connect(function() tw(optBtn,{TextColor3=Theme.muted},0.1) end)
+					optBtn.MouseEnter:Connect(function()
+						if opt ~= selected then tw(optBtn, {BackgroundColor3=Color3.fromRGB(38,38,38)}, 0.1) end
+					end)
+					optBtn.MouseLeave:Connect(function()
+						if opt ~= selected then tw(optBtn, {BackgroundColor3=Theme.card}, 0.1) end
+					end)
 				end
 
 				local toggleBtn = ni("TextButton", {
@@ -851,7 +852,7 @@ function Lib.new(config)
 					if open then
 						dropdown.Visible = true
 						dropdown.Size    = UDim2.new(1,0,0,0)
-						wrapper.Size     = UDim2.new(1,0,0,ELEM_H + totalOptH + 4)
+						wrapper.Size     = UDim2.new(1,0,0,ELEM_H+totalOptH+4)
 						tw(dropdown, {Size = UDim2.new(1,0,0,totalOptH)}, 0.2)
 					else
 						wrapper.Size = UDim2.new(1,0,0,ELEM_H)
@@ -864,7 +865,37 @@ function Lib.new(config)
 				function el:Set(v)
 					selected    = v
 					selLbl.Text = v
+					el.Value    = v
 					callback(v)
+				end
+				function el:SetOptions(newOpts)
+					options     = newOpts
+					totalOptH   = #options * OPT_H
+					for _, ch in ipairs(optHolder:GetChildren()) do
+						if not ch:IsA("UIListLayout") then ch:Destroy() end
+					end
+					for i2, opt in ipairs(options) do
+						local optBtn = ni("TextButton", {
+							Size = UDim2.new(1,0,0,OPT_H),
+							BackgroundColor3 = Theme.card, BorderSizePixel = 0,
+							Text = "", ZIndex = 22, LayoutOrder = i2,
+						}, optHolder)
+						ni("TextLabel", {
+							Size = UDim2.new(1,-8,1,0), Position = UDim2.new(0,8,0,0),
+							BackgroundTransparency = 1, Text = opt,
+							TextColor3 = Theme.muted, TextSize = 9,
+							Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
+						}, optBtn)
+					end
+					optHolder.Size = UDim2.new(1,0,0,totalOptH)
+				end
+				function el:OnChanged(fn)
+					local oldCb = callback
+					callback = function(val)
+						oldCb(val)
+						fn(val)
+					end
+					fn(selected)
 				end
 				return el
 			end
@@ -875,32 +906,31 @@ function Lib.new(config)
 				local title = cfg3.Title or ""
 				local text  = cfg3.Text  or ""
 				local lines = math.max(1, math.ceil(#text / 26))
-				local rowH  = 14 + lines * 12 + 6
+				local rowH  = (title ~= "" and 14 or 0) + lines*12 + 10
 
 				local row = newRow(rowH)
-				corner(row, 6)
-
 				if title ~= "" then
 					ni("TextLabel", {
-						Size = UDim2.new(1,-10,0,13), Position = UDim2.new(0,8,0,4),
+						Size = UDim2.new(1,-10,0,13), Position = UDim2.new(0,8,0,5),
 						BackgroundTransparency = 1, Text = title,
 						TextColor3 = Theme.accentHi, TextSize = 10,
-						Font = Enum.Font.GothamBold,
-						TextXAlignment = Enum.TextXAlignment.Left,
+						Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left,
 					}, row)
 				end
-
-				ni("TextLabel", {
-					Size     = UDim2.new(1,-10,1, title ~= "" and -16 or 0),
-					Position = UDim2.new(0,8,0, title ~= "" and 16 or 4),
+				local txtLbl = ni("TextLabel", {
+					Size     = UDim2.new(1,-10,0,lines*12),
+					Position = UDim2.new(0,8,0, title ~= "" and 18 or 5),
 					BackgroundTransparency = 1, Text = text,
 					TextColor3 = Theme.muted, TextSize = 9,
-					Font = Enum.Font.Gotham,
-					TextXAlignment = Enum.TextXAlignment.Left,
+					Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
 					TextWrapped = true,
 				}, row)
 
-				return {Frame = row}
+				local el = {Frame = row}
+				function el:Set(t)
+					txtLbl.Text = t
+				end
+				return el
 			end
 
 			-- LABEL
@@ -910,20 +940,22 @@ function Lib.new(config)
 				local color = cfg3.Color or Theme.muted
 
 				local row = newRow(ELEM_H)
-				corner(row, 6)
-
-				ni("TextLabel", {
+				local lbl = ni("TextLabel", {
 					Size = UDim2.new(1,-10,1,0), Position = UDim2.new(0,8,0,0),
 					BackgroundTransparency = 1, Text = text,
 					TextColor3 = color, TextSize = 10,
-					Font = Enum.Font.Gotham,
-					TextXAlignment = Enum.TextXAlignment.Left,
+					Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
 				}, row)
 
-				return {Frame = row}
+				local el = {Frame = row}
+				function el:Set(t, c)
+					lbl.Text = t
+					if c then lbl.TextColor3 = c end
+				end
+				return el
 			end
 
-			-- COLOR PICKER — expands inside scroll
+			-- COLOR PICKER
 			function sec:AddColorPicker(cfg3)
 				cfg3           = cfg3 or {}
 				local label    = cfg3.Name     or "Color"
@@ -932,21 +964,17 @@ function Lib.new(config)
 				local color    = default
 				local open     = false
 
-				local PICKER_H = 90
+				local H_PICKER = 96
 				rowCount = rowCount + 1
-				local wrapper  = ni("Frame", {
-					Size                   = UDim2.new(1,0,0,ELEM_H),
-					BackgroundTransparency = 1,
-					BorderSizePixel        = 0,
-					LayoutOrder            = rowCount,
-					ClipsDescendants       = false,
+				local wrapper = ni("Frame", {
+					Size = UDim2.new(1,0,0,ELEM_H),
+					BackgroundTransparency = 1, BorderSizePixel = 0,
+					LayoutOrder = rowCount, ClipsDescendants = false,
 				}, scroll)
 
 				local row = ni("Frame", {
-					Size             = UDim2.new(1,0,0,ELEM_H),
-					BackgroundColor3 = Theme.card,
-					BorderSizePixel  = 0,
-					ZIndex           = 10,
+					Size = UDim2.new(1,0,0,ELEM_H),
+					BackgroundColor3 = Theme.card, BorderSizePixel = 0, ZIndex = 10,
 				}, wrapper)
 				corner(row, 6)
 
@@ -954,8 +982,7 @@ function Lib.new(config)
 					Size = UDim2.new(1,-50,1,0), Position = UDim2.new(0,8,0,0),
 					BackgroundTransparency = 1, Text = label,
 					TextColor3 = Theme.text, TextSize = 10,
-					Font = Enum.Font.Gotham,
-					TextXAlignment = Enum.TextXAlignment.Left,
+					Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
 				}, row)
 
 				local preview = ni("Frame", {
@@ -966,23 +993,19 @@ function Lib.new(config)
 				ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, preview)
 
 				local picker = ni("Frame", {
-					Size             = UDim2.new(1,0,0,PICKER_H),
-					Position         = UDim2.new(0,0,0,ELEM_H+2),
-					BackgroundColor3 = Theme.bg,
-					BorderSizePixel  = 0,
-					Visible          = false,
-					ZIndex           = 20,
+					Size = UDim2.new(1,0,0,H_PICKER),
+					Position = UDim2.new(0,0,0,ELEM_H+2),
+					BackgroundColor3 = Theme.bg, BorderSizePixel = 0,
+					Visible = false, ZIndex = 20,
 				}, wrapper)
 				corner(picker, 8)
 				ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, picker)
 
 				local huebar = ni("Frame", {
-					Size = UDim2.new(1,-12,0,12), Position = UDim2.new(0,6,0,8),
-					BackgroundColor3 = Color3.fromRGB(255,255,255),
-					BorderSizePixel = 0, ZIndex = 21,
+					Size = UDim2.new(1,-12,0,14), Position = UDim2.new(0,6,0,8),
+					BackgroundColor3 = Color3.fromRGB(255,255,255), BorderSizePixel = 0, ZIndex = 21,
 				}, picker)
-				corner(huebar, 6)
-
+				corner(huebar, 7)
 				local hueGrad = Instance.new("UIGradient")
 				hueGrad.Color = ColorSequence.new({
 					ColorSequenceKeypoint.new(0,    Color3.fromRGB(255,0,0)),
@@ -996,19 +1019,27 @@ function Lib.new(config)
 				hueGrad.Parent = huebar
 
 				local satFrame = ni("Frame", {
-					Size = UDim2.new(1,-12,0,50), Position = UDim2.new(0,6,0,26),
-					BackgroundColor3 = Color3.fromRGB(255,255,255),
-					BorderSizePixel = 0, ZIndex = 21,
+					Size = UDim2.new(1,-12,0,54), Position = UDim2.new(0,6,0,28),
+					BackgroundColor3 = Color3.fromRGB(255,255,255), BorderSizePixel = 0, ZIndex = 21,
 				}, picker)
 				corner(satFrame, 4)
 
-				local hueH2, satV2 = 0, 1
+				local hueH2, satV2, briV = 0, 1, 1
+
 				local satGrad = Instance.new("UIGradient")
 				satGrad.Color  = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(255,0,0))
 				satGrad.Parent = satFrame
 
+				local briGrad = Instance.new("UIGradient")
+				briGrad.Color       = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromRGB(0,0,0))
+				briGrad.Rotation    = 90
+				briGrad.Transparency = NumberSequence.new({
+					NumberSequenceKeypoint.new(0, 0),
+					NumberSequenceKeypoint.new(1, 0),
+				})
+
 				local function updateColor()
-					color                    = Color3.fromHSV(hueH2, satV2, 1)
+					color                    = Color3.fromHSV(hueH2, satV2, briV)
 					preview.BackgroundColor3 = color
 					satGrad.Color            = ColorSequence.new(Color3.fromRGB(255,255,255), Color3.fromHSV(hueH2,1,1))
 					callback(color)
@@ -1017,8 +1048,7 @@ function Lib.new(config)
 				local hueDrag, satDrag = false, false
 
 				local hueBtn = ni("TextButton", {
-					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-					Text = "", ZIndex = 22,
+					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1, Text = "", ZIndex = 22,
 				}, huebar)
 				hueBtn.MouseButton1Down:Connect(function(x)
 					hueDrag = true
@@ -1028,8 +1058,7 @@ function Lib.new(config)
 				hueBtn.MouseButton1Up:Connect(function() hueDrag = false end)
 
 				local satBtn = ni("TextButton", {
-					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-					Text = "", ZIndex = 22,
+					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1, Text = "", ZIndex = 22,
 				}, satFrame)
 				satBtn.MouseButton1Down:Connect(function(x)
 					satDrag = true
@@ -1051,8 +1080,7 @@ function Lib.new(config)
 				end)
 				UserInputService.InputEnded:Connect(function(i)
 					if i.UserInputType == Enum.UserInputType.MouseButton1 then
-						hueDrag = false
-						satDrag = false
+						hueDrag = false satDrag = false
 					end
 				end)
 
@@ -1063,14 +1091,26 @@ function Lib.new(config)
 				openBtn.MouseButton1Click:Connect(function()
 					open           = not open
 					picker.Visible = open
-					wrapper.Size   = open and UDim2.new(1,0,0,ELEM_H + PICKER_H + 4) or UDim2.new(1,0,0,ELEM_H)
+					wrapper.Size   = open and UDim2.new(1,0,0,ELEM_H+H_PICKER+4) or UDim2.new(1,0,0,ELEM_H)
 				end)
 
 				local el = {Value = color}
 				function el:Set(c)
 					color                    = c
+					el.Value                 = c
 					preview.BackgroundColor3 = c
+					local h, s, v            = Color3.toHSV(c)
+					hueH2 = h satV2 = s briV = v
+					updateColor()
 					callback(c)
+				end
+				function el:OnChanged(fn)
+					local oldCb = callback
+					callback = function(val)
+						oldCb(val)
+						fn(val)
+					end
+					fn(color)
 				end
 				return el
 			end
