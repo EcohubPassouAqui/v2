@@ -76,7 +76,7 @@ function Lib.new(config)
 		BorderSizePixel  = 0,
 		Active           = true,
 		Draggable        = true,
-		Visible          = true,
+		Visible          = false,
 		ClipsDescendants = true,
 	}, ScreenGui)
 	corner(Main, 12)
@@ -274,6 +274,9 @@ function Lib.new(config)
 	local function showGui()
 		if animating then return end
 		animating = true
+		if curTab == nil and #tabList > 0 then
+			switchTo(tabList[1].name)
+		end
 		Main.Visible                = true
 		Main.BackgroundTransparency = 1
 		setChildrenVisible(false)
@@ -297,7 +300,7 @@ function Lib.new(config)
 		end)
 	end
 
-	local visible = true
+	local visible = false
 	local toggleKey = config.Toggle or Enum.KeyCode.LeftAlt
 
 	UserInputService.InputBegan:Connect(function(input, processed)
