@@ -31,7 +31,7 @@ local Theme = {
 	sectionTitle    = Color3.fromRGB(160, 100, 255),
 }
 
-local W, H = 780, 480
+local W, H = 550, 350
 local TOPBAR = 62
 
 local function ni(class, props, parent)
