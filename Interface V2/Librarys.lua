@@ -8,11 +8,8 @@ local AUTOLOAD_FILE = "ecohub_autoload.txt"
 local SCRIPT_URL    = ""
 
 local function writeFile(path, content)
-	if writefile then
-		pcall(writefile, path, content)
-	elseif savefile then
-		pcall(savefile, path, content)
-	end
+	if writefile then pcall(writefile, path, content)
+	elseif savefile then pcall(savefile, path, content) end
 end
 
 local function readFile(path)
@@ -23,33 +20,18 @@ local function readFile(path)
 	return nil
 end
 
-local function fileExists(path)
-	if isfile then
-		local ok, res = pcall(isfile, path)
-		return ok and res
-	end
-	return false
-end
-
 local function deleteFile(path)
-	if delfile then
-		pcall(delfile, path)
-	elseif removefile then
-		pcall(removefile, path)
-	end
+	if delfile then pcall(delfile, path)
+	elseif removefile then pcall(removefile, path) end
 end
 
 local function getAutoLoad()
-	local data = readFile(AUTOLOAD_FILE)
-	return data == "true"
+	return readFile(AUTOLOAD_FILE) == "true"
 end
 
 local function setAutoLoad(val)
-	if val then
-		writeFile(AUTOLOAD_FILE, "true")
-	else
-		deleteFile(AUTOLOAD_FILE)
-	end
+	if val then writeFile(AUTOLOAD_FILE, "true")
+	else deleteFile(AUTOLOAD_FILE) end
 end
 
 local ICONS = {
@@ -74,6 +56,15 @@ local Theme = {
 	text            = Color3.fromRGB(235, 235, 235),
 	muted           = Color3.fromRGB(130, 130, 130),
 	dim             = Color3.fromRGB(70, 70, 70),
+	elem            = Color3.fromRGB(28, 28, 28),
+	elemHover       = Color3.fromRGB(36, 36, 36),
+	sep             = Color3.fromRGB(45, 45, 45),
+	toggleOff       = Color3.fromRGB(55, 55, 55),
+	toggleOn        = Color3.fromRGB(160, 100, 255),
+	sliderTrack     = Color3.fromRGB(45, 45, 45),
+	sliderFill      = Color3.fromRGB(160, 100, 255),
+	btnBg           = Color3.fromRGB(32, 32, 32),
+	btnBorder       = Color3.fromRGB(60, 60, 60),
 }
 
 local W, H   = 780, 480
@@ -92,12 +83,616 @@ end
 
 local function tw(obj, props, dur, style, dir)
 	TweenService:Create(obj,
-		TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
+		TweenInfo.new(dur or 0.2, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
 		props):Play()
+end
+
+local function stroke(parent, color, thickness)
+	return ni("UIStroke", {Color = color or Theme.InElementBorder, Thickness = thickness or 1}, parent)
+end
+
+local function sep(parent)
+	ni("Frame", {
+		Size             = UDim2.new(1, 0, 0, 1),
+		BackgroundColor3 = Theme.sep,
+		BorderSizePixel  = 0,
+	}, parent)
 end
 
 local Lib = {}
 Lib.Icons = ICONS
+
+local function BuildSection(sectionName, scrollFrame)
+	local Outer = ni("Frame", {
+		Size             = UDim2.new(1, 0, 0, 0),
+		BackgroundColor3 = Color3.fromRGB(26, 26, 26),
+		BorderSizePixel  = 0,
+		AutomaticSize    = Enum.AutomaticSize.Y,
+	}, scrollFrame)
+	corner(Outer, 6)
+	stroke(Outer, Color3.fromRGB(55, 55, 55), 1)
+
+	local Header = ni("Frame", {
+		Size             = UDim2.new(1, 0, 0, 28),
+		BackgroundColor3 = Color3.fromRGB(160, 100, 255),
+		BorderSizePixel  = 0,
+	}, Outer)
+	corner(Header, 6)
+	ni("Frame", {
+		Size             = UDim2.new(1, 0, 0, 10),
+		Position         = UDim2.new(0, 0, 1, -10),
+		BackgroundColor3 = Color3.fromRGB(160, 100, 255),
+		BorderSizePixel  = 0,
+	}, Header)
+
+	ni("TextLabel", {
+		Size                   = UDim2.new(1, -12, 1, 0),
+		Position               = UDim2.new(0, 10, 0, 0),
+		BackgroundTransparency = 1,
+		Text                   = sectionName or "Section",
+		TextColor3             = Color3.fromRGB(255, 255, 255),
+		TextSize               = 11,
+		Font                   = Enum.Font.GothamBold,
+		TextXAlignment         = Enum.TextXAlignment.Left,
+	}, Header)
+
+	local Content = ni("Frame", {
+		Size              = UDim2.new(1, 0, 0, 0),
+		Position          = UDim2.new(0, 0, 0, 28),
+		BackgroundTransparency = 1,
+		BorderSizePixel   = 0,
+		AutomaticSize     = Enum.AutomaticSize.Y,
+	}, Outer)
+
+	ni("UIListLayout", {
+		Parent    = Content,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding   = UDim.new(0, 0),
+	})
+
+	local SecObj = {}
+	local elemCount = 0
+
+	local function mkElem(h)
+		elemCount = elemCount + 1
+		local f = ni("Frame", {
+			Size             = UDim2.new(1, 0, 0, h),
+			BackgroundColor3 = Theme.elem,
+			BorderSizePixel  = 0,
+			LayoutOrder      = elemCount,
+		}, Content)
+		if elemCount > 1 then
+			ni("Frame", {
+				Size             = UDim2.new(1, 0, 0, 1),
+				BackgroundColor3 = Theme.sep,
+				BorderSizePixel  = 0,
+				ZIndex           = 2,
+			}, f)
+		end
+		return f
+	end
+
+	function SecObj:addToggle(labelText, default, callback, bindKey)
+		local cb = callback or function() end
+		local On = default == true
+		local Listening = false
+		local CKey = bindKey or nil
+
+		local f = mkElem(32)
+
+		local Lbl = ni("TextLabel", {
+			Size                   = UDim2.new(1, -90, 1, 0),
+			Position               = UDim2.new(0, 10, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = labelText or "Toggle",
+			TextColor3             = Theme.text,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamSemibold,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+		}, f)
+
+		local TglBg = ni("Frame", {
+			Size             = UDim2.new(0, 16, 0, 16),
+			Position         = UDim2.new(1, -36, 0.5, -8),
+			BackgroundColor3 = On and Theme.toggleOn or Theme.toggleOff,
+			BorderSizePixel  = 0,
+		}, f)
+		corner(TglBg, 3)
+		stroke(TglBg, On and Color3.fromRGB(180, 120, 255) or Color3.fromRGB(70, 70, 70), 1)
+
+		local TglMark = ni("Frame", {
+			Size                   = UDim2.new(0, 8, 0, 8),
+			Position               = UDim2.new(0.5, -4, 0.5, -4),
+			BackgroundColor3       = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = On and 0 or 1,
+			BorderSizePixel        = 0,
+		}, TglBg)
+		corner(TglMark, 2)
+
+		local KbFrame, KbLabel
+		if bindKey ~= nil or true then
+			KbFrame = ni("Frame", {
+				Size             = UDim2.new(0, 28, 0, 16),
+				Position         = UDim2.new(1, -68, 0.5, -8),
+				BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+				BorderSizePixel  = 0,
+			}, f)
+			corner(KbFrame, 3)
+			stroke(KbFrame, Color3.fromRGB(60, 60, 60), 1)
+
+			KbLabel = ni("TextLabel", {
+				Size                   = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Text                   = CKey and "[" .. CKey.Name:sub(1,3):upper() .. "]" or "[?]",
+				TextColor3             = Theme.muted,
+				TextSize               = 8,
+				Font                   = Enum.Font.GothamBold,
+			}, KbFrame)
+		end
+
+		local function updateVisuals()
+			tw(TglBg, {BackgroundColor3 = On and Theme.toggleOn or Theme.toggleOff}, 0.15)
+			tw(TglMark, {BackgroundTransparency = On and 0 or 1}, 0.15)
+		end
+
+		local HitBtn = ni("TextButton", {
+			Size                   = UDim2.new(1, KbFrame and -72 or -40, 1, 0),
+			BackgroundTransparency = 1,
+			Text                   = "",
+			BorderSizePixel        = 0,
+			ZIndex                 = 5,
+		}, f)
+
+		HitBtn.MouseEnter:Connect(function() tw(f, {BackgroundColor3 = Theme.elemHover}, 0.1) end)
+		HitBtn.MouseLeave:Connect(function() tw(f, {BackgroundColor3 = Theme.elem}, 0.1) end)
+		HitBtn.MouseButton1Click:Connect(function()
+			if Listening then return end
+			On = not On
+			updateVisuals()
+			pcall(cb, On)
+		end)
+
+		if KbFrame then
+			local KbBtn = ni("TextButton", {
+				Size                   = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Text                   = "",
+				BorderSizePixel        = 0,
+				ZIndex                 = 6,
+			}, KbFrame)
+
+			KbBtn.MouseButton1Click:Connect(function()
+				if Listening then return end
+				Listening = true
+				KbLabel.Text = "[...]"
+				KbLabel.TextColor3 = Theme.accentHi
+			end)
+
+			UserInputService.InputBegan:Connect(function(inp, gp)
+				if inp.UserInputType ~= Enum.UserInputType.Keyboard then return end
+				if Listening then
+					Listening = false
+					if inp.KeyCode == Enum.KeyCode.Escape then
+						CKey = nil
+						KbLabel.Text = "[?]"
+					else
+						CKey = inp.KeyCode
+						KbLabel.Text = "[" .. inp.KeyCode.Name:sub(1,3):upper() .. "]"
+					end
+					KbLabel.TextColor3 = Theme.muted
+					return
+				end
+				if not gp and CKey and inp.KeyCode == CKey then
+					On = not On
+					updateVisuals()
+					pcall(cb, On)
+				end
+			end)
+		end
+
+		updateVisuals()
+
+		local ctrl = {}
+		function ctrl:Set(v) On = v == true updateVisuals() pcall(cb, On) end
+		function ctrl:Get() return On end
+		return ctrl
+	end
+
+	function SecObj:addButton(labelText, callback)
+		local cb = callback or function() end
+		local f = mkElem(34)
+
+		local BtnFrame = ni("Frame", {
+			Size             = UDim2.new(1, -16, 0, 22),
+			Position         = UDim2.new(0, 8, 0.5, -11),
+			BackgroundColor3 = Theme.btnBg,
+			BorderSizePixel  = 0,
+		}, f)
+		corner(BtnFrame, 4)
+		stroke(BtnFrame, Theme.btnBorder, 1)
+
+		ni("TextLabel", {
+			Size                   = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			Text                   = labelText or "Button",
+			TextColor3             = Theme.text,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamSemibold,
+		}, BtnFrame)
+
+		local BtnHit = ni("TextButton", {
+			Size                   = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			Text                   = "",
+			BorderSizePixel        = 0,
+			ZIndex                 = 5,
+		}, BtnFrame)
+
+		BtnHit.MouseEnter:Connect(function()
+			tw(BtnFrame, {BackgroundColor3 = Color3.fromRGB(42, 42, 42)}, 0.1)
+		end)
+		BtnHit.MouseLeave:Connect(function()
+			tw(BtnFrame, {BackgroundColor3 = Theme.btnBg}, 0.1)
+		end)
+		BtnHit.MouseButton1Down:Connect(function()
+			tw(BtnFrame, {BackgroundColor3 = Color3.fromRGB(55, 30, 90)}, 0.08)
+		end)
+		BtnHit.MouseButton1Click:Connect(function()
+			tw(BtnFrame, {BackgroundColor3 = Theme.btnBg}, 0.15)
+			pcall(cb)
+		end)
+	end
+
+	function SecObj:addSlider(labelText, min, max, default, callback)
+		local cb  = callback or function() end
+		min       = tonumber(min) or 0
+		max       = tonumber(max) or 100
+		local cur = math.clamp(tonumber(default) or min, min, max)
+
+		local f = mkElem(46)
+
+		local TopRow = ni("Frame", {
+			Size                   = UDim2.new(1, 0, 0, 20),
+			Position               = UDim2.new(0, 0, 0, 4),
+			BackgroundTransparency = 1,
+			BorderSizePixel        = 0,
+		}, f)
+
+		ni("TextLabel", {
+			Size                   = UDim2.new(1, -50, 1, 0),
+			Position               = UDim2.new(0, 10, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = labelText or "Slider",
+			TextColor3             = Theme.text,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamSemibold,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+		}, TopRow)
+
+		local ValLbl = ni("TextLabel", {
+			Size                   = UDim2.new(0, 40, 1, 0),
+			Position               = UDim2.new(1, -44, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = tostring(cur),
+			TextColor3             = Theme.muted,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamBold,
+			TextXAlignment         = Enum.TextXAlignment.Right,
+		}, TopRow)
+
+		local TrackBg = ni("Frame", {
+			Size             = UDim2.new(1, -16, 0, 4),
+			Position         = UDim2.new(0, 8, 0, 32),
+			BackgroundColor3 = Theme.sliderTrack,
+			BorderSizePixel  = 0,
+		}, f)
+		corner(TrackBg, 2)
+
+		local ratio = (cur - min) / (max - min)
+		local Fill = ni("Frame", {
+			Size             = UDim2.new(ratio, 0, 1, 0),
+			BackgroundColor3 = Theme.sliderFill,
+			BorderSizePixel  = 0,
+		}, TrackBg)
+		corner(Fill, 2)
+
+		local Knob = ni("Frame", {
+			Size             = UDim2.new(0, 12, 0, 12),
+			Position         = UDim2.new(ratio, -6, 0.5, -6),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BorderSizePixel  = 0,
+			ZIndex           = 3,
+		}, TrackBg)
+		corner(Knob, 6)
+
+		local TrackHit = ni("TextButton", {
+			Size                   = UDim2.new(1, 0, 0, 20),
+			Position               = UDim2.new(0, 0, 0.5, -10),
+			BackgroundTransparency = 1,
+			Text                   = "",
+			BorderSizePixel        = 0,
+			ZIndex                 = 4,
+		}, TrackBg)
+
+		local Dragging = false
+
+		local function updateSlider(px)
+			local p = math.clamp((px - TrackBg.AbsolutePosition.X) / TrackBg.AbsoluteSize.X, 0, 1)
+			cur = math.floor(min + (max - min) * p)
+			Fill.Size = UDim2.new(p, 0, 1, 0)
+			Knob.Position = UDim2.new(p, -6, 0.5, -6)
+			ValLbl.Text = tostring(cur)
+			pcall(cb, cur)
+		end
+
+		TrackHit.MouseButton1Down:Connect(function()
+			Dragging = true
+			tw(Knob, {Size = UDim2.new(0, 14, 0, 14), Position = UDim2.new(Fill.Size.X.Scale, -7, 0.5, -7)}, 0.1)
+		end)
+		TrackHit.MouseButton1Click:Connect(function()
+			updateSlider(UserInputService:GetMouseLocation().X)
+		end)
+		UserInputService.InputChanged:Connect(function(i)
+			if Dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+				updateSlider(i.Position.X)
+			end
+		end)
+		UserInputService.InputEnded:Connect(function(i)
+			if i.UserInputType == Enum.UserInputType.MouseButton1 then
+				Dragging = false
+				tw(Knob, {Size = UDim2.new(0, 12, 0, 12)}, 0.1)
+			end
+		end)
+		f.MouseEnter:Connect(function() tw(f, {BackgroundColor3 = Theme.elemHover}, 0.1) end)
+		f.MouseLeave:Connect(function() tw(f, {BackgroundColor3 = Theme.elem}, 0.1) end)
+
+		local ctrl = {}
+		function ctrl:Set(v)
+			cur = math.clamp(v, min, max)
+			local p = (cur - min) / (max - min)
+			Fill.Size = UDim2.new(p, 0, 1, 0)
+			Knob.Position = UDim2.new(p, -6, 0.5, -6)
+			ValLbl.Text = tostring(cur)
+		end
+		function ctrl:Get() return cur end
+		return ctrl
+	end
+
+	function SecObj:addLabel(text)
+		local f = mkElem(26)
+		ni("TextLabel", {
+			Size                   = UDim2.new(1, -10, 1, 0),
+			Position               = UDim2.new(0, 10, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = text or "",
+			TextColor3             = Theme.muted,
+			TextSize               = 10,
+			Font                   = Enum.Font.Gotham,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+		}, f)
+	end
+
+	function SecObj:addTextBox(labelText, placeholder, callback)
+		local cb = callback or function() end
+		local f = mkElem(44)
+
+		ni("TextLabel", {
+			Size                   = UDim2.new(1, -10, 0, 16),
+			Position               = UDim2.new(0, 10, 0, 4),
+			BackgroundTransparency = 1,
+			Text                   = labelText or "Input",
+			TextColor3             = Theme.text,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamSemibold,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+		}, f)
+
+		local InputWrap = ni("Frame", {
+			Size             = UDim2.new(1, -16, 0, 16),
+			Position         = UDim2.new(0, 8, 0, 24),
+			BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+			BorderSizePixel  = 0,
+		}, f)
+		corner(InputWrap, 3)
+		local wStroke = stroke(InputWrap, Color3.fromRGB(50, 50, 50), 1)
+
+		local Input = ni("TextBox", {
+			Size                   = UDim2.new(1, -8, 1, 0),
+			Position               = UDim2.new(0, 4, 0, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel        = 0,
+			Text                   = "",
+			PlaceholderText        = placeholder or "",
+			PlaceholderColor3      = Theme.dim,
+			TextColor3             = Theme.text,
+			TextSize               = 10,
+			Font                   = Enum.Font.Gotham,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+			ClearTextOnFocus       = false,
+		}, InputWrap)
+
+		Input.Focused:Connect(function()
+			tw(InputWrap, {BackgroundColor3 = Color3.fromRGB(24, 24, 24)})
+			wStroke.Color = Theme.accentHi
+		end)
+		Input.FocusLost:Connect(function()
+			tw(InputWrap, {BackgroundColor3 = Color3.fromRGB(18, 18, 18)})
+			wStroke.Color = Color3.fromRGB(50, 50, 50)
+			pcall(cb, Input.Text)
+		end)
+	end
+
+	function SecObj:addDropdown(labelText, list, callback)
+		local cb = callback or function() end
+		local Selected = nil
+		local Open = false
+		local tH = math.min(#list * 22, 110)
+
+		local Wrapper = ni("Frame", {
+			Size                   = UDim2.new(1, 0, 0, 32),
+			BackgroundTransparency = 1,
+			BorderSizePixel        = 0,
+			LayoutOrder            = elemCount + 1,
+			ClipsDescendants       = false,
+		}, Content)
+		elemCount = elemCount + 1
+
+		local Hdr = ni("Frame", {
+			Size             = UDim2.new(1, 0, 0, 32),
+			BackgroundColor3 = Theme.elem,
+			BorderSizePixel  = 0,
+		}, Wrapper)
+		if elemCount > 1 then
+			ni("Frame", {
+				Size             = UDim2.new(1, 0, 0, 1),
+				BackgroundColor3 = Theme.sep,
+				BorderSizePixel  = 0,
+				ZIndex           = 2,
+			}, Hdr)
+		end
+
+		ni("TextLabel", {
+			Size                   = UDim2.new(0.55, -10, 1, 0),
+			Position               = UDim2.new(0, 10, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = labelText or "Dropdown",
+			TextColor3             = Theme.text,
+			TextSize               = 11,
+			Font                   = Enum.Font.GothamSemibold,
+			TextXAlignment         = Enum.TextXAlignment.Left,
+		}, Hdr)
+
+		local SelLbl = ni("TextLabel", {
+			Size                   = UDim2.new(0.45, -26, 1, 0),
+			Position               = UDim2.new(0.55, 0, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = "none",
+			TextColor3             = Theme.muted,
+			TextSize               = 10,
+			Font                   = Enum.Font.Gotham,
+			TextXAlignment         = Enum.TextXAlignment.Right,
+		}, Hdr)
+
+		local Arrow = ni("TextLabel", {
+			Size                   = UDim2.new(0, 18, 1, 0),
+			Position               = UDim2.new(1, -20, 0, 0),
+			BackgroundTransparency = 1,
+			Text                   = "v",
+			TextColor3             = Theme.accentHi,
+			TextSize               = 9,
+			Font                   = Enum.Font.GothamBold,
+		}, Hdr)
+
+		local DL = ni("Frame", {
+			Size             = UDim2.new(1, 0, 0, 0),
+			Position         = UDim2.new(0, 0, 0, 32),
+			BackgroundColor3 = Color3.fromRGB(22, 22, 22),
+			BorderSizePixel  = 0,
+			ZIndex           = 20,
+			ClipsDescendants = true,
+			Visible          = false,
+		}, Wrapper)
+		corner(DL, 4)
+		stroke(DL, Color3.fromRGB(55, 55, 55), 1)
+
+		local DLInner = ni("Frame", {
+			Size                   = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel        = 0,
+			ZIndex                 = 20,
+		}, DL)
+		ni("UIListLayout", {Parent = DLInner, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 0)})
+
+		local opts = {}
+
+		local function closeDD()
+			Open = false
+			Arrow.Text = "v"
+			tw(DL, {Size = UDim2.new(1, 0, 0, 0)}, 0.15)
+			task.delay(0.16, function()
+				DL.Visible = false
+				Wrapper.Size = UDim2.new(1, 0, 0, 32)
+			end)
+		end
+
+		local function openDD()
+			Open = true
+			Arrow.Text = "^"
+			DL.Visible = true
+			tw(DL, {Size = UDim2.new(1, 0, 0, tH)}, 0.15)
+			Wrapper.Size = UDim2.new(1, 0, 0, 34 + tH)
+		end
+
+		local HB = ni("TextButton", {
+			Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1,
+			Text = "", BorderSizePixel = 0, ZIndex = 7,
+		}, Wrapper)
+		HB.MouseButton1Click:Connect(function() if Open then closeDD() else openDD() end end)
+		HB.MouseEnter:Connect(function() tw(Hdr, {BackgroundColor3 = Theme.elemHover}, 0.1) end)
+		HB.MouseLeave:Connect(function() tw(Hdr, {BackgroundColor3 = Theme.elem}, 0.1) end)
+
+		for i, item in ipairs(list) do
+			local isSel = false
+			local Opt = ni("TextButton", {
+				Size             = UDim2.new(1, 0, 0, 22),
+				BackgroundColor3 = Color3.fromRGB(22, 22, 22),
+				BorderSizePixel  = 0,
+				Text             = "",
+				Font             = Enum.Font.Gotham,
+				AutoButtonColor  = false,
+				ZIndex           = 21,
+				LayoutOrder      = i,
+			}, DLInner)
+
+			local Bar = ni("Frame", {
+				Size             = UDim2.new(0, 2, 1, 0),
+				BackgroundColor3 = Theme.accentHi,
+				BackgroundTransparency = 1,
+				BorderSizePixel  = 0,
+				ZIndex           = 22,
+			}, Opt)
+
+			ni("TextLabel", {
+				Size = UDim2.new(1, -12, 1, 0), Position = UDim2.new(0, 10, 0, 0),
+				BackgroundTransparency = 1, Text = tostring(item),
+				TextColor3 = Theme.muted, TextSize = 10,
+				Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left,
+				ZIndex = 22,
+			}, Opt)
+
+			if i < #list then
+				ni("Frame", {
+					Size = UDim2.new(1, 0, 0, 1), Position = UDim2.new(0, 0, 1, -1),
+					BackgroundColor3 = Theme.sep, BorderSizePixel = 0, ZIndex = 21,
+				}, Opt)
+			end
+
+			Opt.MouseButton1Click:Connect(function()
+				for _, o in pairs(opts) do o.sel = false o.update() end
+				isSel = true
+				Selected = item
+				SelLbl.Text = tostring(item)
+				SelLbl.TextColor3 = Theme.text
+				closeDD()
+				pcall(cb, item)
+			end)
+
+			local function upd()
+				tw(Bar, {BackgroundTransparency = isSel and 0 or 1}, 0.12)
+			end
+			Opt.MouseEnter:Connect(function() tw(Opt, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.1) end)
+			Opt.MouseLeave:Connect(function() tw(Opt, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.1) upd() end)
+			table.insert(opts, {sel = false, update = upd})
+		end
+
+		local ctrl = {}
+		function ctrl:Set(v) Selected = v SelLbl.Text = tostring(v) SelLbl.TextColor3 = Theme.text end
+		function ctrl:Get() return Selected end
+		return ctrl
+	end
+
+	return SecObj
+end
 
 function Lib.new(config)
 	config = config or {}
@@ -324,9 +919,7 @@ function Lib.new(config)
 			Position               = centerP,
 			BackgroundTransparency = 0,
 		}, 0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		task.delay(0.44, function()
-			animating = false
-		end)
+		task.delay(0.44, function() animating = false end)
 	end
 
 	local function hideGui()
@@ -344,9 +937,7 @@ function Lib.new(config)
 				BackgroundTransparency = 0.55,
 			}, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 		end)
-		task.delay(0.43, function()
-			tw(Main, {BackgroundTransparency = 1}, 0.12)
-		end)
+		task.delay(0.43, function() tw(Main, {BackgroundTransparency = 1}, 0.12) end)
 		task.delay(0.56, function()
 			Main.Visible                = false
 			Main.Size                   = UDim2.new(0, W, 0, H)
@@ -362,13 +953,8 @@ function Lib.new(config)
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if processed then return end
 		if input.KeyCode == toggleKey or input.KeyCode == Enum.KeyCode.RightAlt then
-			if visible then
-				visible = false
-				hideGui()
-			else
-				visible = true
-				showGui()
-			end
+			if visible then visible = false hideGui()
+			else visible = true showGui() end
 		end
 	end)
 
@@ -389,11 +975,36 @@ function Lib.new(config)
 			BackgroundTransparency = 1,
 			Visible                = false,
 		}, PageArea)
+
+		local PageScroll = ni("ScrollingFrame", {
+			Size                 = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel      = 0,
+			ScrollBarThickness   = 3,
+			ScrollBarImageColor3 = Theme.accentHi,
+			CanvasSize           = UDim2.new(0, 0, 0, 0),
+			AutomaticCanvasSize  = Enum.AutomaticSize.Y,
+			ScrollingDirection   = Enum.ScrollingDirection.Y,
+		}, pg)
+
+		ni("UIListLayout", {
+			Parent    = PageScroll,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding   = UDim.new(0, 6),
+		})
+		ni("UIPadding", {
+			Parent        = PageScroll,
+			PaddingTop    = UDim.new(0, 8),
+			PaddingBottom = UDim.new(0, 8),
+			PaddingLeft   = UDim.new(0, 8),
+			PaddingRight  = UDim.new(0, 8),
+		})
+
 		pages[name] = pg
 		table.insert(tabList, {name = name, sub = subText, icon = iconId})
 
-		local idx        = #tabList
-		local positions  = calcPositions(idx)
+		local idx       = #tabList
+		local positions = calcPositions(idx)
 
 		for i, tb in ipairs(tabBtns) do
 			local p = positions[i]
@@ -476,6 +1087,11 @@ function Lib.new(config)
 
 		local tab = {}
 		tab.Page = pg
+
+		function tab:AddSection(sectionName)
+			return BuildSection(sectionName, PageScroll)
+		end
+
 		return tab
 	end
 
@@ -486,95 +1102,16 @@ function Lib.new(config)
 			Icon = ICONS.config,
 		})
 
-		local pg = settingsTab.Page
-
-		local scroll = ni("ScrollingFrame", {
-			Size                  = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			BorderSizePixel       = 0,
-			ScrollBarThickness    = 2,
-			ScrollBarImageColor3  = Theme.accentHi,
-			CanvasSize            = UDim2.new(0, 0, 0, 0),
-			AutomaticCanvasSize   = Enum.AutomaticSize.Y,
-		}, pg)
-
-		local layout = ni("UIListLayout", {
-			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding   = UDim.new(0, 8),
-		}, scroll)
-
-		local pad = ni("UIPadding", {
-			PaddingTop    = UDim.new(0, 10),
-			PaddingBottom = UDim.new(0, 10),
-			PaddingLeft   = UDim.new(0, 10),
-			PaddingRight  = UDim.new(0, 10),
-		}, scroll)
-
-		local function mkCard(h)
-			local card = ni("Frame", {
-				Size             = UDim2.new(1, 0, 0, h),
-				BackgroundColor3 = Theme.card,
-				BorderSizePixel  = 0,
-			}, scroll)
-			corner(card, 8)
-			ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, card)
-			return card
-		end
-
-		local function mkLabel(parent, text, size, color, posX, posY, w, h, bold)
-			return ni("TextLabel", {
-				Size                   = UDim2.new(0, w or 300, 0, h or 20),
-				Position               = UDim2.new(0, posX or 12, 0, posY or 0),
-				BackgroundTransparency = 1,
-				Text                   = text,
-				TextColor3             = color or Theme.text,
-				TextSize               = size or 12,
-				Font                   = bold and Enum.Font.GothamBold or Enum.Font.Gotham,
-				TextXAlignment         = Enum.TextXAlignment.Left,
-			}, parent)
-		end
-
+		local sec = settingsTab:AddSection("Auto Load")
 		local autoLoadOn = getAutoLoad()
 
-		local alCard = mkCard(64)
-		mkLabel(alCard, "Auto Load", 13, Theme.text, 14, 10, 200, 18, true)
-		mkLabel(alCard, "Executa o script automaticamente ao entrar no jogo", 10, Theme.muted, 14, 30, 360, 14)
-
-		local alBg = ni("Frame", {
-			Size             = UDim2.new(0, 36, 0, 20),
-			Position         = UDim2.new(1, -48, 0.5, -10),
-			BackgroundColor3 = autoLoadOn and Theme.accentHi or Theme.dim,
-			BorderSizePixel  = 0,
-		}, alCard)
-		corner(alBg, 10)
-
-		local alKnob = ni("Frame", {
-			Size             = UDim2.new(0, 14, 0, 14),
-			Position         = autoLoadOn and UDim2.new(0, 19, 0.5, -7) or UDim2.new(0, 3, 0.5, -7),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-			BorderSizePixel  = 0,
-		}, alBg)
-		corner(alKnob, 7)
-
-		local alBtn = ni("TextButton", {
-			Size                   = UDim2.new(1, 0, 1, 0),
-			BackgroundTransparency = 1,
-			Text                   = "",
-			BorderSizePixel        = 0,
-			ZIndex                 = 5,
-		}, alCard)
-
-		alBtn.MouseButton1Click:Connect(function()
-			autoLoadOn = not autoLoadOn
-			setAutoLoad(autoLoadOn)
-			tw(alBg,   {BackgroundColor3 = autoLoadOn and Theme.accentHi or Theme.dim}, 0.2)
-			tw(alKnob, {Position = autoLoadOn and UDim2.new(0, 19, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)}, 0.2)
+		local alCtrl = sec:addToggle("Auto Load ao iniciar", autoLoadOn, function(val)
+			setAutoLoad(val)
 		end)
-		alBtn.MouseEnter:Connect(function() tw(alCard, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12) end)
-		alBtn.MouseLeave:Connect(function() tw(alCard, {BackgroundColor3 = Theme.card}, 0.12) end)
 
-		local execCard = mkCard(54)
-		mkLabel(execCard, "Executor detectado", 13, Theme.text, 14, 8, 250, 18, true)
+		sec:addLabel("Salva preferencia no executor atual")
+
+		local sec2 = settingsTab:AddSection("Sistema")
 
 		local function detectExecutor()
 			if syn then return "Synapse X"
@@ -582,52 +1119,23 @@ function Lib.new(config)
 			elseif rconsoleprint then return "Script-Ware"
 			elseif fluxus then return "Fluxus"
 			elseif getexecutorname then
-				local ok, name = pcall(getexecutorname)
-				if ok and name then return name end
+				local ok, n = pcall(getexecutorname) if ok and n then return n end
 			elseif identifyexecutor then
-				local ok, name = pcall(identifyexecutor)
-				if ok and name then return name end
+				local ok, n = pcall(identifyexecutor) if ok and n then return n end
 			end
 			return "Desconhecido"
 		end
 
-		mkLabel(execCard, detectExecutor(), 11, Theme.accentHi, 14, 28, 350, 16)
-
-		local fsCard = mkCard(54)
-		mkLabel(fsCard, "Sistema de Arquivos", 13, Theme.text, 14, 8, 250, 18, true)
-
-		local function detectFS()
-			if writefile and readfile and isfile then return "Suporte total"
-			elseif writefile then return "Escrita disponivel"
-			elseif readfile then return "Leitura disponivel"
-			else return "Sem suporte"
-			end
-		end
-
-		local fsColor = (writefile and readfile and isfile) and Color3.fromRGB(45, 200, 85) or Color3.fromRGB(255, 160, 40)
-		mkLabel(fsCard, detectFS(), 11, fsColor, 14, 28, 350, 16)
+		sec2:addLabel("Executor: " .. detectExecutor())
+		sec2:addLabel("FS: " .. ((writefile and readfile) and "Suporte total" or "Parcial/Nenhum"))
 
 		if SCRIPT_URL ~= "" then
-			local reloadCard = mkCard(40)
-			mkLabel(reloadCard, "Recarregar Script", 12, Theme.text, 14, 10, 260, 20, true)
-
-			local reloadBtn = ni("TextButton", {
-				Size                   = UDim2.new(1, 0, 1, 0),
-				BackgroundTransparency = 1,
-				Text                   = "",
-				BorderSizePixel        = 0,
-				ZIndex                 = 5,
-			}, reloadCard)
-
-			reloadBtn.MouseButton1Click:Connect(function()
-				if loadstring and SCRIPT_URL ~= "" then
-					pcall(function()
-						loadstring(game:HttpGet(SCRIPT_URL))()
-					end)
+			local sec3 = settingsTab:AddSection("Script")
+			sec3:addButton("Recarregar Script", function()
+				if loadstring then
+					pcall(function() loadstring(game:HttpGet(SCRIPT_URL))() end)
 				end
 			end)
-			reloadBtn.MouseEnter:Connect(function() tw(reloadCard, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12) end)
-			reloadBtn.MouseLeave:Connect(function() tw(reloadCard, {BackgroundColor3 = Theme.card}, 0.12) end)
 		end
 
 		return settingsTab
@@ -638,12 +1146,11 @@ end
 
 Lib.AutoLoad = {
 	Check = function()
-		local data = nil
 		if isfile and isfile(AUTOLOAD_FILE) then
 			local ok, v = pcall(readfile, AUTOLOAD_FILE)
-			if ok then data = v end
+			if ok then return v == "true" end
 		end
-		return data == "true"
+		return false
 	end,
 	Set = function(val)
 		if val then
