@@ -1,31 +1,3 @@
---[[
-    UILib - Library de Interface
-    
-    USO:
-    
-    local UILib = loadstring(game:HttpGet("..."))()
-    
-    local Window = UILib.new({
-        Title  = "Meu Painel",
-        Logo   = "rbxassetid://134382458890933",
-        Toggle = Enum.KeyCode.LeftAlt,
-    })
-    
-    local Tab = Window:AddTab({
-        Name = "Aimbot",
-        Sub  = "Aim & Silent",
-        Icon = "rbxassetid://10709818534",
-    })
-    
-    local Section = Tab:AddSection({
-        Name  = "Configuração",
-        Icon  = "rbxassetid://10709818534",
-        Side  = "left",   -- "left" = 35% | "right" = 65% | "full" = 100%
-    })
-    
-    -- futuramente: Section:AddToggle(...) | Section:AddSlider(...) etc
-]]
-
 local Players        = game:GetService("Players")
 local TweenService   = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
