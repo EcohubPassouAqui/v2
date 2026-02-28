@@ -4,6 +4,54 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
+local AUTOLOAD_FILE = "ecohub_autoload.txt"
+local SCRIPT_URL    = ""
+
+local function writeFile(path, content)
+	if writefile then
+		pcall(writefile, path, content)
+	elseif savefile then
+		pcall(savefile, path, content)
+	end
+end
+
+local function readFile(path)
+	if isfile and isfile(path) then
+		local ok, data = pcall(readfile, path)
+		if ok then return data end
+	end
+	return nil
+end
+
+local function fileExists(path)
+	if isfile then
+		local ok, res = pcall(isfile, path)
+		return ok and res
+	end
+	return false
+end
+
+local function deleteFile(path)
+	if delfile then
+		pcall(delfile, path)
+	elseif removefile then
+		pcall(removefile, path)
+	end
+end
+
+local function getAutoLoad()
+	local data = readFile(AUTOLOAD_FILE)
+	return data == "true"
+end
+
+local function setAutoLoad(val)
+	if val then
+		writeFile(AUTOLOAD_FILE, "true")
+	else
+		deleteFile(AUTOLOAD_FILE)
+	end
+end
+
 local ICONS = {
 	aim     = "rbxassetid://10709818534",
 	visuals = "rbxassetid://10723346959",
@@ -53,6 +101,10 @@ Lib.Icons = ICONS
 
 function Lib.new(config)
 	config = config or {}
+
+	if SCRIPT_URL == "" and config.ScriptUrl then
+		SCRIPT_URL = config.ScriptUrl
+	end
 
 	if PlayerGui:FindFirstChild("MainGui") then
 		PlayerGui.MainGui:Destroy()
@@ -427,7 +479,181 @@ function Lib.new(config)
 		return tab
 	end
 
+	function win:AddSettingsTab()
+		local settingsTab = self:AddTab({
+			Name = "Settings",
+			Sub  = "config",
+			Icon = ICONS.config,
+		})
+
+		local pg = settingsTab.Page
+
+		local scroll = ni("ScrollingFrame", {
+			Size                  = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			BorderSizePixel       = 0,
+			ScrollBarThickness    = 2,
+			ScrollBarImageColor3  = Theme.accentHi,
+			CanvasSize            = UDim2.new(0, 0, 0, 0),
+			AutomaticCanvasSize   = Enum.AutomaticSize.Y,
+		}, pg)
+
+		local layout = ni("UIListLayout", {
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Padding   = UDim.new(0, 8),
+		}, scroll)
+
+		local pad = ni("UIPadding", {
+			PaddingTop    = UDim.new(0, 10),
+			PaddingBottom = UDim.new(0, 10),
+			PaddingLeft   = UDim.new(0, 10),
+			PaddingRight  = UDim.new(0, 10),
+		}, scroll)
+
+		local function mkCard(h)
+			local card = ni("Frame", {
+				Size             = UDim2.new(1, 0, 0, h),
+				BackgroundColor3 = Theme.card,
+				BorderSizePixel  = 0,
+			}, scroll)
+			corner(card, 8)
+			ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, card)
+			return card
+		end
+
+		local function mkLabel(parent, text, size, color, posX, posY, w, h, bold)
+			return ni("TextLabel", {
+				Size                   = UDim2.new(0, w or 300, 0, h or 20),
+				Position               = UDim2.new(0, posX or 12, 0, posY or 0),
+				BackgroundTransparency = 1,
+				Text                   = text,
+				TextColor3             = color or Theme.text,
+				TextSize               = size or 12,
+				Font                   = bold and Enum.Font.GothamBold or Enum.Font.Gotham,
+				TextXAlignment         = Enum.TextXAlignment.Left,
+			}, parent)
+		end
+
+		local autoLoadOn = getAutoLoad()
+
+		local alCard = mkCard(64)
+		mkLabel(alCard, "Auto Load", 13, Theme.text, 14, 10, 200, 18, true)
+		mkLabel(alCard, "Executa o script automaticamente ao entrar no jogo", 10, Theme.muted, 14, 30, 360, 14)
+
+		local alBg = ni("Frame", {
+			Size             = UDim2.new(0, 36, 0, 20),
+			Position         = UDim2.new(1, -48, 0.5, -10),
+			BackgroundColor3 = autoLoadOn and Theme.accentHi or Theme.dim,
+			BorderSizePixel  = 0,
+		}, alCard)
+		corner(alBg, 10)
+
+		local alKnob = ni("Frame", {
+			Size             = UDim2.new(0, 14, 0, 14),
+			Position         = autoLoadOn and UDim2.new(0, 19, 0.5, -7) or UDim2.new(0, 3, 0.5, -7),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BorderSizePixel  = 0,
+		}, alBg)
+		corner(alKnob, 7)
+
+		local alBtn = ni("TextButton", {
+			Size                   = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			Text                   = "",
+			BorderSizePixel        = 0,
+			ZIndex                 = 5,
+		}, alCard)
+
+		alBtn.MouseButton1Click:Connect(function()
+			autoLoadOn = not autoLoadOn
+			setAutoLoad(autoLoadOn)
+			tw(alBg,   {BackgroundColor3 = autoLoadOn and Theme.accentHi or Theme.dim}, 0.2)
+			tw(alKnob, {Position = autoLoadOn and UDim2.new(0, 19, 0.5, -7) or UDim2.new(0, 3, 0.5, -7)}, 0.2)
+		end)
+		alBtn.MouseEnter:Connect(function() tw(alCard, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12) end)
+		alBtn.MouseLeave:Connect(function() tw(alCard, {BackgroundColor3 = Theme.card}, 0.12) end)
+
+		local execCard = mkCard(54)
+		mkLabel(execCard, "Executor detectado", 13, Theme.text, 14, 8, 250, 18, true)
+
+		local function detectExecutor()
+			if syn then return "Synapse X"
+			elseif KRNL_LOADED then return "KRNL"
+			elseif rconsoleprint then return "Script-Ware"
+			elseif fluxus then return "Fluxus"
+			elseif getexecutorname then
+				local ok, name = pcall(getexecutorname)
+				if ok and name then return name end
+			elseif identifyexecutor then
+				local ok, name = pcall(identifyexecutor)
+				if ok and name then return name end
+			end
+			return "Desconhecido"
+		end
+
+		mkLabel(execCard, detectExecutor(), 11, Theme.accentHi, 14, 28, 350, 16)
+
+		local fsCard = mkCard(54)
+		mkLabel(fsCard, "Sistema de Arquivos", 13, Theme.text, 14, 8, 250, 18, true)
+
+		local function detectFS()
+			if writefile and readfile and isfile then return "Suporte total"
+			elseif writefile then return "Escrita disponivel"
+			elseif readfile then return "Leitura disponivel"
+			else return "Sem suporte"
+			end
+		end
+
+		local fsColor = (writefile and readfile and isfile) and Color3.fromRGB(45, 200, 85) or Color3.fromRGB(255, 160, 40)
+		mkLabel(fsCard, detectFS(), 11, fsColor, 14, 28, 350, 16)
+
+		if SCRIPT_URL ~= "" then
+			local reloadCard = mkCard(40)
+			mkLabel(reloadCard, "Recarregar Script", 12, Theme.text, 14, 10, 260, 20, true)
+
+			local reloadBtn = ni("TextButton", {
+				Size                   = UDim2.new(1, 0, 1, 0),
+				BackgroundTransparency = 1,
+				Text                   = "",
+				BorderSizePixel        = 0,
+				ZIndex                 = 5,
+			}, reloadCard)
+
+			reloadBtn.MouseButton1Click:Connect(function()
+				if loadstring and SCRIPT_URL ~= "" then
+					pcall(function()
+						loadstring(game:HttpGet(SCRIPT_URL))()
+					end)
+				end
+			end)
+			reloadBtn.MouseEnter:Connect(function() tw(reloadCard, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.12) end)
+			reloadBtn.MouseLeave:Connect(function() tw(reloadCard, {BackgroundColor3 = Theme.card}, 0.12) end)
+		end
+
+		return settingsTab
+	end
+
 	return win
 end
+
+Lib.AutoLoad = {
+	Check = function()
+		local data = nil
+		if isfile and isfile(AUTOLOAD_FILE) then
+			local ok, v = pcall(readfile, AUTOLOAD_FILE)
+			if ok then data = v end
+		end
+		return data == "true"
+	end,
+	Set = function(val)
+		if val then
+			if writefile then pcall(writefile, AUTOLOAD_FILE, "true")
+			elseif savefile then pcall(savefile, AUTOLOAD_FILE, "true") end
+		else
+			if delfile then pcall(delfile, AUTOLOAD_FILE)
+			elseif removefile then pcall(removefile, AUTOLOAD_FILE) end
+		end
+	end,
+}
 
 return Lib
