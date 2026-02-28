@@ -5,12 +5,94 @@ local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
 local ICONS = {
-	aim     = "rbxassetid://10709818534",
-	visuals = "rbxassetid://10723346959",
-	vehicle = "rbxassetid://10709789810",
-	players = "rbxassetid://10747373176",
-	misc    = "rbxassetid://10723345749",
-	config  = "rbxassetid://10734950309",
+	-- combat
+	aim          = "rbxassetid://10709818534",  -- crosshair
+	crosshair    = "rbxassetid://10709818534",
+	target       = "rbxassetid://10734977012",
+	swords       = "rbxassetid://10734975692",
+	sword        = "rbxassetid://10734975486",
+	flame        = "rbxassetid://10723376114",
+	skull        = "rbxassetid://10734962068",
+	shield       = "rbxassetid://10734951847",
+	["shield-check"] = "rbxassetid://10734951367",
+	bomb         = "rbxassetid://10709781460",
+	zap          = "rbxassetid://10723345749",
+	-- visuals
+	visuals      = "rbxassetid://10723346959",  -- eye
+	eye          = "rbxassetid://10723346959",
+	["eye-off"]  = "rbxassetid://10723346871",
+	image        = "rbxassetid://10723415040",
+	layers       = "rbxassetid://10723424505",
+	palette      = "rbxassetid://10734910430",
+	paintbrush   = "rbxassetid://10734910187",
+	focus        = "rbxassetid://10723377537",
+	scan         = "rbxassetid://10734942565",
+	-- movement / vehicle
+	vehicle      = "rbxassetid://10709789810",  -- car
+	car          = "rbxassetid://10709789810",
+	bike         = "rbxassetid://10709775894",
+	plane        = "rbxassetid://10734922971",
+	rocket       = "rbxassetid://10734934585",
+	navigation   = "rbxassetid://10734906744",
+	move         = "rbxassetid://10734900011",
+	wind         = "rbxassetid://10747382750",
+	-- players / social
+	players      = "rbxassetid://10747373176",  -- user
+	user         = "rbxassetid://10747373176",
+	users        = "rbxassetid://10747373426",
+	["user-check"] = "rbxassetid://10747371901",
+	["user-x"]   = "rbxassetid://10747372992",
+	contact      = "rbxassetid://10709811834",
+	fingerprint  = "rbxassetid://10723375250",
+	-- misc
+	misc         = "rbxassetid://10723345749",  -- electricity/zap
+	electricity  = "rbxassetid://10723345749",
+	star         = "rbxassetid://10734966248",
+	crown        = "rbxassetid://10709818626",
+	trophy       = "rbxassetid://10747363809",
+	medal        = "rbxassetid://10734887072",
+	ghost        = "rbxassetid://10723396107",
+	["alert-triangle"] = "rbxassetid://10709753149",
+	info         = "rbxassetid://10723415903",
+	bell         = "rbxassetid://10709775704",
+	-- config / system
+	config       = "rbxassetid://10734950309",  -- settings
+	settings     = "rbxassetid://10734950309",
+	["settings-2"] = "rbxassetid://10734950020",
+	cog          = "rbxassetid://10709810948",
+	sliders      = "rbxassetid://10734963400",
+	["sliders-horizontal"] = "rbxassetid://10734963191",
+	wrench       = "rbxassetid://10747383470",
+	tool         = "rbxassetid://10747383470",
+	cpu          = "rbxassetid://10709813383",
+	terminal     = "rbxassetid://10734982144",
+	code         = "rbxassetid://10709810463",
+	database     = "rbxassetid://10709818996",
+	-- weapon
+	weapon       = "rbxassetid://10734975486",
+	["crosshair-2"] = "rbxassetid://10709818534",
+	gauge        = "rbxassetid://10723395708",
+	activity     = "rbxassetid://10709752035",
+	-- utility
+	lock         = "rbxassetid://10723434711",
+	unlock       = "rbxassetid://10747366027",
+	key          = "rbxassetid://10723416652",
+	save         = "rbxassetid://10734941499",
+	download     = "rbxassetid://10723344270",
+	upload       = "rbxassetid://10747366434",
+	trash        = "rbxassetid://10747362393",
+	copy         = "rbxassetid://10709812159",
+	refresh      = "rbxassetid://10734933222",
+	search       = "rbxassetid://10734943674",
+	filter       = "rbxassetid://10723375128",
+	list         = "rbxassetid://10723433811",
+	grid         = "rbxassetid://10723404936",
+	-- tabs navigation
+	home         = "rbxassetid://10723407389",
+	compass      = "rbxassetid://10709811445",
+	map          = "rbxassetid://10734886202",
+	globe        = "rbxassetid://10723404337",
+	network      = "rbxassetid://10734906975",
 }
 
 local Theme = {
