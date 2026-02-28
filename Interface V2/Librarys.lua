@@ -62,10 +62,9 @@ function Lib.new(config)
 	end
 
 	local ScreenGui = ni("ScreenGui", {
-		Name                   = "MainGui",
-		ResetOnSpawn           = false,
-		ZIndexBehavior         = Enum.ZIndexBehavior.Sibling,
-		BackgroundTransparency = 1,
+		Name           = "MainGui",
+		ResetOnSpawn   = false,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	}, PlayerGui)
 
 	local Main = ni("Frame", {
