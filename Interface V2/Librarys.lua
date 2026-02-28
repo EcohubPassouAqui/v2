@@ -20,7 +20,6 @@ local Theme = {
     bg              = Color3.fromRGB(20, 20, 20),
     pageArea        = Color3.fromRGB(22, 22, 22),
     card            = Color3.fromRGB(30, 30, 30),
-    section         = Color3.fromRGB(26, 26, 26),
     tabbar          = Color3.fromRGB(18, 18, 18),
     secBorder       = Color3.fromRGB(50, 50, 50),
     accentHi        = Color3.fromRGB(110, 170, 210),
@@ -47,33 +46,6 @@ local function tw(obj, props, dur, style, dir)
     TweenService:Create(obj,
         TweenInfo.new(dur or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
         props):Play()
-end
-
-local function spawnRipple(frame, relX, relY)
-    local sz     = frame.AbsoluteSize
-    local maxR   = math.min(sz.X, sz.Y) * 0.38
-    local startS = 6
-    local ripple = ni("Frame", {
-        Size                   = UDim2.new(0, startS, 0, startS),
-        Position               = UDim2.new(0, relX - startS/2, 0, relY - startS/2),
-        BackgroundColor3       = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 0.65,
-        BorderSizePixel        = 0,
-        ZIndex                 = 25,
-    }, frame)
-    corner(ripple, maxR)
-    local endS = maxR * 2
-    TweenService:Create(ripple, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size                   = UDim2.new(0, endS, 0, endS),
-        Position               = UDim2.new(0, relX - endS/2, 0, relY - endS/2),
-        BackgroundTransparency = 0.88,
-    }):Play()
-    task.delay(0.5, function()
-        TweenService:Create(ripple, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
-            BackgroundTransparency = 1,
-        }):Play()
-        task.delay(0.22, function() ripple:Destroy() end)
-    end)
 end
 
 local Lib = {}
@@ -135,8 +107,8 @@ function Lib.new(config)
     }, TopBar)
 
     local LogoHolder = ni("Frame", {
-        Size                   = UDim2.new(0, 48, 0, 48),
-        Position               = UDim2.new(0.5, -24, 0.5, -24),
+        Size                   = UDim2.new(0, 64, 0, 64),
+        Position               = UDim2.new(0.5, -32, 0.5, -32),
         BackgroundTransparency = 1,
         BorderSizePixel        = 0,
     }, TopBar)
@@ -376,107 +348,7 @@ function Lib.new(config)
         end
 
         local tab = {}
-
-        function tab:AddSection(scfg)
-            scfg = scfg or {}
-            local sName = scfg.Name or "Section"
-            local sIcon = scfg.Icon or ICONS.aim
-            if type(sIcon) == "string" and not sIcon:match("rbxasset") then
-                sIcon = ICONS[sIcon] or ICONS.aim
-            end
-            local side = scfg.Side or "left"
-
-            local xPct, wPct
-            if side == "left" then
-                xPct = 0;    wPct = 0.35
-            elseif side == "center" then
-                xPct = 0.35; wPct = 0.30
-            else
-                xPct = 0.65; wPct = 0.35
-            end
-
-            local outer = ni("Frame", {
-                Size             = UDim2.new(wPct, -6, 1, -8),
-                Position         = UDim2.new(xPct, 3, 0, 4),
-                BackgroundColor3 = Theme.section,
-                BorderSizePixel  = 0,
-                ClipsDescendants = true,
-            }, pg)
-            corner(outer, 10)
-            ni("UIStroke", {Color = Theme.secBorder, Thickness = 1}, outer)
-
-            local header = ni("Frame", {
-                Size             = UDim2.new(1, 0, 0, 38),
-                BackgroundColor3 = Color3.fromRGB(22, 22, 22),
-                BorderSizePixel  = 0,
-            }, outer)
-            corner(header, 10)
-            ni("Frame", {
-                Size             = UDim2.new(1, 0, 0, 10),
-                Position         = UDim2.new(0, 0, 1, -10),
-                BackgroundColor3 = Color3.fromRGB(22, 22, 22),
-                BorderSizePixel  = 0,
-            }, header)
-            ni("Frame", {
-                Size             = UDim2.new(1, 0, 0, 1),
-                Position         = UDim2.new(0, 0, 1, -1),
-                BackgroundColor3 = Theme.accentLo,
-                BorderSizePixel  = 0,
-            }, header)
-            ni("ImageLabel", {
-                Size                   = UDim2.new(0, 16, 0, 16),
-                Position               = UDim2.new(0, 10, 0.5, -8),
-                BackgroundTransparency = 1,
-                Image                  = sIcon,
-                ImageColor3            = Theme.accentHi,
-            }, header)
-            ni("TextLabel", {
-                Size                   = UDim2.new(1, -34, 1, 0),
-                Position               = UDim2.new(0, 30, 0, 0),
-                BackgroundTransparency = 1,
-                Text                   = sName,
-                TextColor3             = Theme.text,
-                TextSize               = 12,
-                Font                   = Enum.Font.GothamBold,
-                TextXAlignment         = Enum.TextXAlignment.Left,
-            }, header)
-
-            local scroll = ni("ScrollingFrame", {
-                Size                   = UDim2.new(1, 0, 1, -38),
-                Position               = UDim2.new(0, 0, 0, 38),
-                BackgroundTransparency = 1,
-                BorderSizePixel        = 0,
-                ScrollBarThickness     = 2,
-                ScrollBarImageColor3   = Theme.accentLo,
-                CanvasSize             = UDim2.new(0, 0, 0, 0),
-                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
-                ScrollingDirection     = Enum.ScrollingDirection.Y,
-                ElasticBehavior        = Enum.ElasticBehavior.Never,
-            }, outer)
-            ni("UIPadding", {
-                PaddingTop    = UDim.new(0, 6),
-                PaddingBottom = UDim.new(0, 6),
-                PaddingLeft   = UDim.new(0, 4),
-                PaddingRight  = UDim.new(0, 4),
-            }, scroll)
-
-            local hitbox = ni("TextButton", {
-                Size                   = UDim2.new(1, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Text                   = "",
-                BorderSizePixel        = 0,
-                ZIndex                 = 19,
-            }, outer)
-            hitbox.MouseButton1Down:Connect(function(x, y)
-                local abs = outer.AbsolutePosition
-                spawnRipple(outer, x - abs.X, y - abs.Y)
-            end)
-
-            local section = {}
-            section._scroll = scroll
-            return section
-        end
-
+        tab.Page = pg
         return tab
     end
 
