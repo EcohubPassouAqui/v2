@@ -64,16 +64,6 @@ function Lib.new(config)
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, PlayerGui)
 
-    -- Overlay de fade para o minimize
-    local Overlay = ni("Frame", {
-        Size                   = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3       = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 1,
-        BorderSizePixel        = 0,
-        ZIndex                 = 50,
-        Visible                = false,
-    }, ScreenGui)
-
     local Main = ni("Frame", {
         Size             = UDim2.new(0, W, 0, H),
         Position         = UDim2.new(0.5, -W/2, 0.5, -H/2),
@@ -86,7 +76,6 @@ function Lib.new(config)
     }, ScreenGui)
     corner(Main, 12)
 
-    -- ── TopBar ──────────────────────────────────────────────────────────────
     local TopBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, TOPBAR),
         BackgroundColor3 = Theme.AcrylicMain,
@@ -117,8 +106,7 @@ function Lib.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    -- Logo maior, centralizado, sem fundo
-    local logoSize = 100
+    local logoSize = 46
     ni("ImageLabel", {
         Size                   = UDim2.new(0, logoSize, 0, logoSize),
         Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
@@ -128,7 +116,6 @@ function Lib.new(config)
         ZIndex                 = 2,
     }, TopBar)
 
-    -- Bloco usuário (direita)
     local blockW = 170
     local UserBlock = ni("Frame", {
         Size                   = UDim2.new(0, blockW, 0, TOPBAR),
@@ -181,7 +168,6 @@ function Lib.new(config)
         TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
 
-    -- ── PageArea ─────────────────────────────────────────────────────────────
     local PageArea = ni("Frame", {
         Size             = UDim2.new(1, -16, 1, -TOPBAR - 60),
         Position         = UDim2.new(0, 8, 0, TOPBAR + 8),
@@ -191,7 +177,6 @@ function Lib.new(config)
     }, Main)
     corner(PageArea, 10)
 
-    -- ── TabBar ────────────────────────────────────────────────────────────────
     local TABBAR_H = 52
     local TabBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, TABBAR_H),
@@ -270,7 +255,6 @@ function Lib.new(config)
         end
     end
 
-    -- ── Animação minimizar/abrir ─────────────────────────────────────────────
     local centerX = UDim2.new(0.5, -W/2, 0.5, -H/2)
     local miniS   = UDim2.new(0, W * 0.45, 0, 38)
     local miniP   = UDim2.new(0.5, -(W * 0.45)/2, 1, -48)
@@ -278,46 +262,28 @@ function Lib.new(config)
     local function showGui()
         if animating then return end
         animating = true
-
-        -- fade overlay
-        Overlay.Visible                = true
-        Overlay.BackgroundTransparency = 0.45
-        tw(Overlay, {BackgroundTransparency = 1}, 0.42)
-
-        -- parte de mini para full com Back bounce
         Main.Visible                = true
         Main.Size                   = miniS
         Main.Position               = miniP
-        Main.BackgroundTransparency = 0.55
+        Main.BackgroundTransparency = 0.6
         tw(Main, {
             Size                   = UDim2.new(0, W, 0, H),
             Position               = centerX,
             BackgroundTransparency = 0,
         }, 0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-
         task.delay(0.44, function()
-            Overlay.Visible = false
-            animating       = false
+            animating = false
         end)
     end
 
     local function hideGui()
         if animating then return end
         animating = true
-
-        -- fade overlay
-        Overlay.Visible                = true
-        Overlay.BackgroundTransparency = 1
-        tw(Overlay, {BackgroundTransparency = 0.45}, 0.38)
-
-        -- 1ª etapa: encolhe horizontalmente mantendo centro
         tw(Main, {
             Size     = UDim2.new(0, W, 0, H * 0.92),
             Position = UDim2.new(0.5, -W/2, 0.5, -H * 0.92/2),
             BackgroundTransparency = 0.1,
         }, 0.12, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-
-        -- 2ª etapa: comprime para barra na base
         task.delay(0.13, function()
             tw(Main, {
                 Size                   = miniS,
@@ -325,20 +291,14 @@ function Lib.new(config)
                 BackgroundTransparency = 0.55,
             }, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
         end)
-
-        -- 3ª etapa: desaparece
         task.delay(0.43, function()
-            tw(Main, {
-                BackgroundTransparency = 1,
-            }, 0.12)
+            tw(Main, {BackgroundTransparency = 1}, 0.12)
         end)
-
         task.delay(0.56, function()
             Main.Visible                = false
             Main.Size                   = UDim2.new(0, W, 0, H)
             Main.Position               = centerX
             Main.BackgroundTransparency = 0
-            Overlay.Visible             = false
             animating                   = false
         end)
     end
@@ -359,7 +319,6 @@ function Lib.new(config)
         end
     end)
 
-    -- ── AddTab ───────────────────────────────────────────────────────────────
     local win = {}
 
     function win:AddTab(cfg)
