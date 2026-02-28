@@ -176,9 +176,8 @@ function Lib.new(config)
 	local PageArea = ni("Frame", {
 		Size             = UDim2.new(1, -16, 1, -TOPBAR - 60),
 		Position         = UDim2.new(0, 8, 0, TOPBAR + 8),
-		BackgroundColor3 = Theme.pageArea,
+		BackgroundTransparency = 1,
 		BorderSizePixel  = 0,
-		ClipsDescendants = true,
 	}, Main)
 	corner(PageArea, 10)
 
@@ -410,10 +409,6 @@ function Lib.new(config)
 				tw(img, {ImageColor3 = Theme.dim}, 0.12)
 			end
 		end)
-
-		if curTab == nil then
-			task.delay(0.05, function() switchTo(name) end)
-		end
 
 		local PAD = 6
 
