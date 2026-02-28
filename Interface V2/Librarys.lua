@@ -29,7 +29,7 @@ local Theme = {
 }
 
 local W, H   = 780, 480
-local TOPBAR = 60
+local TOPBAR = 62
 
 local function ni(class, props, parent)
     local o = Instance.new(class)
@@ -63,6 +63,16 @@ function Lib.new(config)
         ResetOnSpawn   = false,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, PlayerGui)
+
+    -- Overlay de fade para o minimize
+    local Overlay = ni("Frame", {
+        Size                   = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3       = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 1,
+        BorderSizePixel        = 0,
+        ZIndex                 = 50,
+        Visible                = false,
+    }, ScreenGui)
 
     local Main = ni("Frame", {
         Size             = UDim2.new(0, W, 0, H),
@@ -107,7 +117,8 @@ function Lib.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    local logoSize = 52
+    -- Logo maior, centralizado, sem fundo
+    local logoSize = 100
     ni("ImageLabel", {
         Size                   = UDim2.new(0, logoSize, 0, logoSize),
         Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
@@ -117,6 +128,7 @@ function Lib.new(config)
         ZIndex                 = 2,
     }, TopBar)
 
+    -- Bloco usuário (direita)
     local blockW = 170
     local UserBlock = ni("Frame", {
         Size                   = UDim2.new(0, blockW, 0, TOPBAR),
@@ -169,7 +181,7 @@ function Lib.new(config)
         TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
 
-    -- ── PageArea (sem borda) ─────────────────────────────────────────────────
+    -- ── PageArea ─────────────────────────────────────────────────────────────
     local PageArea = ni("Frame", {
         Size             = UDim2.new(1, -16, 1, -TOPBAR - 60),
         Position         = UDim2.new(0, 8, 0, TOPBAR + 8),
@@ -179,7 +191,7 @@ function Lib.new(config)
     }, Main)
     corner(PageArea, 10)
 
-    -- ── TabBar ───────────────────────────────────────────────────────────────
+    -- ── TabBar ────────────────────────────────────────────────────────────────
     local TABBAR_H = 52
     local TabBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, TABBAR_H),
@@ -200,8 +212,6 @@ function Lib.new(config)
         BorderSizePixel  = 0,
     }, TabBar)
 
-    -- Tamanhos adaptativos para caber até 8 tabs sem sobrepor
-    -- SMALL_W menor + EXPANDED_W reduzido resolve overflow
     local ICON_SIZE  = 18
     local SMALL_W    = 44
     local EXPANDED_W = 120
@@ -213,14 +223,13 @@ function Lib.new(config)
     local animating = false
 
     local function calcPositions(activeIdx)
-        local pos  = {}
-        local total = EXPANDED_W + (#tabList - 1) * SMALL_W
-        -- se não cabe, encolhe expanded proporcionalmente
+        local total    = EXPANDED_W + (#tabList - 1) * SMALL_W
         local maxTotal = W - 20
-        local expW = EXPANDED_W
+        local expW     = EXPANDED_W
         if total > maxTotal then
             expW = math.max(SMALL_W + 20, maxTotal - (#tabList - 1) * SMALL_W)
         end
+        local pos = {}
         local x = 0
         for i = 1, #tabList do
             local w = (i == activeIdx) and expW or SMALL_W
@@ -228,8 +237,7 @@ function Lib.new(config)
             x = x + w
         end
         local realTotal = expW + (#tabList - 1) * SMALL_W
-        local offset    = math.floor((W - realTotal) / 2)
-        if offset < 4 then offset = 4 end
+        local offset    = math.max(4, math.floor((W - realTotal) / 2))
         for i = 1, #tabList do pos[i].x = pos[i].x + offset end
         return pos, expW
     end
@@ -262,32 +270,76 @@ function Lib.new(config)
         end
     end
 
-    -- ── Show / Hide ──────────────────────────────────────────────────────────
+    -- ── Animação minimizar/abrir ─────────────────────────────────────────────
+    local centerX = UDim2.new(0.5, -W/2, 0.5, -H/2)
+    local miniS   = UDim2.new(0, W * 0.45, 0, 38)
+    local miniP   = UDim2.new(0.5, -(W * 0.45)/2, 1, -48)
+
     local function showGui()
         if animating then return end
-        animating     = true
-        Main.Visible  = true
-        Main.Size     = UDim2.new(0, W, 0, 0)
-        Main.Position = UDim2.new(0.5, -W/2, 0.5, 0)
+        animating = true
+
+        -- fade overlay
+        Overlay.Visible                = true
+        Overlay.BackgroundTransparency = 0.45
+        tw(Overlay, {BackgroundTransparency = 1}, 0.42)
+
+        -- parte de mini para full com Back bounce
+        Main.Visible                = true
+        Main.Size                   = miniS
+        Main.Position               = miniP
+        Main.BackgroundTransparency = 0.55
         tw(Main, {
-            Size     = UDim2.new(0, W, 0, H),
-            Position = UDim2.new(0.5, -W/2, 0.5, -H/2),
-        }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        task.delay(0.42, function() animating = false end)
+            Size                   = UDim2.new(0, W, 0, H),
+            Position               = centerX,
+            BackgroundTransparency = 0,
+        }, 0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        task.delay(0.44, function()
+            Overlay.Visible = false
+            animating       = false
+        end)
     end
 
     local function hideGui()
         if animating then return end
         animating = true
+
+        -- fade overlay
+        Overlay.Visible                = true
+        Overlay.BackgroundTransparency = 1
+        tw(Overlay, {BackgroundTransparency = 0.45}, 0.38)
+
+        -- 1ª etapa: encolhe horizontalmente mantendo centro
         tw(Main, {
-            Size     = UDim2.new(0, W, 0, 0),
-            Position = UDim2.new(0.5, -W/2, 0.5, 0),
-        }, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        task.delay(0.32, function()
-            Main.Visible  = false
-            Main.Size     = UDim2.new(0, W, 0, H)
-            Main.Position = UDim2.new(0.5, -W/2, 0.5, -H/2)
-            animating     = false
+            Size     = UDim2.new(0, W, 0, H * 0.92),
+            Position = UDim2.new(0.5, -W/2, 0.5, -H * 0.92/2),
+            BackgroundTransparency = 0.1,
+        }, 0.12, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+
+        -- 2ª etapa: comprime para barra na base
+        task.delay(0.13, function()
+            tw(Main, {
+                Size                   = miniS,
+                Position               = miniP,
+                BackgroundTransparency = 0.55,
+            }, 0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        end)
+
+        -- 3ª etapa: desaparece
+        task.delay(0.43, function()
+            tw(Main, {
+                BackgroundTransparency = 1,
+            }, 0.12)
+        end)
+
+        task.delay(0.56, function()
+            Main.Visible                = false
+            Main.Size                   = UDim2.new(0, W, 0, H)
+            Main.Position               = centerX
+            Main.BackgroundTransparency = 0
+            Overlay.Visible             = false
+            animating                   = false
         end)
     end
 
@@ -329,9 +381,8 @@ function Lib.new(config)
         table.insert(tabList, {name = name, sub = subText, icon = iconId})
 
         local idx            = #tabList
-        local positions, expW = calcPositions(idx)
+        local positions, _   = calcPositions(idx)
 
-        -- reposiciona todos os botões já existentes
         for i, tb in ipairs(tabBtns) do
             local p = positions[i]
             tb.bg.Position = UDim2.new(0, p.x, 0, 0)
@@ -359,14 +410,12 @@ function Lib.new(config)
             BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
             TextSize = 11, Font = Enum.Font.GothamBold,
             TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
-            ClipsDescendants = false,
         }, bg)
         local sub_lbl = ni("TextLabel", {
             Size = UDim2.new(1, -46, 0, 10), Position = UDim2.new(0, 44, 0.5, 3),
             BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
             TextSize = 8, Font = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
-            ClipsDescendants = false,
         }, bg)
         local btn = ni("TextButton", {
             Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
