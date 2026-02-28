@@ -11,20 +11,6 @@ local ICONS = {
     players = "rbxassetid://10747373176",
     misc    = "rbxassetid://10723345749",
     config  = "rbxassetid://10734950309",
-    home    = "rbxassetid://10723407389",
-    star    = "rbxassetid://10734966248",
-    shield  = "rbxassetid://10734951847",
-    ghost   = "rbxassetid://10723396107",
-    flame   = "rbxassetid://10723376114",
-    crown   = "rbxassetid://10709818626",
-    sword   = "rbxassetid://10734975486",
-    target  = "rbxassetid://10734977012",
-    lock    = "rbxassetid://10723434711",
-    wrench  = "rbxassetid://10747383470",
-    skull   = "rbxassetid://10734962068",
-    bell    = "rbxassetid://10709775704",
-    search  = "rbxassetid://10734943674",
-    user    = "rbxassetid://10747373176",
 }
 
 local Theme = {
@@ -63,16 +49,37 @@ local function tw(obj, props, dur, style, dir)
         props):Play()
 end
 
-local function resolveIcon(v)
-    if not v then return ICONS.aim end
-    if type(v) == "string" and v:match("rbxasset") then return v end
-    return ICONS[v] or ICONS.aim
+local function spawnRipple(frame, relX, relY)
+    local sz     = frame.AbsoluteSize
+    local maxR   = math.min(sz.X, sz.Y) * 0.38
+    local startS = 6
+    local ripple = ni("Frame", {
+        Size                   = UDim2.new(0, startS, 0, startS),
+        Position               = UDim2.new(0, relX - startS/2, 0, relY - startS/2),
+        BackgroundColor3       = Color3.fromRGB(255, 255, 255),
+        BackgroundTransparency = 0.65,
+        BorderSizePixel        = 0,
+        ZIndex                 = 25,
+    }, frame)
+    corner(ripple, maxR)
+    local endS = maxR * 2
+    TweenService:Create(ripple, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size                   = UDim2.new(0, endS, 0, endS),
+        Position               = UDim2.new(0, relX - endS/2, 0, relY - endS/2),
+        BackgroundTransparency = 0.88,
+    }):Play()
+    task.delay(0.5, function()
+        TweenService:Create(ripple, TweenInfo.new(0.2, Enum.EasingStyle.Quart), {
+            BackgroundTransparency = 1,
+        }):Play()
+        task.delay(0.22, function() ripple:Destroy() end)
+    end)
 end
 
-local Library = {}
-Library.Icons = ICONS
+local Lib = {}
+Lib.Icons = ICONS
 
-function Library.new(config)
+function Lib.new(config)
     config = config or {}
 
     if PlayerGui:FindFirstChild("MainGui") then
@@ -127,20 +134,18 @@ function Library.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    if config.Logo then
-        local lh = ni("Frame", {
-            Size                   = UDim2.new(0, 48, 0, 48),
-            Position               = UDim2.new(0.5, -24, 0.5, -24),
-            BackgroundTransparency = 1,
-            BorderSizePixel        = 0,
-        }, TopBar)
-        ni("ImageLabel", {
-            Size                   = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            Image                  = config.Logo,
-            ScaleType              = Enum.ScaleType.Fit,
-        }, lh)
-    end
+    local LogoHolder = ni("Frame", {
+        Size                   = UDim2.new(0, 48, 0, 48),
+        Position               = UDim2.new(0.5, -24, 0.5, -24),
+        BackgroundTransparency = 1,
+        BorderSizePixel        = 0,
+    }, TopBar)
+    ni("ImageLabel", {
+        Size                   = UDim2.new(1, 0, 1, 0),
+        BackgroundTransparency = 1,
+        Image                  = config.Logo or "",
+        ScaleType              = Enum.ScaleType.Fit,
+    }, LogoHolder)
 
     local UserBlock = ni("Frame", {
         Size                   = UDim2.new(0, 160, 0, 40),
@@ -206,10 +211,10 @@ function Library.new(config)
     local SMALL_W    = 52
     local EXPANDED_W = 150
 
-    local tabList  = {}
-    local tabBtns  = {}
-    local pages    = {}
-    local curTab   = nil
+    local tabList   = {}
+    local tabBtns   = {}
+    local pages     = {}
+    local curTab    = nil
     local animating = false
 
     local function calcPositions(activeIdx)
@@ -288,13 +293,16 @@ function Library.new(config)
         end
     end)
 
-    local Window = {}
+    local win = {}
 
-    function Window:AddTab(cfg)
+    function win:AddTab(cfg)
         cfg = cfg or {}
         local name    = cfg.Name or ("Tab" .. tostring(#tabList + 1))
         local subText = cfg.Sub  or ""
-        local iconId  = resolveIcon(cfg.Icon)
+        local iconId  = cfg.Icon or ICONS.aim
+        if type(iconId) == "string" and not iconId:match("rbxasset") then
+            iconId = ICONS[iconId] or ICONS.aim
+        end
 
         local pg = ni("Frame", {
             Name                   = name,
@@ -316,55 +324,35 @@ function Library.new(config)
 
         local p  = positions[idx]
         local bg = ni("Frame", {
-            Size                   = UDim2.new(0, SMALL_W, 1, 0),
-            Position               = UDim2.new(0, p.x, 0, 0),
-            BackgroundTransparency = 1,
-            BorderSizePixel        = 0,
-            ClipsDescendants       = true,
+            Size = UDim2.new(0, SMALL_W, 1, 0), Position = UDim2.new(0, p.x, 0, 0),
+            BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true,
         }, TabBar)
         local sq = ni("Frame", {
-            Size             = UDim2.new(0, 34, 0, 34),
-            Position         = UDim2.new(0, 9, 0.5, -17),
-            BackgroundColor3 = Theme.card,
-            BorderSizePixel  = 0,
+            Size = UDim2.new(0, 34, 0, 34), Position = UDim2.new(0, 9, 0.5, -17),
+            BackgroundColor3 = Theme.card, BorderSizePixel = 0,
         }, bg)
         corner(sq, 8)
         local sqStr = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, sq)
         local img = ni("ImageLabel", {
-            Size                   = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE),
-            Position               = UDim2.new(0.5, -ICON_SIZE/2, 0.5, -ICON_SIZE/2),
-            BackgroundTransparency = 1,
-            Image                  = iconId,
-            ImageColor3            = Theme.dim,
+            Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE),
+            Position = UDim2.new(0.5, -ICON_SIZE/2, 0.5, -ICON_SIZE/2),
+            BackgroundTransparency = 1, Image = iconId, ImageColor3 = Theme.dim,
         }, sq)
         local lbl = ni("TextLabel", {
-            Size             = UDim2.new(1, -54, 0, 15),
-            Position         = UDim2.new(0, 48, 0.5, -13),
-            BackgroundTransparency = 1,
-            Text             = name,
-            TextColor3       = Theme.text,
-            TextSize         = 11,
-            Font             = Enum.Font.GothamBold,
-            TextXAlignment   = Enum.TextXAlignment.Left,
-            TextTransparency = 1,
+            Size = UDim2.new(1, -54, 0, 15), Position = UDim2.new(0, 48, 0.5, -13),
+            BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
+            TextSize = 11, Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
         }, bg)
         local sub_lbl = ni("TextLabel", {
-            Size             = UDim2.new(1, -54, 0, 10),
-            Position         = UDim2.new(0, 48, 0.5, 3),
-            BackgroundTransparency = 1,
-            Text             = subText,
-            TextColor3       = Theme.muted,
-            TextSize         = 8,
-            Font             = Enum.Font.Gotham,
-            TextXAlignment   = Enum.TextXAlignment.Left,
-            TextTransparency = 1,
+            Size = UDim2.new(1, -54, 0, 10), Position = UDim2.new(0, 48, 0.5, 3),
+            BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
+            TextSize = 8, Font = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
         }, bg)
         local btn = ni("TextButton", {
-            Size                   = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            Text                   = "",
-            BorderSizePixel        = 0,
-            ZIndex                 = 10,
+            Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
+            Text = "", BorderSizePixel = 0, ZIndex = 10,
         }, bg)
 
         tabBtns[idx] = {name = name, bg = bg, sq = sq, str = sqStr, img = img, lbl = lbl, sub = sub_lbl}
@@ -387,28 +375,29 @@ function Library.new(config)
             task.delay(0.05, function() switchTo(name) end)
         end
 
-        local Tab = {}
+        local tab = {}
 
-        function Tab:AddSection(scfg)
+        function tab:AddSection(scfg)
             scfg = scfg or {}
-            local sName  = scfg.Name or "Section"
-            local sIcon  = resolveIcon(scfg.Icon)
-            local side   = scfg.Side or "left"
+            local sName = scfg.Name or "Section"
+            local sIcon = scfg.Icon or ICONS.aim
+            if type(sIcon) == "string" and not sIcon:match("rbxasset") then
+                sIcon = ICONS[sIcon] or ICONS.aim
+            end
+            local side = scfg.Side or "left"
 
             local xPct, wPct
             if side == "left" then
-                xPct = 0.00; wPct = 0.35
+                xPct = 0;    wPct = 0.35
             elseif side == "center" then
-                xPct = 0.35; wPct = 0.35
+                xPct = 0.35; wPct = 0.30
             else
-                xPct = 0.70; wPct = 0.30
+                xPct = 0.65; wPct = 0.35
             end
 
-            local GAP = 3
-
             local outer = ni("Frame", {
-                Size             = UDim2.new(wPct, -GAP, 1, -8),
-                Position         = UDim2.new(xPct, GAP, 0, 4),
+                Size             = UDim2.new(wPct, -6, 1, -8),
+                Position         = UDim2.new(xPct, 3, 0, 4),
                 BackgroundColor3 = Theme.section,
                 BorderSizePixel  = 0,
                 ClipsDescendants = true,
@@ -470,23 +459,28 @@ function Library.new(config)
                 PaddingLeft   = UDim.new(0, 4),
                 PaddingRight  = UDim.new(0, 4),
             }, scroll)
-            ni("UIListLayout", {
-                Padding             = UDim.new(0, 4),
-                FillDirection       = Enum.FillDirection.Vertical,
-                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                SortOrder           = Enum.SortOrder.LayoutOrder,
-            }, scroll)
 
-            local Section = {}
-            Section._scroll = scroll
-            Section._outer  = outer
-            return Section
+            local hitbox = ni("TextButton", {
+                Size                   = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Text                   = "",
+                BorderSizePixel        = 0,
+                ZIndex                 = 19,
+            }, outer)
+            hitbox.MouseButton1Down:Connect(function(x, y)
+                local abs = outer.AbsolutePosition
+                spawnRipple(outer, x - abs.X, y - abs.Y)
+            end)
+
+            local section = {}
+            section._scroll = scroll
+            return section
         end
 
-        return Tab
+        return tab
     end
 
-    return Window
+    return win
 end
 
-return Library
+return Lib
