@@ -504,49 +504,53 @@ function Lib.new(config)
 
 			-- ScrollingFrame for elements
 			local scroll = ni("ScrollingFrame", {
-				Size                    = UDim2.new(1, 0, 1, -HEADER_H),
-				Position                = UDim2.new(0, 0, 0, HEADER_H),
-				BackgroundTransparency  = 1,
-				BorderSizePixel         = 0,
-				ScrollBarThickness      = 3,
-				ScrollBarImageColor3    = Theme.accentHi,
-				CanvasSize              = UDim2.new(0, 0, 0, 0),
-				AutomaticCanvasSize     = Enum.AutomaticSize.Y,
-				ScrollingDirection      = Enum.ScrollingDirection.Y,
-				ClipsDescendants        = true,
+				Size                 = UDim2.new(1, -4, 1, -HEADER_H),
+				Position             = UDim2.new(0, 2, 0, HEADER_H),
+				BackgroundTransparency = 1,
+				BorderSizePixel      = 0,
+				ScrollBarThickness   = 3,
+				ScrollBarImageColor3 = Theme.accentHi,
+				CanvasSize           = UDim2.new(0, 0, 0, 0),
+				ScrollingDirection   = Enum.ScrollingDirection.Y,
+				ClipsDescendants     = true,
 			}, target)
 
-			local list = ni("Frame", {
-				Size                   = UDim2.new(1, 0, 0, 0),
-				BackgroundTransparency = 1,
-				AutomaticSize          = Enum.AutomaticSize.Y,
-			}, scroll)
-			ni("UIListLayout", {
-				SortOrder           = Enum.SortOrder.LayoutOrder,
-				Padding             = UDim.new(0, 2),
-				FillDirection       = Enum.FillDirection.Vertical,
-				HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			}, list)
-			ni("UIPadding", {
-				PaddingLeft   = UDim.new(0, 5),
-				PaddingRight  = UDim.new(0, 5),
-				PaddingTop    = UDim.new(0, 4),
-				PaddingBottom = UDim.new(0, 4),
-			}, list)
+			local layout = Instance.new("UIListLayout")
+			layout.SortOrder           = Enum.SortOrder.LayoutOrder
+			layout.Padding             = UDim.new(0, 2)
+			layout.FillDirection       = Enum.FillDirection.Vertical
+			layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+			layout.Parent              = scroll
 
-			local sec       = {}
-			sec.Frame       = target
-			sec.ScrollFrame = scroll
-			sec.List        = list
+			local pad = Instance.new("UIPadding")
+			pad.PaddingLeft   = UDim.new(0, 5)
+			pad.PaddingRight  = UDim.new(0, 5)
+			pad.PaddingTop    = UDim.new(0, 4)
+			pad.PaddingBottom = UDim.new(0, 4)
+			pad.Parent        = scroll
 
+			local function updateCanvas()
+				local h = layout.AbsoluteContentSize.Y + 12
+				scroll.CanvasSize = UDim2.new(0, 0, 0, h)
+			end
+			layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+
+			local list = scroll
+
+			local sec   = {}
+			sec.Frame   = target
+			sec.Scroll  = scroll
+
+			local rowCount = 0
 			local function newRow(h, zidx)
+				rowCount = rowCount + 1
 				return ni("Frame", {
 					Size             = UDim2.new(1, 0, 0, h),
 					BackgroundColor3 = Theme.card,
 					BorderSizePixel  = 0,
-					LayoutOrder      = #list:GetChildren(),
+					LayoutOrder      = rowCount,
 					ZIndex           = zidx or 1,
-				}, list)
+				}, scroll)
 			end
 
 			-- TOGGLE
@@ -751,13 +755,14 @@ function Lib.new(config)
 				local totalOptH = #options * OPT_H
 
 				-- wrapper that grows when open
+				rowCount = rowCount + 1
 				local wrapper = ni("Frame", {
 					Size             = UDim2.new(1, 0, 0, ELEM_H),
 					BackgroundTransparency = 1,
 					BorderSizePixel  = 0,
-					LayoutOrder      = #list:GetChildren(),
+					LayoutOrder      = rowCount,
 					ClipsDescendants = false,
-				}, list)
+				}, scroll)
 
 				local row = ni("Frame", {
 					Size             = UDim2.new(1, 0, 0, ELEM_H),
@@ -928,13 +933,14 @@ function Lib.new(config)
 				local open     = false
 
 				local PICKER_H = 90
+				rowCount = rowCount + 1
 				local wrapper  = ni("Frame", {
 					Size                   = UDim2.new(1,0,0,ELEM_H),
 					BackgroundTransparency = 1,
 					BorderSizePixel        = 0,
-					LayoutOrder            = #list:GetChildren(),
+					LayoutOrder            = rowCount,
 					ClipsDescendants       = false,
-				}, list)
+				}, scroll)
 
 				local row = ni("Frame", {
 					Size             = UDim2.new(1,0,0,ELEM_H),
