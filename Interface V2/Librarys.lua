@@ -21,7 +21,6 @@ local Theme = {
     pageArea        = Color3.fromRGB(22, 22, 22),
     card            = Color3.fromRGB(30, 30, 30),
     tabbar          = Color3.fromRGB(18, 18, 18),
-    secBorder       = Color3.fromRGB(50, 50, 50),
     accentHi        = Color3.fromRGB(110, 170, 210),
     accentLo        = Color3.fromRGB(30, 60, 85),
     text            = Color3.fromRGB(235, 235, 235),
@@ -29,7 +28,8 @@ local Theme = {
     dim             = Color3.fromRGB(70, 70, 70),
 }
 
-local W, H = 780, 480
+local W, H    = 780, 480
+local TOPBAR  = 60
 
 local function ni(class, props, parent)
     local o = Instance.new(class)
@@ -76,8 +76,9 @@ function Lib.new(config)
     }, ScreenGui)
     corner(Main, 12)
 
+    -- ── TopBar ─────────────────────────────────────────────────────────────
     local TopBar = ni("Frame", {
-        Size             = UDim2.new(1, 0, 0, 46),
+        Size             = UDim2.new(1, 0, 0, TOPBAR),
         BackgroundColor3 = Theme.AcrylicMain,
         BorderSizePixel  = 0,
     }, Main)
@@ -95,8 +96,9 @@ function Lib.new(config)
         BorderSizePixel  = 0,
     }, TopBar)
 
+    -- Título (esquerda)
     ni("TextLabel", {
-        Size                   = UDim2.new(0, 180, 1, 0),
+        Size                   = UDim2.new(0, 200, 1, 0),
         Position               = UDim2.new(0, 14, 0, 0),
         BackgroundTransparency = 1,
         Text                   = config.Title or "Painel",
@@ -106,61 +108,87 @@ function Lib.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    local LogoHolder = ni("Frame", {
-        Size                   = UDim2.new(0, 64, 0, 64),
-        Position               = UDim2.new(0.5, -32, 0.5, -32),
-        BackgroundTransparency = 1,
-        BorderSizePixel        = 0,
-    }, TopBar)
-    ni("ImageLabel", {
-        Size                   = UDim2.new(1, 0, 1, 0),
+    -- Logo (centro) – sem fundo, só a imagem
+    local logoSize = 52
+    local LogoImg = ni("ImageLabel", {
+        Size                   = UDim2.new(0, logoSize, 0, logoSize),
+        Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
         BackgroundTransparency = 1,
         Image                  = config.Logo or "",
         ScaleType              = Enum.ScaleType.Fit,
-    }, LogoHolder)
+        ZIndex                 = 2,
+    }, TopBar)
 
+    -- Bloco do usuário (direita) – avatar quadrado com linha e nome
+    local blockW = 170
     local UserBlock = ni("Frame", {
-        Size                   = UDim2.new(0, 160, 0, 40),
-        Position               = UDim2.new(1, -170, 0.5, -20),
+        Size                   = UDim2.new(0, blockW, 0, TOPBAR),
+        Position               = UDim2.new(1, -blockW, 0, 0),
         BackgroundTransparency = 1,
     }, TopBar)
-    local AvatarCircle = ni("Frame", {
-        Size             = UDim2.new(0, 32, 0, 32),
-        Position         = UDim2.new(0, 0, 0.5, -16),
-        BackgroundColor3 = Theme.bg,
+
+    -- linha vertical separadora
+    ni("Frame", {
+        Size             = UDim2.new(0, 1, 0, 36),
+        Position         = UDim2.new(0, 0, 0.5, -18),
+        BackgroundColor3 = Theme.TitleBarLine,
         BorderSizePixel  = 0,
     }, UserBlock)
-    corner(AvatarCircle, 16)
+
+    -- avatar quadrado com cantos arredondados
+    local AvatarFrame = ni("Frame", {
+        Size             = UDim2.new(0, 36, 0, 36),
+        Position         = UDim2.new(0, 12, 0.5, -18),
+        BackgroundColor3 = Theme.card,
+        BorderSizePixel  = 0,
+    }, UserBlock)
+    corner(AvatarFrame, 8)
+    ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, AvatarFrame)
+
     local av = ni("ImageLabel", {
         Size                   = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         Image                  = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. LocalPlayer.UserId .. "&width=60&height=60&format=png",
         ScaleType              = Enum.ScaleType.Crop,
-    }, AvatarCircle)
-    corner(av, 16)
+    }, AvatarFrame)
+    corner(av, 8)
+
+    -- nome do jogador
     ni("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 16), Position = UDim2.new(0, 38, 0, 3),
-        BackgroundTransparency = 1, Text = LocalPlayer.DisplayName,
-        TextColor3 = Theme.text, TextSize = 11, Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
+        Size             = UDim2.new(1, -56, 0, 17),
+        Position         = UDim2.new(0, 55, 0.5, -18),
+        BackgroundTransparency = 1,
+        Text             = LocalPlayer.DisplayName,
+        TextColor3       = Theme.text,
+        TextSize         = 12,
+        Font             = Enum.Font.GothamBold,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
+    -- @username
     ni("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 12), Position = UDim2.new(0, 38, 0, 20),
-        BackgroundTransparency = 1, Text = "@" .. LocalPlayer.Name,
-        TextColor3 = Theme.muted, TextSize = 9, Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
+        Size             = UDim2.new(1, -56, 0, 13),
+        Position         = UDim2.new(0, 55, 0.5, 2),
+        BackgroundTransparency = 1,
+        Text             = "@" .. LocalPlayer.Name,
+        TextColor3       = Theme.muted,
+        TextSize         = 9,
+        Font             = Enum.Font.Gotham,
+        TextXAlignment   = Enum.TextXAlignment.Left,
+        TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
 
+    -- ── PageArea (sem borda) ────────────────────────────────────────────────
     local PageArea = ni("Frame", {
-        Size             = UDim2.new(1, -16, 1, -108),
-        Position         = UDim2.new(0, 8, 0, 54),
+        Size             = UDim2.new(1, -16, 1, -TOPBAR - 60),
+        Position         = UDim2.new(0, 8, 0, TOPBAR + 8),
         BackgroundColor3 = Theme.pageArea,
         BorderSizePixel  = 0,
         ClipsDescendants = true,
     }, Main)
     corner(PageArea, 10)
-    ni("UIStroke", {Color = Theme.secBorder, Thickness = 1}, PageArea)
 
+    -- ── TabBar ──────────────────────────────────────────────────────────────
     local TabBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, 52),
         Position         = UDim2.new(0, 0, 1, -52),
