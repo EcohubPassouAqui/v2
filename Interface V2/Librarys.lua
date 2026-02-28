@@ -21,15 +21,15 @@ local Theme = {
     pageArea        = Color3.fromRGB(22, 22, 22),
     card            = Color3.fromRGB(30, 30, 30),
     tabbar          = Color3.fromRGB(18, 18, 18),
-    accentHi        = Color3.fromRGB(110, 170, 210),
-    accentLo        = Color3.fromRGB(30, 60, 85),
+    accentHi        = Color3.fromRGB(160, 100, 255),
+    accentLo        = Color3.fromRGB(55, 20, 100),
     text            = Color3.fromRGB(235, 235, 235),
     muted           = Color3.fromRGB(130, 130, 130),
     dim             = Color3.fromRGB(70, 70, 70),
 }
 
-local W, H    = 780, 480
-local TOPBAR  = 60
+local W, H   = 780, 480
+local TOPBAR = 60
 
 local function ni(class, props, parent)
     local o = Instance.new(class)
@@ -76,7 +76,7 @@ function Lib.new(config)
     }, ScreenGui)
     corner(Main, 12)
 
-    -- ── TopBar ─────────────────────────────────────────────────────────────
+    -- ── TopBar ──────────────────────────────────────────────────────────────
     local TopBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, TOPBAR),
         BackgroundColor3 = Theme.AcrylicMain,
@@ -96,7 +96,6 @@ function Lib.new(config)
         BorderSizePixel  = 0,
     }, TopBar)
 
-    -- Título (esquerda)
     ni("TextLabel", {
         Size                   = UDim2.new(0, 200, 1, 0),
         Position               = UDim2.new(0, 14, 0, 0),
@@ -108,9 +107,8 @@ function Lib.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    -- Logo (centro) – sem fundo, só a imagem
     local logoSize = 52
-    local LogoImg = ni("ImageLabel", {
+    ni("ImageLabel", {
         Size                   = UDim2.new(0, logoSize, 0, logoSize),
         Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
         BackgroundTransparency = 1,
@@ -119,15 +117,12 @@ function Lib.new(config)
         ZIndex                 = 2,
     }, TopBar)
 
-    -- Bloco do usuário (direita) – avatar quadrado com linha e nome
     local blockW = 170
     local UserBlock = ni("Frame", {
         Size                   = UDim2.new(0, blockW, 0, TOPBAR),
         Position               = UDim2.new(1, -blockW, 0, 0),
         BackgroundTransparency = 1,
     }, TopBar)
-
-    -- linha vertical separadora
     ni("Frame", {
         Size             = UDim2.new(0, 1, 0, 36),
         Position         = UDim2.new(0, 0, 0.5, -18),
@@ -135,7 +130,6 @@ function Lib.new(config)
         BorderSizePixel  = 0,
     }, UserBlock)
 
-    -- avatar quadrado com cantos arredondados
     local AvatarFrame = ni("Frame", {
         Size             = UDim2.new(0, 36, 0, 36),
         Position         = UDim2.new(0, 12, 0.5, -18),
@@ -144,7 +138,6 @@ function Lib.new(config)
     }, UserBlock)
     corner(AvatarFrame, 8)
     ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, AvatarFrame)
-
     local av = ni("ImageLabel", {
         Size                   = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
@@ -153,7 +146,6 @@ function Lib.new(config)
     }, AvatarFrame)
     corner(av, 8)
 
-    -- nome do jogador
     ni("TextLabel", {
         Size             = UDim2.new(1, -56, 0, 17),
         Position         = UDim2.new(0, 55, 0.5, -18),
@@ -165,7 +157,6 @@ function Lib.new(config)
         TextXAlignment   = Enum.TextXAlignment.Left,
         TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
-    -- @username
     ni("TextLabel", {
         Size             = UDim2.new(1, -56, 0, 13),
         Position         = UDim2.new(0, 55, 0.5, 2),
@@ -178,7 +169,7 @@ function Lib.new(config)
         TextTruncate     = Enum.TextTruncate.AtEnd,
     }, UserBlock)
 
-    -- ── PageArea (sem borda) ────────────────────────────────────────────────
+    -- ── PageArea (sem borda) ─────────────────────────────────────────────────
     local PageArea = ni("Frame", {
         Size             = UDim2.new(1, -16, 1, -TOPBAR - 60),
         Position         = UDim2.new(0, 8, 0, TOPBAR + 8),
@@ -188,12 +179,14 @@ function Lib.new(config)
     }, Main)
     corner(PageArea, 10)
 
-    -- ── TabBar ──────────────────────────────────────────────────────────────
+    -- ── TabBar ───────────────────────────────────────────────────────────────
+    local TABBAR_H = 52
     local TabBar = ni("Frame", {
-        Size             = UDim2.new(1, 0, 0, 52),
-        Position         = UDim2.new(0, 0, 1, -52),
+        Size             = UDim2.new(1, 0, 0, TABBAR_H),
+        Position         = UDim2.new(0, 0, 1, -TABBAR_H),
         BackgroundColor3 = Theme.tabbar,
         BorderSizePixel  = 0,
+        ClipsDescendants = true,
     }, Main)
     corner(TabBar, 12)
     ni("Frame", {
@@ -207,9 +200,11 @@ function Lib.new(config)
         BorderSizePixel  = 0,
     }, TabBar)
 
+    -- Tamanhos adaptativos para caber até 8 tabs sem sobrepor
+    -- SMALL_W menor + EXPANDED_W reduzido resolve overflow
     local ICON_SIZE  = 18
-    local SMALL_W    = 52
-    local EXPANDED_W = 150
+    local SMALL_W    = 44
+    local EXPANDED_W = 120
 
     local tabList   = {}
     local tabBtns   = {}
@@ -218,16 +213,25 @@ function Lib.new(config)
     local animating = false
 
     local function calcPositions(activeIdx)
-        local pos = {}
+        local pos  = {}
+        local total = EXPANDED_W + (#tabList - 1) * SMALL_W
+        -- se não cabe, encolhe expanded proporcionalmente
+        local maxTotal = W - 20
+        local expW = EXPANDED_W
+        if total > maxTotal then
+            expW = math.max(SMALL_W + 20, maxTotal - (#tabList - 1) * SMALL_W)
+        end
         local x = 0
         for i = 1, #tabList do
-            local w = (i == activeIdx) and EXPANDED_W or SMALL_W
+            local w = (i == activeIdx) and expW or SMALL_W
             pos[i] = {x = x, w = w}
             x = x + w
         end
-        local offset = math.floor((W - x) / 2)
+        local realTotal = expW + (#tabList - 1) * SMALL_W
+        local offset    = math.floor((W - realTotal) / 2)
+        if offset < 4 then offset = 4 end
         for i = 1, #tabList do pos[i].x = pos[i].x + offset end
-        return pos
+        return pos, expW
     end
 
     local function switchTo(name)
@@ -237,7 +241,7 @@ function Lib.new(config)
         pages[name].Visible = true
         local activeIdx = 1
         for i, t in ipairs(tabList) do if t.name == name then activeIdx = i break end end
-        local positions = calcPositions(activeIdx)
+        local positions, expW = calcPositions(activeIdx)
         for i, tb in ipairs(tabBtns) do
             local active = tabList[i].name == name
             local p = positions[i]
@@ -258,22 +262,27 @@ function Lib.new(config)
         end
     end
 
+    -- ── Show / Hide ──────────────────────────────────────────────────────────
     local function showGui()
         if animating then return end
-        animating = true
+        animating     = true
         Main.Visible  = true
         Main.Size     = UDim2.new(0, W, 0, 0)
         Main.Position = UDim2.new(0.5, -W/2, 0.5, 0)
-        tw(Main, {Size = UDim2.new(0, W, 0, H), Position = UDim2.new(0.5, -W/2, 0.5, -H/2)},
-            0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tw(Main, {
+            Size     = UDim2.new(0, W, 0, H),
+            Position = UDim2.new(0.5, -W/2, 0.5, -H/2),
+        }, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         task.delay(0.42, function() animating = false end)
     end
 
     local function hideGui()
         if animating then return end
         animating = true
-        tw(Main, {Size = UDim2.new(0, W, 0, 0), Position = UDim2.new(0.5, -W/2, 0.5, 0)},
-            0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        tw(Main, {
+            Size     = UDim2.new(0, W, 0, 0),
+            Position = UDim2.new(0.5, -W/2, 0.5, 0),
+        }, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
         task.delay(0.32, function()
             Main.Visible  = false
             Main.Size     = UDim2.new(0, W, 0, H)
@@ -288,11 +297,17 @@ function Lib.new(config)
     UserInputService.InputBegan:Connect(function(input, processed)
         if processed then return end
         if input.KeyCode == toggleKey or input.KeyCode == Enum.KeyCode.RightAlt then
-            if visible then visible = false hideGui()
-            else visible = true showGui() end
+            if visible then
+                visible = false
+                hideGui()
+            else
+                visible = true
+                showGui()
+            end
         end
     end)
 
+    -- ── AddTab ───────────────────────────────────────────────────────────────
     local win = {}
 
     function win:AddTab(cfg)
@@ -313,13 +328,14 @@ function Lib.new(config)
         pages[name] = pg
         table.insert(tabList, {name = name, sub = subText, icon = iconId})
 
-        local idx       = #tabList
-        local positions = calcPositions(idx)
+        local idx            = #tabList
+        local positions, expW = calcPositions(idx)
 
+        -- reposiciona todos os botões já existentes
         for i, tb in ipairs(tabBtns) do
             local p = positions[i]
             tb.bg.Position = UDim2.new(0, p.x, 0, 0)
-            tb.bg.Size     = UDim2.new(0, p.w, 1, 0)
+            tb.bg.Size     = UDim2.new(0, SMALL_W, 1, 0)
         end
 
         local p  = positions[idx]
@@ -328,7 +344,7 @@ function Lib.new(config)
             BackgroundTransparency = 1, BorderSizePixel = 0, ClipsDescendants = true,
         }, TabBar)
         local sq = ni("Frame", {
-            Size = UDim2.new(0, 34, 0, 34), Position = UDim2.new(0, 9, 0.5, -17),
+            Size = UDim2.new(0, 34, 0, 34), Position = UDim2.new(0, 5, 0.5, -17),
             BackgroundColor3 = Theme.card, BorderSizePixel = 0,
         }, bg)
         corner(sq, 8)
@@ -339,16 +355,18 @@ function Lib.new(config)
             BackgroundTransparency = 1, Image = iconId, ImageColor3 = Theme.dim,
         }, sq)
         local lbl = ni("TextLabel", {
-            Size = UDim2.new(1, -54, 0, 15), Position = UDim2.new(0, 48, 0.5, -13),
+            Size = UDim2.new(1, -46, 0, 15), Position = UDim2.new(0, 44, 0.5, -13),
             BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
             TextSize = 11, Font = Enum.Font.GothamBold,
             TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
+            ClipsDescendants = false,
         }, bg)
         local sub_lbl = ni("TextLabel", {
-            Size = UDim2.new(1, -54, 0, 10), Position = UDim2.new(0, 48, 0.5, 3),
+            Size = UDim2.new(1, -46, 0, 10), Position = UDim2.new(0, 44, 0.5, 3),
             BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
             TextSize = 8, Font = Enum.Font.Gotham,
             TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1,
+            ClipsDescendants = false,
         }, bg)
         local btn = ni("TextButton", {
             Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1,
