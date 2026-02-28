@@ -111,7 +111,7 @@ function Lib.new(config)
 		TextXAlignment         = Enum.TextXAlignment.Left,
 	}, TopBar)
 
-	local logoSize = 46
+	local logoSize = 58
 	ni("ImageLabel", {
 		Size                   = UDim2.new(0, logoSize, 0, logoSize),
 		Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
