@@ -4,31 +4,30 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
-
 local Theme = {
-    bg              = Color3.fromRGB(14, 12, 18),
-    topbar          = Color3.fromRGB(20, 17, 26),
-    topbarLine      = Color3.fromRGB(55, 40, 75),
-    pageArea        = Color3.fromRGB(16, 14, 22),
-    section         = Color3.fromRGB(22, 18, 30),
-    sectionBorder   = Color3.fromRGB(55, 40, 75),
-    sectionHeader   = Color3.fromRGB(18, 15, 26),
-    card            = Color3.fromRGB(28, 22, 38),
-    tabbar          = Color3.fromRGB(14, 12, 18),
-    tabbarLine      = Color3.fromRGB(45, 32, 65),
-    accentHi        = Color3.fromRGB(190, 130, 255),
-    accentMid       = Color3.fromRGB(130, 80, 200),
-    accentLo        = Color3.fromRGB(55, 28, 90),
-    text            = Color3.fromRGB(235, 225, 255),
-    muted           = Color3.fromRGB(140, 120, 170),
-    dim             = Color3.fromRGB(75, 60, 100),
-    elemBorder      = Color3.fromRGB(60, 45, 85),
+    bg            = Color3.fromRGB(14, 12, 18),
+    topbar        = Color3.fromRGB(20, 17, 26),
+    topbarLine    = Color3.fromRGB(55, 40, 75),
+    pageArea      = Color3.fromRGB(16, 14, 22),
+    section       = Color3.fromRGB(22, 18, 30),
+    secBorder     = Color3.fromRGB(55, 40, 75),
+    secHeader     = Color3.fromRGB(18, 15, 26),
+    card          = Color3.fromRGB(28, 22, 38),
+    tabbar        = Color3.fromRGB(14, 12, 18),
+    tabbarLine    = Color3.fromRGB(45, 32, 65),
+    accentHi      = Color3.fromRGB(190, 130, 255),
+    accentMid     = Color3.fromRGB(130, 80, 200),
+    accentLo      = Color3.fromRGB(55, 28, 90),
+    text          = Color3.fromRGB(235, 225, 255),
+    muted         = Color3.fromRGB(140, 120, 170),
+    dim           = Color3.fromRGB(75, 60, 100),
+    elemBorder    = Color3.fromRGB(60, 45, 85),
 }
 
--- ╔══════════════════════════════╗
--- ║         LUCIDE ICONS         ║
--- ╚══════════════════════════════╝
-local Icons = {
+local UILib = {}
+UILib.__index = UILib
+
+UILib.Icons = {
     home        = "rbxassetid://10723407389",
     eye         = "rbxassetid://10723346959",
     settings    = "rbxassetid://10734950309",
@@ -39,7 +38,6 @@ local Icons = {
     sword       = "rbxassetid://10734975486",
     crosshair   = "rbxassetid://10709818534",
     target      = "rbxassetid://10734977012",
-    bolt        = "rbxassetid://10723345749",
     layers      = "rbxassetid://10723424505",
     compass     = "rbxassetid://10709811445",
     ghost       = "rbxassetid://10723396107",
@@ -49,7 +47,6 @@ local Icons = {
     trophy      = "rbxassetid://10747363809",
     search      = "rbxassetid://10734943674",
     info        = "rbxassetid://10723415903",
-    ["alert-triangle"] = "rbxassetid://10709753149",
     check       = "rbxassetid://10709790644",
     x           = "rbxassetid://10747384394",
     plus        = "rbxassetid://10734924532",
@@ -66,35 +63,66 @@ local Icons = {
     cpu         = "rbxassetid://10709813383",
     wifi        = "rbxassetid://10747382504",
     database    = "rbxassetid://10709818996",
+    trash       = "rbxassetid://10747362393",
+    download    = "rbxassetid://10723344270",
+    upload      = "rbxassetid://10747366434",
+    refresh     = "rbxassetid://10734933222",
+    alert       = "rbxassetid://10709753149",
+    rocket      = "rbxassetid://10734934585",
+    wrench      = "rbxassetid://10747383470",
+    skull       = "rbxassetid://10734962068",
+    swords      = "rbxassetid://10734975692",
 }
 
--- ╔══════════════════════════════╗
--- ║         UTILITIES            ║
--- ╚══════════════════════════════╝
+local function resolveIcon(v)
+    if type(v) == "string" then
+        if v:match("rbxasset") then
+            return v
+        end
+        local resolved = UILib.Icons[v]
+        if not resolved then
+            print("[EcoHub] Icon nao encontrado: " .. tostring(v))
+            return UILib.Icons.info
+        end
+        return resolved
+    end
+    print("[EcoHub] Icon invalido, usando padrao")
+    return UILib.Icons.info
+end
+
 local function ni(class, props, parent)
-    local o = Instance.new(class)
-    for k, v in pairs(props) do o[k] = v end
-    if parent then o.Parent = parent end
-    return o
+    local ok, result = pcall(function()
+        local o = Instance.new(class)
+        for k, v in pairs(props) do
+            o[k] = v
+        end
+        if parent then o.Parent = parent end
+        return o
+    end)
+    if not ok then
+        print("[EcoHub] Erro ao criar " .. class .. ": " .. tostring(result))
+        return nil
+    end
+    return result
 end
 
 local function corner(p, r)
+    if not p then return end
     ni("UICorner", {CornerRadius = UDim.new(0, r or 8)}, p)
 end
 
 local function tw(obj, props, dur, style, dir)
+    if not obj then return end
     TweenService:Create(obj,
         TweenInfo.new(dur or 0.22, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
         props):Play()
 end
 
--- Ripple muito sutil, sem spam
 local rippleCooldown = false
 local function spawnRipple(frame, relX, relY)
-    if rippleCooldown then return end
+    if rippleCooldown or not frame then return end
     rippleCooldown = true
     task.delay(0.35, function() rippleCooldown = false end)
-
     local sz   = frame.AbsoluteSize
     local maxR = math.min(sz.X, sz.Y) * 0.45
     local s0   = 4
@@ -102,17 +130,17 @@ local function spawnRipple(frame, relX, relY)
         Size                   = UDim2.new(0, s0, 0, s0),
         Position               = UDim2.new(0, relX - s0/2, 0, relY - s0/2),
         BackgroundColor3       = Theme.accentHi,
-        BackgroundTransparency = 0.78,
+        BackgroundTransparency = 0.80,
         BorderSizePixel        = 0,
         ZIndex                 = 30,
     }, frame)
+    if not rip then return end
     corner(rip, maxR)
-
     local endS = maxR * 2
     TweenService:Create(rip, TweenInfo.new(0.38, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
         Size                   = UDim2.new(0, endS, 0, endS),
         Position               = UDim2.new(0, relX - endS/2, 0, relY - endS/2),
-        BackgroundTransparency = 0.92,
+        BackgroundTransparency = 0.93,
     }):Play()
     task.delay(0.38, function()
         TweenService:Create(rip, TweenInfo.new(0.18, Enum.EasingStyle.Quart), {
@@ -122,14 +150,17 @@ local function spawnRipple(frame, relX, relY)
     end)
 end
 
--- ╔══════════════════════════════╗
--- ║          LIBRARY             ║
--- ╚══════════════════════════════╝
-local UILib = {}
-UILib.__index = UILib
-
 function UILib.new(config)
     config = config or {}
+
+    if not LocalPlayer then
+        print("[EcoHub] Erro: LocalPlayer nao encontrado")
+        return nil
+    end
+    if not PlayerGui then
+        print("[EcoHub] Erro: PlayerGui nao encontrado")
+        return nil
+    end
 
     local W, H   = 800, 500
     local ICON_S = 18
@@ -146,7 +177,11 @@ function UILib.new(config)
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, PlayerGui)
 
-    -- ── Main Frame ──────────────────────────────────────────────────────────
+    if not ScreenGui then
+        print("[EcoHub] Falha ao criar ScreenGui")
+        return nil
+    end
+
     local Main = ni("Frame", {
         Size             = UDim2.new(0, W, 0, H),
         Position         = UDim2.new(0.5, -W/2, 0.5, -H/2),
@@ -159,21 +194,18 @@ function UILib.new(config)
     corner(Main, 12)
     ni("UIStroke", {Color = Theme.accentLo, Thickness = 1.5}, Main)
 
-    -- ── Top Bar ─────────────────────────────────────────────────────────────
     local TopBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, 44),
         BackgroundColor3 = Theme.topbar,
         BorderSizePixel  = 0,
     }, Main)
     corner(TopBar, 12)
-    -- square off bottom corners
     ni("Frame", {
         Size             = UDim2.new(1, 0, 0, 12),
         Position         = UDim2.new(0, 0, 1, -12),
         BackgroundColor3 = Theme.topbar,
         BorderSizePixel  = 0,
     }, TopBar)
-    -- bottom border line
     ni("Frame", {
         Size             = UDim2.new(1, 0, 0, 1),
         Position         = UDim2.new(0, 0, 1, -1),
@@ -181,19 +213,17 @@ function UILib.new(config)
         BorderSizePixel  = 0,
     }, TopBar)
 
-    -- Accent dot
-    ni("Frame", {
+    local dot = ni("Frame", {
         Size             = UDim2.new(0, 7, 0, 7),
-        Position         = UDim2.new(0, 12, 0.5, -3),
+        Position         = UDim2.new(0, 13, 0.5, -3),
         BackgroundColor3 = Theme.accentHi,
         BorderSizePixel  = 0,
     }, TopBar)
-    corner(TopBar:FindFirstChildWhichIsA("Frame", true) or TopBar, 4)
+    corner(dot, 4)
 
-    -- Title
     ni("TextLabel", {
         Size                   = UDim2.new(0, 300, 1, 0),
-        Position               = UDim2.new(0, 24, 0, 0),
+        Position               = UDim2.new(0, 26, 0, 0),
         BackgroundTransparency = 1,
         Text                   = config.Title or "Eco Hub",
         TextColor3             = Theme.text,
@@ -202,22 +232,6 @@ function UILib.new(config)
         TextXAlignment         = Enum.TextXAlignment.Left,
     }, TopBar)
 
-    -- Subtitle / version badge
-    if config.Sub then
-        ni("TextLabel", {
-            Size                   = UDim2.new(0, 120, 0, 18),
-            Position               = UDim2.new(0, 0, 0.5, -9),
-            AnchorPoint            = Vector2.new(0, 0),
-            BackgroundTransparency = 1,
-            Text                   = config.Sub,
-            TextColor3             = Theme.muted,
-            TextSize               = 9,
-            Font                   = Enum.Font.Gotham,
-            TextXAlignment         = Enum.TextXAlignment.Left,
-        }, TopBar).Position = UDim2.new(1, -130, 0.5, -9)
-    end
-
-    -- ── Page Area ───────────────────────────────────────────────────────────
     local PageArea = ni("Frame", {
         Size             = UDim2.new(1, -16, 1, -106),
         Position         = UDim2.new(0, 8, 0, 52),
@@ -226,9 +240,8 @@ function UILib.new(config)
         ClipsDescendants = true,
     }, Main)
     corner(PageArea, 10)
-    ni("UIStroke", {Color = Theme.sectionBorder, Thickness = 1}, PageArea)
+    ni("UIStroke", {Color = Theme.secBorder, Thickness = 1}, PageArea)
 
-    -- ── Tab Bar ─────────────────────────────────────────────────────────────
     local TabBar = ni("Frame", {
         Size             = UDim2.new(1, 0, 0, 50),
         Position         = UDim2.new(0, 0, 1, -50),
@@ -247,11 +260,10 @@ function UILib.new(config)
         BorderSizePixel  = 0,
     }, TabBar)
 
-    -- ── Tab state ───────────────────────────────────────────────────────────
-    local tabList  = {}
-    local tabBtns  = {}
-    local pages    = {}
-    local curTab   = nil
+    local tabList   = {}
+    local tabBtns   = {}
+    local pages     = {}
+    local curTab    = nil
     local animating = false
 
     local function calcPositions(activeIdx)
@@ -297,11 +309,14 @@ function UILib.new(config)
         if curTab == name then return end
         if curTab and pages[curTab] then pages[curTab].Visible = false end
         curTab = name
+        if not pages[name] then
+            print("[EcoHub] Tab nao encontrada: " .. tostring(name))
+            return
+        end
         pages[name].Visible = true
         refreshTabPositions(name)
     end
 
-    -- ── Show / Hide ─────────────────────────────────────────────────────────
     local function showGui()
         if animating then return end
         animating = true
@@ -326,57 +341,54 @@ function UILib.new(config)
         end)
     end
 
-    local visible = true
+    local visible   = true
     local toggleKey = config.Toggle or Enum.KeyCode.LeftAlt
 
     UserInputService.InputBegan:Connect(function(input, processed)
         if processed then return end
         if input.KeyCode == toggleKey or input.KeyCode == Enum.KeyCode.RightAlt then
-            if visible then visible = false hideGui()
-            else visible = true showGui() end
+            if visible then
+                visible = false
+                hideGui()
+            else
+                visible = true
+                showGui()
+            end
         end
     end)
 
-    -- ╔══════════════════════════════════════════════════════════════════╗
-    -- ║                        WINDOW OBJECT                            ║
-    -- ╚══════════════════════════════════════════════════════════════════╝
     local Window = {}
-
-    -- Expõe Icons para uso externo
-    Window.Icons = Icons
 
     function Window:AddTab(cfg)
         cfg = cfg or {}
-        local name    = cfg.Name or ("Tab"..tostring(#tabList+1))
+        local name    = cfg.Name or ("Tab" .. tostring(#tabList + 1))
         local subText = cfg.Sub  or ""
-        local iconId  = cfg.Icon or Icons.home
+        local iconId  = resolveIcon(cfg.Icon or "home")
 
-        -- Se o icon for string de nome, resolver para id
-        if type(iconId) == "string" and not iconId:match("rbxasset") then
-            iconId = Icons[iconId] or Icons.home
-        end
-
-        -- Página
         local pg = ni("Frame", {
             Name                   = name,
             Size                   = UDim2.new(1, 0, 1, 0),
             BackgroundTransparency = 1,
             Visible                = false,
         }, PageArea)
+
+        if not pg then
+            print("[EcoHub] Falha ao criar pagina da tab: " .. name)
+            return nil
+        end
+
         pages[name] = pg
         table.insert(tabList, {name = name, sub = subText, icon = iconId})
 
         local idx       = #tabList
         local positions = calcPositions(idx)
 
-        -- Reposicionar botões existentes
         for i, tb in ipairs(tabBtns) do
             local p = positions[i]
             tb.bg.Position = UDim2.new(0, p.x, 0, 0)
             tb.bg.Size     = UDim2.new(0, p.w, 1, 0)
         end
 
-        -- Botão desta tab
         local p  = positions[idx]
         local bg = ni("Frame", {
             Size                   = UDim2.new(0, SMALL, 1, 0),
@@ -435,7 +447,7 @@ function UILib.new(config)
             ZIndex                 = 10,
         }, bg)
 
-        local tbEntry = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl}
+        local tbEntry = {name = name, bg = bg, sq = sq, str = sqStr, img = img, lbl = lbl, sub = sub_lbl}
         tabBtns[idx] = tbEntry
 
         btn.MouseButton1Click:Connect(function()
@@ -458,40 +470,22 @@ function UILib.new(config)
             task.delay(0.05, function() switchTo(name) end)
         end
 
-        -- ╔══════════════════════════════════════════════════════════════════╗
-        -- ║                         TAB OBJECT                               ║
-        -- ╚══════════════════════════════════════════════════════════════════╝
         local Tab = {}
         Tab._page = pg
 
-        --[[
-            AddSection(cfg)
-            cfg.Name   = "Nome"
-            cfg.Icon   = Icons.home  (ou string do nome: "home")
-            cfg.Side   = "left" | "center" | "right"
-        ]]
         function Tab:AddSection(scfg)
             scfg = scfg or {}
             local sName = scfg.Name or "Section"
-            local sIcon = scfg.Icon or Icons.settings
+            local sIcon = resolveIcon(scfg.Icon or "settings")
             local side  = scfg.Side or "left"
 
-            -- Resolver icon por nome
-            if type(sIcon) == "string" and not sIcon:match("rbxasset") then
-                sIcon = Icons[sIcon] or Icons.settings
-            end
-
-            -- ── Layout 3 colunas fixas ────────────────────────────────────
-            --   left   : 0%    → 30%
-            --   center : 30%   → 65%  (35%)
-            --   right  : 65%   → 100% (35%)
             local xPct, wPct
             if side == "left" then
-                xPct = 0.00;  wPct = 0.30
+                xPct = 0.00; wPct = 0.30
             elseif side == "center" then
-                xPct = 0.30;  wPct = 0.35
-            else -- right
-                xPct = 0.65;  wPct = 0.35
+                xPct = 0.30; wPct = 0.35
+            else
+                xPct = 0.65; wPct = 0.35
             end
 
             local GAP = 5
@@ -504,29 +498,26 @@ function UILib.new(config)
                 ClipsDescendants = true,
             }, pg)
             corner(outer, 10)
-            ni("UIStroke", {Color = Theme.sectionBorder, Thickness = 1}, outer)
+            ni("UIStroke", {Color = Theme.secBorder, Thickness = 1}, outer)
 
-            -- ── Section Header ────────────────────────────────────────────
             local header = ni("Frame", {
                 Size             = UDim2.new(1, 0, 0, 36),
-                BackgroundColor3 = Theme.sectionHeader,
+                BackgroundColor3 = Theme.secHeader,
                 BorderSizePixel  = 0,
             }, outer)
             corner(header, 10)
             ni("Frame", {
                 Size             = UDim2.new(1, 0, 0, 10),
                 Position         = UDim2.new(0, 0, 1, -10),
-                BackgroundColor3 = Theme.sectionHeader,
+                BackgroundColor3 = Theme.secHeader,
                 BorderSizePixel  = 0,
             }, header)
-            -- accent bottom line
             ni("Frame", {
                 Size             = UDim2.new(1, 0, 0, 1),
                 Position         = UDim2.new(0, 0, 1, -1),
                 BackgroundColor3 = Theme.accentLo,
                 BorderSizePixel  = 0,
             }, header)
-
             ni("ImageLabel", {
                 Size                   = UDim2.new(0, 14, 0, 14),
                 Position               = UDim2.new(0, 10, 0.5, -7),
@@ -545,18 +536,17 @@ function UILib.new(config)
                 TextXAlignment         = Enum.TextXAlignment.Left,
             }, header)
 
-            -- ── Scroll Content ────────────────────────────────────────────
             local scroll = ni("ScrollingFrame", {
-                Size                 = UDim2.new(1, 0, 1, -36),
-                Position             = UDim2.new(0, 0, 0, 36),
+                Size                   = UDim2.new(1, 0, 1, -36),
+                Position               = UDim2.new(0, 0, 0, 36),
                 BackgroundTransparency = 1,
-                BorderSizePixel      = 0,
-                ScrollBarThickness   = 2,
-                ScrollBarImageColor3 = Theme.accentMid,
-                CanvasSize           = UDim2.new(0, 0, 0, 0),
-                AutomaticCanvasSize  = Enum.AutomaticSize.Y,
-                ScrollingDirection   = Enum.ScrollingDirection.Y,
-                ElasticBehavior      = Enum.ElasticBehavior.Never,
+                BorderSizePixel        = 0,
+                ScrollBarThickness     = 2,
+                ScrollBarImageColor3   = Theme.accentMid,
+                CanvasSize             = UDim2.new(0, 0, 0, 0),
+                AutomaticCanvasSize    = Enum.AutomaticSize.Y,
+                ScrollingDirection     = Enum.ScrollingDirection.Y,
+                ElasticBehavior        = Enum.ElasticBehavior.Never,
             }, outer)
             ni("UIPadding", {
                 PaddingTop    = UDim.new(0, 6),
@@ -565,13 +555,12 @@ function UILib.new(config)
                 PaddingRight  = UDim.new(0, 5),
             }, scroll)
             ni("UIListLayout", {
-                Padding         = UDim.new(0, 4),
-                FillDirection   = Enum.FillDirection.Vertical,
+                Padding             = UDim.new(0, 4),
+                FillDirection       = Enum.FillDirection.Vertical,
                 HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                SortOrder       = Enum.SortOrder.LayoutOrder,
+                SortOrder           = Enum.SortOrder.LayoutOrder,
             }, scroll)
 
-            -- Ripple sutil ao clicar na section
             local hitbox = ni("TextButton", {
                 Size                   = UDim2.new(1, 0, 1, 0),
                 BackgroundTransparency = 1,
@@ -584,19 +573,12 @@ function UILib.new(config)
                 spawnRipple(outer, x - abs.X, y - abs.Y)
             end)
 
-            -- ╔════════════════════════════════════════════════════════╗
-            -- ║                    SECTION OBJECT                       ║
-            -- ╚════════════════════════════════════════════════════════╝
             local Section = {}
             Section._scroll = scroll
 
-            -- ── Button ───────────────────────────────────────────────
             function Section:AddButton(bcfg)
                 bcfg = bcfg or {}
-                local bIcon = bcfg.Icon or Icons.check
-                if type(bIcon) == "string" and not bIcon:match("rbxasset") then
-                    bIcon = Icons[bIcon] or Icons.check
-                end
+                local bIcon = resolveIcon(bcfg.Icon or "check")
 
                 local row = ni("Frame", {
                     Size             = UDim2.new(1, 0, 0, 32),
@@ -606,7 +588,6 @@ function UILib.new(config)
                 }, scroll)
                 corner(row, 7)
                 ni("UIStroke", {Color = Theme.elemBorder, Thickness = 1}, row)
-
                 ni("ImageLabel", {
                     Size                   = UDim2.new(0, 14, 0, 14),
                     Position               = UDim2.new(0, 9, 0.5, -7),
@@ -640,20 +621,19 @@ function UILib.new(config)
                 end)
                 rowBtn.MouseButton1Click:Connect(function()
                     if bcfg.Callback then
-                        task.spawn(bcfg.Callback)
+                        local ok2, err2 = pcall(bcfg.Callback)
+                        if not ok2 then
+                            print("[EcoHub] Erro no botao '" .. (bcfg.Name or "?") .. "': " .. tostring(err2))
+                        end
                     end
                 end)
 
                 return row
             end
 
-            -- ── Toggle ───────────────────────────────────────────────
             function Section:AddToggle(tcfg)
                 tcfg = tcfg or {}
-                local tIcon = tcfg.Icon or Icons.toggle
-                if type(tIcon) == "string" and not tIcon:match("rbxasset") then
-                    tIcon = Icons[tIcon] or Icons.toggle
-                end
+                local tIcon = resolveIcon(tcfg.Icon or "toggle")
                 local state = tcfg.Default or false
 
                 local row = ni("Frame", {
@@ -664,7 +644,6 @@ function UILib.new(config)
                 }, scroll)
                 corner(row, 7)
                 ni("UIStroke", {Color = Theme.elemBorder, Thickness = 1}, row)
-
                 ni("ImageLabel", {
                     Size                   = UDim2.new(0, 14, 0, 14),
                     Position               = UDim2.new(0, 9, 0.5, -7),
@@ -683,7 +662,6 @@ function UILib.new(config)
                     TextXAlignment         = Enum.TextXAlignment.Left,
                 }, row)
 
-                -- Track
                 local track = ni("Frame", {
                     Size             = UDim2.new(0, 30, 0, 15),
                     Position         = UDim2.new(1, -38, 0.5, -7),
@@ -718,7 +696,10 @@ function UILib.new(config)
                     tw(track, {BackgroundColor3 = state and Theme.accentMid or Theme.dim}, 0.18)
                     tw(knob,  {Position = state and UDim2.new(1, -13, 0.5, -5) or UDim2.new(0, 2, 0.5, -5)}, 0.18)
                     if tcfg.Callback then
-                        task.spawn(tcfg.Callback, state)
+                        local ok2, err2 = pcall(tcfg.Callback, state)
+                        if not ok2 then
+                            print("[EcoHub] Erro no toggle '" .. (tcfg.Name or "?") .. "': " .. tostring(err2))
+                        end
                     end
                 end)
 
@@ -732,7 +713,6 @@ function UILib.new(config)
                 return tog
             end
 
-            -- ── Label ────────────────────────────────────────────────
             function Section:AddLabel(lcfg)
                 lcfg = lcfg or {}
                 local lbl = ni("TextLabel", {
@@ -750,7 +730,6 @@ function UILib.new(config)
                 return lbl
             end
 
-            -- ── Separator ────────────────────────────────────────────
             function Section:AddSeparator()
                 ni("Frame", {
                     Size             = UDim2.new(1, -10, 0, 1),
