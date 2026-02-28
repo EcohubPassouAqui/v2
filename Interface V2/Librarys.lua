@@ -111,7 +111,7 @@ function Lib.new(config)
 		TextXAlignment         = Enum.TextXAlignment.Left,
 	}, TopBar)
 
-	local logoSize = 52
+	local logoSize = 46
 	ni("ImageLabel", {
 		Size                   = UDim2.new(0, logoSize, 0, logoSize),
 		Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
@@ -263,13 +263,25 @@ function Lib.new(config)
 
 	local centerP = UDim2.new(0.5, -W/2, 0.5, -H/2)
 
+	local function setChildrenVisible(state)
+		for _, v in ipairs(Main:GetChildren()) do
+			if v:IsA("GuiObject") then
+				v.Visible = state
+			end
+		end
+	end
+
 	local function showGui()
 		if animating then return end
 		animating = true
 		Main.Visible                = true
 		Main.BackgroundTransparency = 1
-		tw(Main, {BackgroundTransparency = 0}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-		task.delay(0.32, function()
+		setChildrenVisible(false)
+		tw(Main, {BackgroundTransparency = 0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		task.delay(0.1, function()
+			setChildrenVisible(true)
+		end)
+		task.delay(0.28, function()
 			animating = false
 		end)
 	end
@@ -277,8 +289,9 @@ function Lib.new(config)
 	local function hideGui()
 		if animating then return end
 		animating = true
-		tw(Main, {BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-		task.delay(0.27, function()
+		setChildrenVisible(false)
+		tw(Main, {BackgroundTransparency = 1}, 0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+		task.delay(0.24, function()
 			Main.Visible = false
 			animating    = false
 		end)
@@ -404,32 +417,20 @@ function Lib.new(config)
 
 		local PAD = 6
 
-		local sectionLeft = ni("Frame", {
-			Name             = "SectionLeft",
-			BackgroundColor3 = Theme.section,
-			BorderSizePixel  = 0,
-			ClipsDescendants = true,
-		}, pg)
-		corner(sectionLeft, 8)
-		ni("UIStroke", {Color = Theme.sectionBorder, Thickness = 1}, sectionLeft)
+		local function makeSection(secName)
+			local f = ni("Frame", {
+				Name             = secName,
+				BackgroundColor3 = Theme.section,
+				BorderSizePixel  = 0,
+			}, pg)
+			corner(f, 10)
+			ni("UIStroke", {Color = Theme.accentHi, Thickness = 1}, f)
+			return f
+		end
 
-		local sectionCenter = ni("Frame", {
-			Name             = "SectionCenter",
-			BackgroundColor3 = Theme.section,
-			BorderSizePixel  = 0,
-			ClipsDescendants = true,
-		}, pg)
-		corner(sectionCenter, 8)
-		ni("UIStroke", {Color = Theme.sectionBorder, Thickness = 1}, sectionCenter)
-
-		local sectionRight = ni("Frame", {
-			Name             = "SectionRight",
-			BackgroundColor3 = Theme.section,
-			BorderSizePixel  = 0,
-			ClipsDescendants = true,
-		}, pg)
-		corner(sectionRight, 8)
-		ni("UIStroke", {Color = Theme.sectionBorder, Thickness = 1}, sectionRight)
+		local sectionLeft   = makeSection("SectionLeft")
+		local sectionCenter = makeSection("SectionCenter")
+		local sectionRight  = makeSection("SectionRight")
 
 		local function layoutSections()
 			local totalW = PageArea.AbsoluteSize.X - PAD * 2
@@ -461,34 +462,54 @@ function Lib.new(config)
 
 		function tab:AddSection(cfg2)
 			cfg2 = cfg2 or {}
-			local side  = cfg2.Side  or "Left"
-			local title = cfg2.Title or ""
+			local side   = cfg2.Side  or "Left"
+			local title  = cfg2.Title or ""
+			local iconId = cfg2.Icon  or ""
 			local target
-			if side == "Left"   then target = sectionLeft
-			elseif side == "Center" then target = sectionCenter
-			elseif side == "Right"  then target = sectionRight
+			if side == "Left"        then target = sectionLeft
+			elseif side == "Center"  then target = sectionCenter
+			elseif side == "Right"   then target = sectionRight
+			end
+
+			if iconId ~= "" and type(iconId) == "string" and not iconId:match("rbxasset") then
+				iconId = ICONS[iconId] or iconId
 			end
 
 			if title ~= "" then
+				local HEADER_H = 32
 				local titleBar = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, 28),
+					Size             = UDim2.new(1, 0, 0, HEADER_H),
 					BackgroundColor3 = Theme.section,
 					BorderSizePixel  = 0,
 				}, target)
+
+				local txtX = 10
+				if iconId ~= "" then
+					ni("ImageLabel", {
+						Size                   = UDim2.new(0, 14, 0, 14),
+						Position               = UDim2.new(0, 10, 0.5, -7),
+						BackgroundTransparency = 1,
+						Image                  = iconId,
+						ImageColor3            = Theme.accentHi,
+					}, titleBar)
+					txtX = 28
+				end
+
 				ni("TextLabel", {
-					Size                   = UDim2.new(1, -10, 1, 0),
-					Position               = UDim2.new(0, 10, 0, 0),
+					Size                   = UDim2.new(1, -txtX - 4, 1, 0),
+					Position               = UDim2.new(0, txtX, 0, 0),
 					BackgroundTransparency = 1,
 					Text                   = title,
-					TextColor3             = Theme.sectionTitle,
+					TextColor3             = Theme.accentHi,
 					TextSize               = 11,
 					Font                   = Enum.Font.GothamBold,
 					TextXAlignment         = Enum.TextXAlignment.Left,
 				}, titleBar)
+
 				ni("Frame", {
 					Size             = UDim2.new(1, -10, 0, 1),
 					Position         = UDim2.new(0, 5, 1, -1),
-					BackgroundColor3 = Theme.sectionBorder,
+					BackgroundColor3 = Theme.accentLo,
 					BorderSizePixel  = 0,
 				}, titleBar)
 			end
