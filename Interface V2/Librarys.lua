@@ -464,7 +464,7 @@ local Theme = {
 
 local NOISE_TEX = "rbxassetid://9968344919"
 
-local W, H   = 580, 370
+local W, H   = 650, 450
 local TOPBAR = 62
 local ELEM_H = 30
 
