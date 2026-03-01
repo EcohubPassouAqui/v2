@@ -16,15 +16,19 @@ local function loadSave()
 	if ok and type(data) == "table" then
 		SaveData = data
 	else
+		print("[EcoHub] loadSave: arquivo nao encontrado ou invalido, iniciando vazio.")
 		SaveData = {}
 	end
 end
 
 local function writeSave()
-	local ok = pcall(function()
+	local ok, err = pcall(function()
 		if not isfolder("ecohubv2") then makefolder("ecohubv2") end
 		writefile(SAVE_KEY, HttpService:JSONEncode(SaveData))
 	end)
+	if not ok then
+		print("[EcoHub] writeSave error: " .. tostring(err))
+	end
 	return ok
 end
 
@@ -458,8 +462,7 @@ local Theme = {
 	textureTint     = Color3.fromRGB(160, 100, 255),
 }
 
-local NOISE_TEX   = "rbxassetid://9968344919"
-local GRAIN_TEX   = "rbxassetid://6578871732"
+local NOISE_TEX = "rbxassetid://9968344919"
 
 local W, H   = 580, 370
 local TOPBAR = 62
@@ -467,7 +470,12 @@ local ELEM_H = 30
 
 local function ni(class, props, parent)
 	local o = Instance.new(class)
-	for k, v in pairs(props) do pcall(function() o[k] = v end) end
+	for k, v in pairs(props) do
+		local ok, err = pcall(function() o[k] = v end)
+		if not ok then
+			print("[EcoHub] ni error ao setar " .. tostring(k) .. ": " .. tostring(err))
+		end
+	end
 	if parent then o.Parent = parent end
 	return o
 end
@@ -569,10 +577,10 @@ function Lib.new(config)
 
 	local logoSize = 52
 	local logoFrame = ni("Frame", {
-		Size             = UDim2.new(0, logoSize, 0, logoSize),
-		Position         = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
+		Size                   = UDim2.new(0, logoSize, 0, logoSize),
+		Position               = UDim2.new(0.5, -logoSize/2, 0.5, -logoSize/2),
 		BackgroundTransparency = 1,
-		ZIndex           = 4,
+		ZIndex                 = 4,
 	}, TopBar)
 	ni("ImageLabel", {
 		Size                   = UDim2.new(1, 0, 1, 0),
@@ -655,7 +663,7 @@ function Lib.new(config)
 	ni("Frame", {Size=UDim2.new(1,0,0,1), BackgroundColor3=Theme.TitleBarLine, BorderSizePixel=0, ZIndex=5}, TabBar)
 	addTexture(TabBar, 0.88, 6)
 
-	local ICON_SIZE  = 18
+	local ICON_SIZE  = 26
 	local SMALL_W    = 46
 	local EXPANDED_W = 124
 	local tabList    = {}
@@ -884,11 +892,11 @@ function Lib.new(config)
 				local txtX = 10
 				if iconId2 ~= "" then
 					ni("ImageLabel", {
-						Size = UDim2.new(0,13,0,13), Position = UDim2.new(0,10,0.5,-6.5),
+						Size = UDim2.new(0,18,0,18), Position = UDim2.new(0,10,0.5,-9),
 						BackgroundTransparency = 1, Image = iconId2, ImageColor3 = Theme.accentHi,
 						ZIndex = 3,
 					}, titleBar)
-					txtX = 27
+					txtX = 32
 				end
 				ni("TextLabel", {
 					Size = UDim2.new(1,-txtX-4,1,0), Position = UDim2.new(0,txtX,0,0),
@@ -1171,7 +1179,11 @@ function Lib.new(config)
 					local ok, k = pcall(function()
 						return Enum.KeyCode[savedKeyName]
 					end)
-					if ok and k then key = k end
+					if ok and k then
+						key = k
+					else
+						print("[EcoHub] AddKeybind: chave salva invalida '" .. tostring(savedKeyName) .. "', usando default.")
+					end
 				end
 
 				local listening = false
@@ -1537,7 +1549,11 @@ function Lib.new(config)
 					local ok, c = pcall(function()
 						return Color3.fromRGB(savedColor.r or 160, savedColor.g or 100, savedColor.b or 255)
 					end)
-					if ok then color = c end
+					if ok then
+						color = c
+					else
+						print("[EcoHub] AddColorPicker: cor salva invalida para '" .. saveId .. "', usando default.")
+					end
 				end
 
 				local open  = false
