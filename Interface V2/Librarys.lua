@@ -1214,174 +1214,320 @@ function Lib.new(config)
 				local selected = getSaved(saveId, default)
 				local open     = false
 
-				local OPT_H     = 26
-				local totalOptH = #options * OPT_H
+				local OPT_H     = 32
+				local OPT_INNER = 8
+				local MAX_SHOW  = 5
+				local totalOptH = #options * OPT_H + OPT_INNER * 2
 
 				rowCount = rowCount + 1
 				local wrapper = ni("Frame", {
-					Size = UDim2.new(1,0,0,ELEM_H),
-					BackgroundTransparency = 1, BorderSizePixel = 0,
-					LayoutOrder = rowCount, ClipsDescendants = false,
+					Size                   = UDim2.new(1, 0, 0, ELEM_H),
+					BackgroundTransparency = 1,
+					BorderSizePixel        = 0,
+					LayoutOrder            = rowCount,
+					ClipsDescendants       = false,
+					ZIndex                 = 30,
 				}, scroll)
 
 				local row = ni("Frame", {
-					Size = UDim2.new(1,0,0,ELEM_H),
-					BackgroundColor3 = Theme.elemBg, BorderSizePixel = 0, ZIndex = 3,
+					Size             = UDim2.new(1, 0, 0, ELEM_H),
+					BackgroundColor3 = Theme.elemBg,
+					BorderSizePixel  = 0,
+					ZIndex           = 31,
 				}, wrapper)
 				corner(row, 8)
-				addTexture(row, 0.86, 4)
-				ni("UIStroke", {Color=Theme.InElementBorder, Thickness=0.8}, row)
+				addTexture(row, 0.86, 32)
+				local rowStroke = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 0.8}, row)
 				addBottomLine(row, Theme.dim, 1)
 
 				ni("TextLabel", {
-					Size = UDim2.new(1,-88,1,0), Position = UDim2.new(0,12,0,0),
-					BackgroundTransparency = 1, Text = label,
-					TextColor3 = Theme.text, TextSize = 10,
-					Font = Enum.Font.Gotham,
-					TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 5,
+					Size                   = UDim2.new(1, -94, 1, 0),
+					Position               = UDim2.new(0, 12, 0, 0),
+					BackgroundTransparency = 1,
+					Text                   = label,
+					TextColor3             = Theme.text,
+					TextSize               = 10,
+					Font                   = Enum.Font.Gotham,
+					TextXAlignment         = Enum.TextXAlignment.Left,
+					ZIndex                 = 33,
 				}, row)
 
 				local selBox = ni("Frame", {
-					Size = UDim2.new(0,76,0,22), Position = UDim2.new(1,-82,0.5,-11),
-					BackgroundColor3 = Theme.bg, BorderSizePixel = 0, ZIndex = 5,
+					Size             = UDim2.new(0, 82, 0, 22),
+					Position         = UDim2.new(1, -88, 0.5, -11),
+					BackgroundColor3 = Color3.fromRGB(10, 10, 14),
+					BorderSizePixel  = 0,
+					ZIndex           = 33,
 				}, row)
 				corner(selBox, 6)
-				addTexture(selBox, 0.82, 6)
-				ni("UIStroke", {Color=Theme.InElementBorder, Thickness=1}, selBox)
+				local selStroke = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, selBox)
 
 				local selLbl = ni("TextLabel", {
-					Size = UDim2.new(1,-18,1,0), Position = UDim2.new(0,6,0,0),
-					BackgroundTransparency = 1, Text = selected,
-					TextColor3 = Theme.accentHi, TextSize = 9,
-					Font = Enum.Font.GothamBold,
-					TextXAlignment = Enum.TextXAlignment.Left,
-					TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 7,
+					Size                   = UDim2.new(1, -22, 1, 0),
+					Position               = UDim2.new(0, 8, 0, 0),
+					BackgroundTransparency = 1,
+					Text                   = selected,
+					TextColor3             = Theme.accentHi,
+					TextSize               = 9,
+					Font                   = Enum.Font.GothamBold,
+					TextXAlignment         = Enum.TextXAlignment.Left,
+					TextTruncate           = Enum.TextTruncate.AtEnd,
+					ZIndex                 = 34,
 				}, selBox)
 
 				local arrowLbl = ni("TextLabel", {
-					Size = UDim2.new(0,14,1,0), Position = UDim2.new(1,-14,0,0),
-					BackgroundTransparency = 1, Text = "▾",
-					TextColor3 = Theme.muted, TextSize = 11,
-					Font = Enum.Font.GothamBold, ZIndex = 7,
+					Size                   = UDim2.new(0, 18, 1, 0),
+					Position               = UDim2.new(1, -18, 0, 0),
+					BackgroundTransparency = 1,
+					Text                   = "▾",
+					TextColor3             = Theme.muted,
+					TextSize               = 12,
+					Font                   = Enum.Font.GothamBold,
+					TextXAlignment         = Enum.TextXAlignment.Center,
+					ZIndex                 = 34,
 				}, selBox)
 
-				local dropdown = ni("Frame", {
-					Size = UDim2.new(1,0,0,0),
-					Position = UDim2.new(0,0,0,ELEM_H+4),
-					BackgroundColor3 = Theme.elemBg, BorderSizePixel = 0,
-					ClipsDescendants = true, ZIndex = 20, Visible = false,
+				local dropBg = ni("Frame", {
+					Size             = UDim2.new(1, 0, 0, 0),
+					Position         = UDim2.new(0, 0, 0, ELEM_H + 4),
+					BackgroundColor3 = Color3.fromRGB(16, 16, 22),
+					BorderSizePixel  = 0,
+					ClipsDescendants = true,
+					ZIndex           = 40,
+					Visible          = false,
 				}, wrapper)
-				corner(dropdown, 8)
-				ni("UIStroke", {Color=Theme.InElementBorder, Thickness=0.8}, dropdown)
-				addTexture(dropdown, 0.86, 21)
+				corner(dropBg, 9)
+				ni("UIStroke", {Color = Color3.fromRGB(60, 40, 90), Thickness = 1}, dropBg)
+				addTexture(dropBg, 0.90, 41)
+
+				local accentLine = ni("Frame", {
+					Size             = UDim2.new(1, -24, 0, 1),
+					Position         = UDim2.new(0, 12, 0, 0),
+					BackgroundColor3 = Theme.accentHi,
+					BorderSizePixel  = 0,
+					ZIndex           = 42,
+				}, dropBg)
+				local accentGrad = Instance.new("UIGradient")
+				accentGrad.Color = ColorSequence.new({
+					ColorSequenceKeypoint.new(0,    Color3.fromRGB(16, 16, 22)),
+					ColorSequenceKeypoint.new(0.2,  Theme.accentHi),
+					ColorSequenceKeypoint.new(0.8,  Theme.accentHi),
+					ColorSequenceKeypoint.new(1,    Color3.fromRGB(16, 16, 22)),
+				})
+				accentGrad.Parent = accentLine
+
+				local optScroll = ni("ScrollingFrame", {
+					Size                 = UDim2.new(1, -8, 1, -(OPT_INNER * 2)),
+					Position             = UDim2.new(0, 4, 0, OPT_INNER),
+					BackgroundTransparency = 1,
+					BorderSizePixel      = 0,
+					ScrollBarThickness   = 2,
+					ScrollBarImageColor3 = Theme.accentHi,
+					CanvasSize           = UDim2.new(0, 0, 0, #options * OPT_H),
+					ScrollingDirection   = Enum.ScrollingDirection.Y,
+					ClipsDescendants     = true,
+					ZIndex               = 42,
+				}, dropBg)
 
 				local optHolder = ni("Frame", {
-					Size = UDim2.new(1,0,0,totalOptH),
-					BackgroundTransparency = 1, ZIndex = 22,
-				}, dropdown)
-				ni("UIListLayout", {SortOrder=Enum.SortOrder.LayoutOrder, Padding=UDim.new(0,0)}, optHolder)
+					Size                   = UDim2.new(1, 0, 0, #options * OPT_H),
+					BackgroundTransparency = 1,
+					ZIndex                 = 43,
+				}, optScroll)
 
-				local function refreshOptions()
-					for _, ch in ipairs(optHolder:GetChildren()) do
-						if ch:IsA("TextButton") then
-							local lbl2 = ch:FindFirstChildWhichIsA("TextLabel")
-							local isSel = lbl2 and lbl2.Text == selected
-							ch.BackgroundColor3 = isSel and Theme.accentLo or Theme.elemBg
-							if lbl2 then lbl2.TextColor3 = isSel and Theme.accentHi or Theme.muted end
-						end
+				ni("UIListLayout", {
+					SortOrder     = Enum.SortOrder.LayoutOrder,
+					Padding       = UDim.new(0, 0),
+					FillDirection = Enum.FillDirection.Vertical,
+				}, optHolder)
+
+				local optButtons = {}
+
+				local function applySelected()
+					for idx, ob in pairs(optButtons) do
+						local iS = options[idx] == selected
+						tw(ob.row, {BackgroundColor3 = iS and Theme.accentLo or Color3.fromRGB(22, 22, 30), BackgroundTransparency = iS and 0 or 0}, 0.14)
+						tw(ob.lbl, {TextColor3 = iS and Theme.text or Theme.muted}, 0.14)
+						tw(ob.bar, {Size = UDim2.new(0, iS and 3 or 0, 0, 18)}, 0.18)
+						ob.chk.Visible = iS
+						ob.lbl.Font    = iS and Enum.Font.GothamBold or Enum.Font.Gotham
 					end
 				end
 
-				for i2, opt in ipairs(options) do
+				local function buildOptionItem(i2, opt)
 					local isSel = (opt == selected)
-					local optBtn = ni("TextButton", {
-						Size = UDim2.new(1,0,0,OPT_H),
-						BackgroundColor3 = isSel and Theme.accentLo or Theme.elemBg,
-						BorderSizePixel = 0, Text = "", ZIndex = 23, LayoutOrder = i2,
+
+					local optRow = ni("Frame", {
+						Size             = UDim2.new(1, 0, 0, OPT_H),
+						BackgroundColor3 = isSel and Theme.accentLo or Color3.fromRGB(22, 22, 30),
+						BackgroundTransparency = 0,
+						BorderSizePixel  = 0,
+						ZIndex           = 44,
+						LayoutOrder      = i2,
 					}, optHolder)
-					ni("TextLabel", {
-						Size = UDim2.new(1,-10,1,0), Position = UDim2.new(0,10,0,0),
-						BackgroundTransparency = 1, Text = opt,
-						TextColor3 = isSel and Theme.accentHi or Theme.muted,
-						TextSize = 9, Font = Enum.Font.Gotham,
-						TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 24,
-					}, optBtn)
+
+					local leftBar = ni("Frame", {
+						Size             = UDim2.new(0, isSel and 3 or 0, 0, 18),
+						Position         = UDim2.new(0, 0, 0.5, -9),
+						BackgroundColor3 = Theme.accentHi,
+						BorderSizePixel  = 0,
+						ZIndex           = 46,
+					}, optRow)
+					corner(leftBar, 2)
+
+					local optLbl = ni("TextLabel", {
+						Size                   = UDim2.new(1, -36, 1, 0),
+						Position               = UDim2.new(0, 14, 0, 0),
+						BackgroundTransparency = 1,
+						Text                   = opt,
+						TextColor3             = isSel and Theme.text or Theme.muted,
+						TextSize               = 10,
+						Font                   = isSel and Enum.Font.GothamBold or Enum.Font.Gotham,
+						TextXAlignment         = Enum.TextXAlignment.Left,
+						ZIndex                 = 45,
+					}, optRow)
+
+					local checkLbl = ni("TextLabel", {
+						Size                   = UDim2.new(0, 18, 0, 18),
+						Position               = UDim2.new(1, -22, 0.5, -9),
+						BackgroundTransparency = 1,
+						Text                   = "✓",
+						TextColor3             = Theme.accentHi,
+						TextSize               = 12,
+						Font                   = Enum.Font.GothamBold,
+						TextXAlignment         = Enum.TextXAlignment.Center,
+						ZIndex                 = 46,
+					}, optRow)
+					checkLbl.Visible = isSel
+
+					if i2 < #options then
+						ni("Frame", {
+							Size                   = UDim2.new(1, -16, 0, 1),
+							Position               = UDim2.new(0, 8, 1, -1),
+							BackgroundColor3       = Theme.dim,
+							BackgroundTransparency = 0.55,
+							BorderSizePixel        = 0,
+							ZIndex                 = 45,
+						}, optRow)
+					end
+
+					local optBtn = ni("TextButton", {
+						Size                   = UDim2.new(1, 0, 1, 0),
+						BackgroundTransparency = 1,
+						Text                   = "",
+						BorderSizePixel        = 0,
+						ZIndex                 = 48,
+					}, optRow)
+
+					optButtons[i2] = {row = optRow, lbl = optLbl, bar = leftBar, chk = checkLbl}
+
 					optBtn.MouseButton1Click:Connect(function()
 						selected    = opt
 						selLbl.Text = opt
 						open        = false
-						tw(arrowLbl, {Rotation = 0}, 0.2)
-						wrapper.Size = UDim2.new(1,0,0,ELEM_H)
-						tw(dropdown, {Size=UDim2.new(1,0,0,0)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-						task.delay(0.21, function() dropdown.Visible = false end)
+
+						tw(arrowLbl,  {Rotation = 0,   TextColor3 = Theme.muted},         0.18)
+						tw(selStroke, {Color = Theme.InElementBorder},                     0.15)
+						tw(rowStroke, {Color = Theme.InElementBorder},                     0.15)
+
+						wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
+						tw(dropBg, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+						task.delay(0.21, function() dropBg.Visible = false end)
+
+						applySelected()
 						setSaved(saveId, selected)
-						refreshOptions()
 						callback(selected)
 					end)
+
 					optBtn.MouseEnter:Connect(function()
-						if opt ~= selected then tw(optBtn, {BackgroundColor3=Theme.elemHover}, 0.1) end
+						if opt ~= selected then
+							tw(optRow, {BackgroundColor3 = Color3.fromRGB(32, 28, 42)}, 0.1)
+							tw(optLbl, {TextColor3 = Theme.text}, 0.1)
+						end
 					end)
 					optBtn.MouseLeave:Connect(function()
-						if opt ~= selected then tw(optBtn, {BackgroundColor3=Theme.elemBg}, 0.1) end
+						if opt ~= selected then
+							tw(optRow, {BackgroundColor3 = Color3.fromRGB(22, 22, 30)}, 0.1)
+							tw(optLbl, {TextColor3 = Theme.muted}, 0.1)
+						end
 					end)
 				end
 
+				for i2, opt in ipairs(options) do
+					buildOptionItem(i2, opt)
+				end
+
 				local toggleBtn = ni("TextButton", {
-					Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
-					Text = "", BorderSizePixel = 0, ZIndex = 8,
+					Size                   = UDim2.new(1, 0, 1, 0),
+					BackgroundTransparency = 1,
+					Text                   = "",
+					BorderSizePixel        = 0,
+					ZIndex                 = 36,
 				}, row)
-				toggleBtn.MouseButton1Click:Connect(function()
-					open = not open
-					if open then
-						dropdown.Visible = true
-						dropdown.Size    = UDim2.new(1,0,0,0)
-						wrapper.Size     = UDim2.new(1,0,0,ELEM_H+totalOptH+6)
-						tw(arrowLbl,  {Rotation = 180}, 0.2)
-						tw(dropdown, {Size=UDim2.new(1,0,0,totalOptH)}, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-					else
-						tw(arrowLbl, {Rotation = 0}, 0.2)
-						wrapper.Size = UDim2.new(1,0,0,ELEM_H)
-						tw(dropdown, {Size=UDim2.new(1,0,0,0)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-						task.delay(0.21, function() dropdown.Visible = false end)
+
+				local function openDD()
+					open           = true
+					dropBg.Visible = true
+					dropBg.Size    = UDim2.new(1, 0, 0, 0)
+
+					local visH = math.min(totalOptH, OPT_H * MAX_SHOW + OPT_INNER * 2)
+					optScroll.Size = UDim2.new(1, -8, 1, -(OPT_INNER * 2))
+					if #options > MAX_SHOW then
+						optScroll.ScrollBarThickness = 2
 					end
+					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H + visH + 4)
+
+					tw(arrowLbl,  {Rotation = 180, TextColor3 = Theme.accentHi}, 0.2)
+					tw(selStroke, {Color = Theme.accentHi}, 0.15)
+					tw(rowStroke, {Color = Theme.accentHi}, 0.15)
+					tw(dropBg, {Size = UDim2.new(1, 0, 0, visH)}, 0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+				end
+
+				local function closeDD()
+					open = false
+					tw(arrowLbl,  {Rotation = 0,   TextColor3 = Theme.muted},         0.2)
+					tw(selStroke, {Color = Theme.InElementBorder},                     0.15)
+					tw(rowStroke, {Color = Theme.InElementBorder},                     0.15)
+					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
+					tw(dropBg, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+					task.delay(0.21, function() dropBg.Visible = false end)
+				end
+
+				toggleBtn.MouseButton1Click:Connect(function()
+					if open then closeDD() else openDD() end
 				end)
 
 				local el = {Value = selected}
+
 				function el:Set(v)
 					selected    = v
 					selLbl.Text = v
 					el.Value    = v
+					applySelected()
 					setSaved(saveId, v)
-					refreshOptions()
 					callback(v)
 				end
+
 				function el:SetOptions(newOpts)
-					options     = newOpts
-					totalOptH   = #options * OPT_H
+					options   = newOpts
+					totalOptH = #options * OPT_H + OPT_INNER * 2
+					optButtons = {}
 					for _, ch in ipairs(optHolder:GetChildren()) do
 						if not ch:IsA("UIListLayout") then ch:Destroy() end
 					end
+					optHolder.Size       = UDim2.new(1, 0, 0, #options * OPT_H)
+					optScroll.CanvasSize = UDim2.new(0, 0, 0, #options * OPT_H)
 					for i2, opt in ipairs(options) do
-						local optBtn = ni("TextButton", {
-							Size = UDim2.new(1,0,0,OPT_H),
-							BackgroundColor3 = Theme.elemBg, BorderSizePixel = 0,
-							Text = "", ZIndex = 23, LayoutOrder = i2,
-						}, optHolder)
-						ni("TextLabel", {
-							Size = UDim2.new(1,-10,1,0), Position = UDim2.new(0,10,0,0),
-							BackgroundTransparency = 1, Text = opt,
-							TextColor3 = Theme.muted, TextSize = 9,
-							Font = Enum.Font.Gotham,
-							TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 24,
-						}, optBtn)
+						buildOptionItem(i2, opt)
 					end
-					optHolder.Size = UDim2.new(1,0,0,totalOptH)
 				end
+
 				function el:OnChanged(fn)
 					local oldCb = callback
 					callback = function(val) oldCb(val) fn(val) end
 					fn(selected)
 				end
+
 				task.defer(function() callback(selected) end)
 				return el
 			end
