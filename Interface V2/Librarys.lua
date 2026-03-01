@@ -699,14 +699,12 @@ function Lib.new(config)
 				tw(tb.img,     {ImageColor3 = Theme.accentHi},                 0.25)
 				tw(tb.lbl,     {TextColor3 = Theme.text,  TextTransparency = 0}, 0.25)
 				tw(tb.sub,     {TextColor3 = Theme.muted, TextTransparency = 0}, 0.25)
-				tw(tb.txtbg,   {BackgroundTransparency = 0.65},                0.25)
 			else
 				tw(tb.sq,      {BackgroundColor3 = Theme.card},                0.25)
 				tw(tb.str,     {Color = Theme.InElementBorder, Thickness = 1}, 0.25)
 				tw(tb.img,     {ImageColor3 = Theme.dim},                      0.25)
 				tw(tb.lbl,     {TextTransparency = 1},                         0.18)
 				tw(tb.sub,     {TextTransparency = 1},                         0.18)
-				tw(tb.txtbg,   {BackgroundTransparency = 1},                   0.18)
 			end
 		end
 	end
@@ -787,37 +785,25 @@ function Lib.new(config)
 			ZIndex = 9,
 		}, sq)
 
-		local txtbg = ni("Frame", {
-			Size             = UDim2.new(1, -52, 1, -10),
-			Position         = UDim2.new(0, 48, 0, 5),
-			BackgroundColor3 = Theme.accentLo,
-			BackgroundTransparency = 1,
-			BorderSizePixel  = 0,
-			ZIndex           = 7,
-		}, bg)
-		corner(txtbg, 7)
-		addTexture(txtbg, 0.78, 8)
-		ni("UIStroke", {Color = Theme.accentHi, Thickness = 0.8, Transparency = 0.5}, txtbg)
-
 		local lbl = ni("TextLabel", {
-			Size = UDim2.new(1, -8, 0, 15), Position = UDim2.new(0, 6, 0.5, -13),
+			Size = UDim2.new(1,-52,0,15), Position = UDim2.new(0,50,0.5,-13),
 			BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
 			TextSize = 11, Font = Enum.Font.GothamBold,
-			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 9,
-		}, txtbg)
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 7,
+		}, bg)
 		local sub_lbl = ni("TextLabel", {
-			Size = UDim2.new(1, -8, 0, 10), Position = UDim2.new(0, 6, 0.5, 3),
+			Size = UDim2.new(1,-52,0,10), Position = UDim2.new(0,50,0.5,3),
 			BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
 			TextSize = 8, Font = Enum.Font.Gotham,
-			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 9,
-		}, txtbg)
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 7,
+		}, bg)
 
 		local btn = ni("TextButton", {
 			Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
 			Text = "", BorderSizePixel = 0, ZIndex = 12,
 		}, bg)
 
-		tabBtns[idx] = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl, txtbg=txtbg}
+		tabBtns[idx] = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl}
 
 		applyPositions(curTab and (function()
 			for i, t in ipairs(tabList) do if t.name == curTab then return i end end
@@ -1933,7 +1919,6 @@ function Lib.new(config)
 			tb.lbl.TextColor3              = Theme.text
 			tb.sub.TextTransparency        = 0
 			tb.sub.TextColor3              = Theme.muted
-			tb.txtbg.BackgroundTransparency = 0.65
 		end
 
 		return tab
