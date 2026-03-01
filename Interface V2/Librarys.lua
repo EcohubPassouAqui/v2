@@ -642,21 +642,45 @@ function Lib.new(config)
 	local curTab     = nil
 	local animating  = false
 
-	local function calcPositions(activeIdx)
+	local function getExpW()
+		local total = #tabList
+		if total == 0 then return EXPANDED_W end
+		local available = W - 20
 		local expW = EXPANDED_W
-		if EXPANDED_W + (#tabList-1)*SMALL_W > W-20 then
-			expW = math.max(SMALL_W+20, W-20-(#tabList-1)*SMALL_W)
+		if expW + (total - 1) * SMALL_W > available then
+			expW = math.max(SMALL_W + 20, available - (total - 1) * SMALL_W)
 		end
+		return expW
+	end
+
+	local function calcPositions(activeIdx)
+		local total = #tabList
+		local expW  = getExpW()
+		local totalW = expW + (total - 1) * SMALL_W
+		local offset = math.max(4, math.floor((W - totalW) / 2))
 		local pos = {}
-		local x = 0
-		for i = 1, #tabList do
+		local x = offset
+		for i = 1, total do
 			local w = (i == activeIdx) and expW or SMALL_W
-			pos[i] = {x=x, w=w}
+			pos[i] = {x = x, w = w}
 			x = x + w
 		end
-		local offset = math.max(4, math.floor((W-(expW+(#tabList-1)*SMALL_W))/2))
-		for i = 1, #tabList do pos[i].x = pos[i].x + offset end
 		return pos, expW
+	end
+
+	local function applyPositions(activeIdx, animate)
+		local positions = calcPositions(activeIdx)
+		local dur = animate and 0.28 or 0
+		for i, tb in ipairs(tabBtns) do
+			local p = positions[i]
+			if animate then
+				tw(tb.bg, {Position = UDim2.new(0, p.x, 0, 0), Size = UDim2.new(0, p.w, 1, 0)}, dur, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+			else
+				tb.bg.Position = UDim2.new(0, p.x, 0, 0)
+				tb.bg.Size     = UDim2.new(0, p.w, 1, 0)
+			end
+		end
+		return positions
 	end
 
 	local function switchTo(name)
@@ -666,23 +690,23 @@ function Lib.new(config)
 		pages[name].Visible = true
 		local activeIdx = 1
 		for i, t in ipairs(tabList) do if t.name == name then activeIdx = i break end end
-		local positions = calcPositions(activeIdx)
+		applyPositions(activeIdx, true)
 		for i, tb in ipairs(tabBtns) do
 			local active = tabList[i].name == name
-			local p = positions[i]
-			tw(tb.bg, {Position=UDim2.new(0,p.x,0,0), Size=UDim2.new(0,p.w,1,0)}, 0.3)
 			if active then
-				tw(tb.sq,  {BackgroundColor3=Theme.accentLo},            0.25)
-				tw(tb.str, {Color=Theme.accentHi, Thickness=1.5},        0.25)
-				tw(tb.img, {ImageColor3=Theme.accentHi},                 0.25)
-				tw(tb.lbl, {TextColor3=Theme.text,  TextTransparency=0}, 0.25)
-				tw(tb.sub, {TextColor3=Theme.muted, TextTransparency=0}, 0.25)
+				tw(tb.sq,      {BackgroundColor3 = Theme.accentLo},            0.25)
+				tw(tb.str,     {Color = Theme.accentHi, Thickness = 1.5},      0.25)
+				tw(tb.img,     {ImageColor3 = Theme.accentHi},                 0.25)
+				tw(tb.lbl,     {TextColor3 = Theme.text,  TextTransparency = 0}, 0.25)
+				tw(tb.sub,     {TextColor3 = Theme.muted, TextTransparency = 0}, 0.25)
+				tw(tb.txtbg,   {BackgroundTransparency = 0.65},                0.25)
 			else
-				tw(tb.sq,  {BackgroundColor3=Theme.card},                0.25)
-				tw(tb.str, {Color=Theme.InElementBorder, Thickness=1},   0.25)
-				tw(tb.img, {ImageColor3=Theme.dim},                      0.25)
-				tw(tb.lbl, {TextTransparency=1},                         0.18)
-				tw(tb.sub, {TextTransparency=1},                         0.18)
+				tw(tb.sq,      {BackgroundColor3 = Theme.card},                0.25)
+				tw(tb.str,     {Color = Theme.InElementBorder, Thickness = 1}, 0.25)
+				tw(tb.img,     {ImageColor3 = Theme.dim},                      0.25)
+				tw(tb.lbl,     {TextTransparency = 1},                         0.18)
+				tw(tb.sub,     {TextTransparency = 1},                         0.18)
+				tw(tb.txtbg,   {BackgroundTransparency = 1},                   0.18)
 			end
 		end
 	end
@@ -742,19 +766,13 @@ function Lib.new(config)
 		table.insert(tabList, {name=name, sub=subText, icon=iconId})
 
 		local idx = #tabList
-		local positions = calcPositions(idx)
-		for i, tb in ipairs(tabBtns) do
-			local p = positions[i]
-			tb.bg.Position = UDim2.new(0,p.x,0,0)
-			tb.bg.Size     = UDim2.new(0,SMALL_W,1,0)
-		end
 
-		local p  = positions[idx]
 		local bg = ni("Frame", {
-			Size = UDim2.new(0,SMALL_W,1,0), Position = UDim2.new(0,p.x,0,0),
+			Size = UDim2.new(0, SMALL_W, 1, 0), Position = UDim2.new(0, 0, 0, 0),
 			BackgroundTransparency = 1, BorderSizePixel = 0,
 			ClipsDescendants = true, ZIndex = 6,
 		}, TabBar)
+
 		local sq = ni("Frame", {
 			Size = UDim2.new(0,38,0,38), Position = UDim2.new(0,6,0.5,-19),
 			BackgroundColor3 = Theme.card, BorderSizePixel = 0, ZIndex = 7,
@@ -768,24 +786,43 @@ function Lib.new(config)
 			BackgroundTransparency = 1, Image = iconId, ImageColor3 = Theme.dim,
 			ZIndex = 9,
 		}, sq)
+
+		local txtbg = ni("Frame", {
+			Size             = UDim2.new(1, -52, 1, -10),
+			Position         = UDim2.new(0, 48, 0, 5),
+			BackgroundColor3 = Theme.accentLo,
+			BackgroundTransparency = 1,
+			BorderSizePixel  = 0,
+			ZIndex           = 7,
+		}, bg)
+		corner(txtbg, 7)
+		addTexture(txtbg, 0.78, 8)
+		ni("UIStroke", {Color = Theme.accentHi, Thickness = 0.8, Transparency = 0.5}, txtbg)
+
 		local lbl = ni("TextLabel", {
-			Size = UDim2.new(1,-52,0,15), Position = UDim2.new(0,50,0.5,-13),
+			Size = UDim2.new(1, -8, 0, 15), Position = UDim2.new(0, 6, 0.5, -13),
 			BackgroundTransparency = 1, Text = name, TextColor3 = Theme.text,
 			TextSize = 11, Font = Enum.Font.GothamBold,
-			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 7,
-		}, bg)
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 9,
+		}, txtbg)
 		local sub_lbl = ni("TextLabel", {
-			Size = UDim2.new(1,-52,0,10), Position = UDim2.new(0,50,0.5,3),
+			Size = UDim2.new(1, -8, 0, 10), Position = UDim2.new(0, 6, 0.5, 3),
 			BackgroundTransparency = 1, Text = subText, TextColor3 = Theme.muted,
 			TextSize = 8, Font = Enum.Font.Gotham,
-			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 7,
-		}, bg)
+			TextXAlignment = Enum.TextXAlignment.Left, TextTransparency = 1, ZIndex = 9,
+		}, txtbg)
+
 		local btn = ni("TextButton", {
 			Size = UDim2.new(1,0,1,0), BackgroundTransparency = 1,
 			Text = "", BorderSizePixel = 0, ZIndex = 12,
 		}, bg)
 
-		tabBtns[idx] = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl}
+		tabBtns[idx] = {name=name, bg=bg, sq=sq, str=sqStr, img=img, lbl=lbl, sub=sub_lbl, txtbg=txtbg}
+
+		applyPositions(curTab and (function()
+			for i, t in ipairs(tabList) do if t.name == curTab then return i end end
+			return idx
+		end)() or idx, false)
 
 		btn.MouseButton1Click:Connect(function() switchTo(name) end)
 		btn.MouseEnter:Connect(function()
@@ -1884,7 +1921,19 @@ function Lib.new(config)
 		end
 
 		if #tabList == 1 then
-			switchTo(name)
+			curTab = name
+			pages[name].Visible = true
+			applyPositions(1, false)
+			local tb = tabBtns[1]
+			tb.sq.BackgroundColor3         = Theme.accentLo
+			tb.str.Color                   = Theme.accentHi
+			tb.str.Thickness               = 1.5
+			tb.img.ImageColor3             = Theme.accentHi
+			tb.lbl.TextTransparency        = 0
+			tb.lbl.TextColor3              = Theme.text
+			tb.sub.TextTransparency        = 0
+			tb.sub.TextColor3              = Theme.muted
+			tb.txtbg.BackgroundTransparency = 0.65
 		end
 
 		return tab
