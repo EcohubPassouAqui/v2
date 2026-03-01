@@ -456,6 +456,12 @@ local Theme = {
 
 local NOISE_TEX = "rbxassetid://9968344919"
 
+local SCROLL_TOP    = "rbxassetid://6276641225"
+local SCROLL_MID    = "rbxassetid://6889812721"
+local SCROLL_BOTTOM = "rbxassetid://6889812791"
+local ARROW_ICO     = "rbxassetid://10709790948"
+local SHADOW_TEX    = "http://www.roblox.com/asset/?id=5554236805"
+
 local W, H   = 650, 450
 local TOPBAR = 62
 local ELEM_H = 32
@@ -1206,7 +1212,7 @@ function Lib.new(config)
 
 			function sec:AddDropdown(cfg3)
 				cfg3 = cfg3 or {}
-				local label    = cfg3.Name     or "Menu"
+				local label    = cfg3.Name     or "Dropdown"
 				local saveId   = cfg3.SaveId   or label
 				local options  = cfg3.Options  or {}
 				local default  = cfg3.Default  or (options[1] or "")
@@ -1214,10 +1220,9 @@ function Lib.new(config)
 				local selected = getSaved(saveId, default)
 				local open     = false
 
-				local OPT_H     = 32
-				local OPT_INNER = 8
-				local MAX_SHOW  = 5
-				local totalOptH = #options * OPT_H + OPT_INNER * 2
+				local MAX_VISIBLE = 5
+				local OPT_H       = 30
+				local PADDING     = 5
 
 				rowCount = rowCount + 1
 				local wrapper = ni("Frame", {
@@ -1260,11 +1265,12 @@ function Lib.new(config)
 					ZIndex           = 33,
 				}, row)
 				corner(selBox, 6)
+				addTexture(selBox, 0.82, 34)
 				local selStroke = ni("UIStroke", {Color = Theme.InElementBorder, Thickness = 1}, selBox)
 
 				local selLbl = ni("TextLabel", {
-					Size                   = UDim2.new(1, -22, 1, 0),
-					Position               = UDim2.new(0, 8, 0, 0),
+					Size                   = UDim2.new(1, -24, 1, 0),
+					Position               = UDim2.new(0, 6, 0, 0),
 					BackgroundTransparency = 1,
 					Text                   = selected,
 					TextColor3             = Theme.accentHi,
@@ -1272,67 +1278,81 @@ function Lib.new(config)
 					Font                   = Enum.Font.GothamBold,
 					TextXAlignment         = Enum.TextXAlignment.Left,
 					TextTruncate           = Enum.TextTruncate.AtEnd,
-					ZIndex                 = 34,
+					ZIndex                 = 35,
 				}, selBox)
 
-				local arrowLbl = ni("TextLabel", {
-					Size                   = UDim2.new(0, 18, 1, 0),
-					Position               = UDim2.new(1, -18, 0, 0),
+				local arrowIco = ni("ImageLabel", {
+					Size                   = UDim2.new(0, 16, 0, 16),
+					Position               = UDim2.new(1, -18, 0.5, -8),
 					BackgroundTransparency = 1,
-					Text                   = "▾",
-					TextColor3             = Theme.muted,
-					TextSize               = 12,
-					Font                   = Enum.Font.GothamBold,
-					TextXAlignment         = Enum.TextXAlignment.Center,
-					ZIndex                 = 34,
+					Image                  = ARROW_ICO,
+					ImageColor3            = Theme.muted,
+					ZIndex                 = 35,
 				}, selBox)
+
+				local dropVisibleH = math.min(#options, MAX_VISIBLE) * OPT_H + PADDING * 2
 
 				local dropBg = ni("Frame", {
 					Size             = UDim2.new(1, 0, 0, 0),
 					Position         = UDim2.new(0, 0, 0, ELEM_H + 4),
-					BackgroundColor3 = Color3.fromRGB(16, 16, 22),
+					BackgroundColor3 = Color3.fromRGB(16, 14, 22),
 					BorderSizePixel  = 0,
 					ClipsDescendants = true,
-					ZIndex           = 40,
+					ZIndex           = 50,
 					Visible          = false,
 				}, wrapper)
-				corner(dropBg, 9)
-				ni("UIStroke", {Color = Color3.fromRGB(60, 40, 90), Thickness = 1}, dropBg)
-				addTexture(dropBg, 0.90, 41)
+				corner(dropBg, 7)
+				ni("UIStroke", {Color = Color3.fromRGB(70, 45, 100), Thickness = 1}, dropBg)
+				addTexture(dropBg, 0.88, 51)
+
+				ni("ImageLabel", {
+					BackgroundTransparency = 1,
+					Image                  = SHADOW_TEX,
+					ScaleType              = Enum.ScaleType.Slice,
+					SliceCenter            = Rect.new(23, 23, 277, 277),
+					Size                   = UDim2.new(1, 30, 1, 30),
+					Position               = UDim2.new(0, -15, 0, -15),
+					ImageColor3            = Color3.fromRGB(0, 0, 0),
+					ImageTransparency      = 0.15,
+					ZIndex                 = 49,
+				}, dropBg)
 
 				local accentLine = ni("Frame", {
 					Size             = UDim2.new(1, -24, 0, 1),
 					Position         = UDim2.new(0, 12, 0, 0),
 					BackgroundColor3 = Theme.accentHi,
 					BorderSizePixel  = 0,
-					ZIndex           = 42,
+					ZIndex           = 53,
 				}, dropBg)
 				local accentGrad = Instance.new("UIGradient")
 				accentGrad.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0,    Color3.fromRGB(16, 16, 22)),
-					ColorSequenceKeypoint.new(0.2,  Theme.accentHi),
-					ColorSequenceKeypoint.new(0.8,  Theme.accentHi),
-					ColorSequenceKeypoint.new(1,    Color3.fromRGB(16, 16, 22)),
+					ColorSequenceKeypoint.new(0,    Color3.fromRGB(16, 14, 22)),
+					ColorSequenceKeypoint.new(0.15, Theme.accentHi),
+					ColorSequenceKeypoint.new(0.85, Theme.accentHi),
+					ColorSequenceKeypoint.new(1,    Color3.fromRGB(16, 14, 22)),
 				})
 				accentGrad.Parent = accentLine
 
 				local optScroll = ni("ScrollingFrame", {
-					Size                 = UDim2.new(1, -8, 1, -(OPT_INNER * 2)),
-					Position             = UDim2.new(0, 4, 0, OPT_INNER),
+					Size                   = UDim2.new(1, -6, 1, -(PADDING * 2)),
+					Position               = UDim2.new(0, 3, 0, PADDING),
 					BackgroundTransparency = 1,
-					BorderSizePixel      = 0,
-					ScrollBarThickness   = 2,
-					ScrollBarImageColor3 = Theme.accentHi,
-					CanvasSize           = UDim2.new(0, 0, 0, #options * OPT_H),
-					ScrollingDirection   = Enum.ScrollingDirection.Y,
-					ClipsDescendants     = true,
-					ZIndex               = 42,
+					BorderSizePixel        = 0,
+					ScrollBarThickness     = (#options > MAX_VISIBLE) and 3 or 0,
+					ScrollBarImageColor3   = Theme.accentHi,
+					BottomImage            = SCROLL_BOTTOM,
+					MidImage               = SCROLL_MID,
+					TopImage               = SCROLL_TOP,
+					CanvasSize             = UDim2.new(0, 0, 0, #options * OPT_H),
+					ScrollingDirection     = Enum.ScrollingDirection.Y,
+					ClipsDescendants       = true,
+					ZIndex                 = 52,
 				}, dropBg)
 
 				local optHolder = ni("Frame", {
 					Size                   = UDim2.new(1, 0, 0, #options * OPT_H),
 					BackgroundTransparency = 1,
-					ZIndex                 = 43,
+					ZIndex                 = 53,
 				}, optScroll)
 
 				ni("UIListLayout", {
@@ -1344,13 +1364,13 @@ function Lib.new(config)
 				local optButtons = {}
 
 				local function applySelected()
-					for idx, ob in pairs(optButtons) do
-						local iS = options[idx] == selected
-						tw(ob.row, {BackgroundColor3 = iS and Theme.accentLo or Color3.fromRGB(22, 22, 30), BackgroundTransparency = iS and 0 or 0}, 0.14)
+					for idx2, ob in pairs(optButtons) do
+						local iS = options[idx2] == selected
+						tw(ob.row, {BackgroundColor3 = iS and Theme.accentLo or Color3.fromRGB(20, 18, 28)}, 0.14)
 						tw(ob.lbl, {TextColor3 = iS and Theme.text or Theme.muted}, 0.14)
-						tw(ob.bar, {Size = UDim2.new(0, iS and 3 or 0, 0, 18)}, 0.18)
-						ob.chk.Visible = iS
-						ob.lbl.Font    = iS and Enum.Font.GothamBold or Enum.Font.Gotham
+						tw(ob.bar, {Size = UDim2.new(0, iS and 3 or 0, 0, 14)}, 0.16)
+						ob.chkIco.Visible = iS
+						ob.lbl.Font = iS and Enum.Font.GothamBold or Enum.Font.Gotham
 					end
 				end
 
@@ -1359,55 +1379,51 @@ function Lib.new(config)
 
 					local optRow = ni("Frame", {
 						Size             = UDim2.new(1, 0, 0, OPT_H),
-						BackgroundColor3 = isSel and Theme.accentLo or Color3.fromRGB(22, 22, 30),
-						BackgroundTransparency = 0,
+						BackgroundColor3 = isSel and Theme.accentLo or Color3.fromRGB(20, 18, 28),
 						BorderSizePixel  = 0,
-						ZIndex           = 44,
+						ZIndex           = 54,
 						LayoutOrder      = i2,
 					}, optHolder)
 
 					local leftBar = ni("Frame", {
-						Size             = UDim2.new(0, isSel and 3 or 0, 0, 18),
-						Position         = UDim2.new(0, 0, 0.5, -9),
+						Size             = UDim2.new(0, isSel and 3 or 0, 0, 14),
+						Position         = UDim2.new(0, 0, 0.5, -7),
 						BackgroundColor3 = Theme.accentHi,
 						BorderSizePixel  = 0,
-						ZIndex           = 46,
+						ZIndex           = 56,
 					}, optRow)
 					corner(leftBar, 2)
 
 					local optLbl = ni("TextLabel", {
 						Size                   = UDim2.new(1, -36, 1, 0),
-						Position               = UDim2.new(0, 14, 0, 0),
+						Position               = UDim2.new(0, 12, 0, 0),
 						BackgroundTransparency = 1,
 						Text                   = opt,
 						TextColor3             = isSel and Theme.text or Theme.muted,
 						TextSize               = 10,
 						Font                   = isSel and Enum.Font.GothamBold or Enum.Font.Gotham,
 						TextXAlignment         = Enum.TextXAlignment.Left,
-						ZIndex                 = 45,
+						ZIndex                 = 55,
 					}, optRow)
 
-					local checkLbl = ni("TextLabel", {
-						Size                   = UDim2.new(0, 18, 0, 18),
-						Position               = UDim2.new(1, -22, 0.5, -9),
+					local chkIco = ni("ImageLabel", {
+						Size                   = UDim2.new(0, 14, 0, 14),
+						Position               = UDim2.new(1, -20, 0.5, -7),
 						BackgroundTransparency = 1,
-						Text                   = "✓",
-						TextColor3             = Theme.accentHi,
-						TextSize               = 12,
-						Font                   = Enum.Font.GothamBold,
-						TextXAlignment         = Enum.TextXAlignment.Center,
-						ZIndex                 = 46,
+						Image                  = ICONS.check,
+						ImageColor3            = Theme.accentHi,
+						ZIndex                 = 56,
+						Visible                = isSel,
 					}, optRow)
-					checkLbl.Visible = isSel
 
 					if i2 < #options then
 						ni("Frame", {
-							Size                   = UDim2.new(1, -16, 0, 1),
-							Position               = UDim2.new(0, 8, 1, -1),
+							Size                   = UDim2.new(1, -14, 0, 1),
+							Position               = UDim2.new(0, 7, 1, -1),
 							BackgroundColor3       = Theme.dim,
-							BackgroundTransparency = 0.55,
+							BackgroundTransparency = 0.5,
 							BorderSizePixel        = 0,
-							ZIndex                 = 45,
+							ZIndex                 = 55,
 						}, optRow)
 					end
 
@@ -1416,23 +1432,23 @@ function Lib.new(config)
 						BackgroundTransparency = 1,
 						Text                   = "",
 						BorderSizePixel        = 0,
-						ZIndex                 = 48,
+						ZIndex                 = 58,
 					}, optRow)
 
-					optButtons[i2] = {row = optRow, lbl = optLbl, bar = leftBar, chk = checkLbl}
+					optButtons[i2] = {row = optRow, lbl = optLbl, bar = leftBar, chkIco = chkIco}
 
 					optBtn.MouseButton1Click:Connect(function()
 						selected    = opt
 						selLbl.Text = opt
 						open        = false
 
-						tw(arrowLbl,  {Rotation = 0,   TextColor3 = Theme.muted},         0.18)
-						tw(selStroke, {Color = Theme.InElementBorder},                     0.15)
-						tw(rowStroke, {Color = Theme.InElementBorder},                     0.15)
+						tw(arrowIco,  {ImageColor3 = Theme.muted, Rotation = 0}, 0.2)
+						tw(selStroke, {Color = Theme.InElementBorder},           0.15)
+						tw(rowStroke, {Color = Theme.InElementBorder},           0.15)
 
 						wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
 						tw(dropBg, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-						task.delay(0.21, function() dropBg.Visible = false end)
+						task.delay(0.22, function() dropBg.Visible = false end)
 
 						applySelected()
 						setSaved(saveId, selected)
@@ -1441,20 +1457,23 @@ function Lib.new(config)
 
 					optBtn.MouseEnter:Connect(function()
 						if opt ~= selected then
-							tw(optRow, {BackgroundColor3 = Color3.fromRGB(32, 28, 42)}, 0.1)
-							tw(optLbl, {TextColor3 = Theme.text}, 0.1)
+							tw(optRow, {BackgroundColor3 = Color3.fromRGB(30, 26, 42)}, 0.1)
+							tw(optLbl, {TextColor3 = Theme.text},                       0.1)
 						end
 					end)
 					optBtn.MouseLeave:Connect(function()
 						if opt ~= selected then
-							tw(optRow, {BackgroundColor3 = Color3.fromRGB(22, 22, 30)}, 0.1)
-							tw(optLbl, {TextColor3 = Theme.muted}, 0.1)
+							tw(optRow, {BackgroundColor3 = Color3.fromRGB(20, 18, 28)}, 0.1)
+							tw(optLbl, {TextColor3 = Theme.muted},                      0.1)
 						end
 					end)
 				end
 
 				for i2, opt in ipairs(options) do
-					buildOptionItem(i2, opt)
+					local ok, err = pcall(buildOptionItem, i2, opt)
+					if not ok then
+						print("[EcoHub] AddDropdown buildOptionItem error: " .. tostring(err))
+					end
 				end
 
 				local toggleBtn = ni("TextButton", {
@@ -1469,32 +1488,37 @@ function Lib.new(config)
 					open           = true
 					dropBg.Visible = true
 					dropBg.Size    = UDim2.new(1, 0, 0, 0)
-
-					local visH = math.min(totalOptH, OPT_H * MAX_SHOW + OPT_INNER * 2)
-					optScroll.Size = UDim2.new(1, -8, 1, -(OPT_INNER * 2))
-					if #options > MAX_SHOW then
-						optScroll.ScrollBarThickness = 2
-					end
-					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H + visH + 4)
-
-					tw(arrowLbl,  {Rotation = 180, TextColor3 = Theme.accentHi}, 0.2)
-					tw(selStroke, {Color = Theme.accentHi}, 0.15)
-					tw(rowStroke, {Color = Theme.accentHi}, 0.15)
-					tw(dropBg, {Size = UDim2.new(1, 0, 0, visH)}, 0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+					wrapper.Size   = UDim2.new(1, 0, 0, ELEM_H + dropVisibleH + 4)
+					tw(arrowIco,  {ImageColor3 = Theme.accentHi, Rotation = 180}, 0.2)
+					tw(selStroke, {Color = Theme.accentHi},                       0.15)
+					tw(rowStroke, {Color = Theme.accentHi},                       0.15)
+					tw(dropBg, {Size = UDim2.new(1, 0, 0, dropVisibleH)}, 0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 				end
 
 				local function closeDD()
 					open = false
-					tw(arrowLbl,  {Rotation = 0,   TextColor3 = Theme.muted},         0.2)
-					tw(selStroke, {Color = Theme.InElementBorder},                     0.15)
-					tw(rowStroke, {Color = Theme.InElementBorder},                     0.15)
+					tw(arrowIco,  {ImageColor3 = Theme.muted, Rotation = 0}, 0.2)
+					tw(selStroke, {Color = Theme.InElementBorder},           0.15)
+					tw(rowStroke, {Color = Theme.InElementBorder},           0.15)
 					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
 					tw(dropBg, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-					task.delay(0.21, function() dropBg.Visible = false end)
+					task.delay(0.22, function() dropBg.Visible = false end)
 				end
 
 				toggleBtn.MouseButton1Click:Connect(function()
 					if open then closeDD() else openDD() end
+				end)
+
+				UserInputService.InputBegan:Connect(function(input)
+					if open and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+						local absPos  = dropBg.AbsolutePosition
+						local absSize = dropBg.AbsoluteSize
+						local mX = UserInputService:GetMouseLocation().X
+						local mY = UserInputService:GetMouseLocation().Y
+						if mX < absPos.X or mX > absPos.X + absSize.X or mY < absPos.Y - ELEM_H - 4 or mY > absPos.Y + absSize.Y then
+							closeDD()
+						end
+					end
 				end)
 
 				local el = {Value = selected}
@@ -1510,15 +1534,19 @@ function Lib.new(config)
 
 				function el:SetOptions(newOpts)
 					options   = newOpts
-					totalOptH = #options * OPT_H + OPT_INNER * 2
+					dropVisibleH = math.min(#options, MAX_VISIBLE) * OPT_H + PADDING * 2
 					optButtons = {}
 					for _, ch in ipairs(optHolder:GetChildren()) do
 						if not ch:IsA("UIListLayout") then ch:Destroy() end
 					end
 					optHolder.Size       = UDim2.new(1, 0, 0, #options * OPT_H)
 					optScroll.CanvasSize = UDim2.new(0, 0, 0, #options * OPT_H)
+					optScroll.ScrollBarThickness = (#options > MAX_VISIBLE) and 3 or 0
 					for i2, opt in ipairs(options) do
-						buildOptionItem(i2, opt)
+						local ok, err = pcall(buildOptionItem, i2, opt)
+						if not ok then
+							print("[EcoHub] SetOptions buildOptionItem error: " .. tostring(err))
+						end
 					end
 				end
 
