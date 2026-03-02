@@ -435,24 +435,6 @@ local ICONS = {
 	import               = "rbxassetid://10723415205",
 	verified             = "rbxassetid://10747374131",
 	accessibility        = "rbxassetid://10709751939",
-	buttonArrow          = "rbxassetid://10709791437",
-}
-
-local Theme = {
-	AcrylicMain     = Color3.fromRGB(22, 22, 28),
-	TitleBarLine    = Color3.fromRGB(50, 50, 60),
-	InElementBorder = Color3.fromRGB(48, 48, 58),
-	bg              = Color3.fromRGB(14, 14, 18),
-	card            = Color3.fromRGB(22, 22, 28),
-	tabbar          = Color3.fromRGB(12, 12, 16),
-	accentHi        = Color3.fromRGB(80, 180, 255),
-	accentLo        = Color3.fromRGB(10, 40, 80),
-	text            = Color3.fromRGB(230, 230, 235),
-	muted           = Color3.fromRGB(120, 120, 135),
-	dim             = Color3.fromRGB(50, 50, 62),
-	section         = Color3.fromRGB(18, 18, 24),
-	elemBg          = Color3.fromRGB(26, 26, 34),
-	elemHover       = Color3.fromRGB(32, 32, 42),
 }
 
 local NOISE_TEX   = "rbxassetid://9968344919"
