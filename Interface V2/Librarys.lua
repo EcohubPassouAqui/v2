@@ -5,7 +5,7 @@ local HttpService      = game:GetService("HttpService")
 local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
-local SAVE_KEY = "ecohub/universal/arquivo.json"
+local SAVE_KEY = "ecohub/universal/universel.json"
 local SaveData = {}
 
 local function loadSave()
