@@ -1,4 +1,4 @@
-local ecohub = loadstring(game:HttpGet("https://raw.githubusercontent.com/EcohubPassouAqui/ecohub/main/ecohub/painel.lua"))()
+local ecohub = loadstring(game:HttpGet("https://raw.githubusercontent.com/EcohubPassouAqui/v2/refs/heads/main/Interface%20V1/Librarys.lua"))()
 
 local UI = ecohub:CreateWindow("ecohub", "v1.0")
 
