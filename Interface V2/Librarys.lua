@@ -21,7 +21,7 @@ local function writeSave()
 		if not isfolder("ecohub/universal") then makefolder("ecohub/universal") end
 		writefile(SAVE_KEY, HttpService:JSONEncode(SaveData))
 	end)
-	if not ok then print("[EcoHub] " .. tostring(err)) end
+	if not ok then print("[EcoHub Error] " .. tostring(err)) end
 end
 
 local function getSaved(id, default)
@@ -538,10 +538,15 @@ function EcohubLibrarys.new(config)
 
 		function sec:AddSlider(cfg)
 			cfg=cfg or {}
-			local label    = cfg.Name or "Slider"
+
+			if not cfg.Name then print("[EcoHub Error] AddSlider - Missing Name.") return end
+			if cfg.Min == nil then print("[EcoHub Error] AddSlider - Missing Min.") return end
+			if cfg.Max == nil then print("[EcoHub Error] AddSlider - Missing Max.") return end
+
+			local label    = cfg.Name
 			local saveId   = cfg.SaveId or label
-			local minV     = cfg.Min or 0
-			local maxV     = cfg.Max or 100
+			local minV     = cfg.Min
+			local maxV     = cfg.Max
 			local rounding = cfg.Rounding or 1
 			local suffix   = cfg.Suffix or ""
 			local callback = cfg.Callback or function() end
@@ -549,22 +554,16 @@ function EcohubLibrarys.new(config)
 			local function rv(v)
 				return math.floor(v / rounding + 0.5) * rounding
 			end
+
 			local value = getSaved(saveId, rv(math.clamp(cfg.Default or minV, minV, maxV)))
 
-			-- ─── layout ───────────────────────────────────────────────────
-			-- Top row  : label  +  value badge
-			-- Bottom   : rail (takes full width with small side padding)
-			-- The DOT sits INSIDE the SliderRail frame (a transparent spacer
-			-- inset by half-dot on each side) so scale 0→1 maps perfectly.
-			-- ──────────────────────────────────────────────────────────────
-			local ROW_H   = 54
-			local RAIL_H  = 4
-			local DOT_SZ  = 14   -- circle dot, same idea as Linoria reference
-			local PAD_LR  = 10   -- left/right padding of the track area
+			local ROW_H  = 54
+			local RAIL_H = 4
+			local DOT_SZ = 14
+			local PAD_LR = 10
 
 			local row = newRow(ROW_H)
 
-			-- name label
 			local sliderTitleLbl = ni("TextLabel",{
 				Size     = UDim2.new(1,-76,0,16),
 				Position = UDim2.new(0,PAD_LR,0,8),
@@ -574,7 +573,6 @@ function EcohubLibrarys.new(config)
 				TextXAlignment=Enum.TextXAlignment.Left, ZIndex=5,
 			},row)
 
-			-- value badge (top-right, same as in screenshot)
 			local valFrame = ni("Frame",{
 				Size=UDim2.new(0,54,0,18),
 				Position=UDim2.new(1,-64,0,8),
@@ -591,7 +589,6 @@ function EcohubLibrarys.new(config)
 				TextXAlignment=Enum.TextXAlignment.Center, ZIndex=6,
 			},valFrame)
 
-			-- ── track (background rail) ──────────────────────────────────
 			local trackBg = ni("Frame",{
 				Size     = UDim2.new(1,-(PAD_LR*2),0,RAIL_H),
 				Position = UDim2.new(0,PAD_LR,1,-(RAIL_H+10)),
@@ -600,10 +597,10 @@ function EcohubLibrarys.new(config)
 			},row)
 			rnd(trackBg, RAIL_H)
 			ni("UIStroke",{Color=Color3.fromRGB(54,54,68),Thickness=0.7},trackBg)
-
-			-- fill (inside trackBg, clipped by it — pure scale, never overflows)
 			trackBg.ClipsDescendants = true
+
 			local pct = (value-minV)/(maxV-minV)
+
 			local fill = ni("Frame",{
 				Size = UDim2.new(pct,0,1,0),
 				BackgroundColor3=T.Accent,
@@ -619,10 +616,6 @@ function EcohubLibrarys.new(config)
 				g.Parent=fill
 			end
 
-			-- ── SliderRail (transparent, inset by DOT_SZ/2 each side) ───
-			-- Dot position = UDim2.new(pct, -DOT_SZ/2, 0.5, -DOT_SZ/2)
-			-- At pct=0  → X offset = -7 → dot left edge = rail.X - 7
-			-- But rail is inset by 7, so dot left edge = trackBg.X  ✓
 			local sliderRail = ni("Frame",{
 				BackgroundTransparency=1,
 				Position = UDim2.new(0, DOT_SZ/2, 0, 0),
@@ -639,7 +632,6 @@ function EcohubLibrarys.new(config)
 			},sliderRail)
 			rnd(dot,DOT_SZ)
 			local dotStroke=ni("UIStroke",{Color=T.Accent,Thickness=1.8},dot)
-			-- tiny accent centre
 			ni("Frame",{
 				Size=UDim2.new(0,5,0,5),AnchorPoint=Vector2.new(0.5,0.5),
 				Position=UDim2.new(0.5,0,0.5,0),
@@ -647,48 +639,86 @@ function EcohubLibrarys.new(config)
 			},dot)
 			rnd(dot:FindFirstChildWhichIsA("Frame"),5)
 
-			-- ── logic ────────────────────────────────────────────────────
-			local function applyValue(v)
-				value = rv(math.clamp(v,minV,maxV))
-				local p = (value-minV)/(maxV-minV)
-				fill.Size     = UDim2.new(p,0,1,0)
-				dot.Position  = UDim2.new(p,0,0.5,0)
-				valLbl.Text   = tostring(value)..suffix
-				setSaved(saveId,value)
-				callback(value)
-			end
+			local isDragging = false
 
-			local isDragging=false
+			local function applyValue(v)
+				local ok, err = pcall(function()
+					value = rv(math.clamp(v, minV, maxV))
+					local p = (value-minV)/(maxV-minV)
+					fill.Size    = UDim2.new(p,0,1,0)
+					dot.Position = UDim2.new(p,0,0.5,0)
+					valLbl.Text  = tostring(value)..suffix
+					setSaved(saveId, value)
+					callback(value)
+				end)
+				if not ok then print("[EcoHub Error] AddSlider applyValue: " .. tostring(err)) end
+			end
 
 			local function fromScreenX(sx)
-				local rail=sliderRail
-				local ax,sz=rail.AbsolutePosition.X,rail.AbsoluteSize.X
-				if sz<=0 then return end
-				local rel=math.clamp((sx-ax)/sz,0,1)
-				applyValue(minV+rel*(maxV-minV))
+				local ax  = sliderRail.AbsolutePosition.X
+				local sz  = sliderRail.AbsoluteSize.X
+				if sz <= 0 then return end
+				local rel = math.clamp((sx - ax) / sz, 0, 1)
+				applyValue(minV + rel * (maxV - minV))
 			end
 
-			local hitBtn=ni("TextButton",{
+			local dotBtn = ni("TextButton",{
 				Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,
 				Text="",BorderSizePixel=0,ZIndex=10,
+			},dot)
+
+			dotBtn.InputBegan:Connect(function(inp)
+				if inp.UserInputType == Enum.UserInputType.MouseButton1
+					or inp.UserInputType == Enum.UserInputType.Touch then
+					isDragging = true
+					tw(dot,{Size=UDim2.new(0,DOT_SZ+4,0,DOT_SZ+4)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+					tw(dotStroke,{Color=Color3.fromRGB(170,120,245),Thickness=2.4},0.12)
+				end
+			end)
+
+			dotBtn.InputEnded:Connect(function(inp)
+				if inp.UserInputType == Enum.UserInputType.MouseButton1
+					or inp.UserInputType == Enum.UserInputType.Touch then
+					isDragging = false
+					tw(dot,{Size=UDim2.new(0,DOT_SZ,0,DOT_SZ)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+					tw(dotStroke,{Color=T.Accent,Thickness=1.8},0.12)
+				end
+			end)
+
+			UserInputService.InputChanged:Connect(function(inp)
+				if isDragging and (
+					inp.UserInputType == Enum.UserInputType.MouseMovement
+					or inp.UserInputType == Enum.UserInputType.Touch
+				) then
+					fromScreenX(inp.Position.X)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(inp)
+				if inp.UserInputType == Enum.UserInputType.MouseButton1
+					or inp.UserInputType == Enum.UserInputType.Touch then
+					if isDragging then
+						isDragging = false
+						tw(dot,{Size=UDim2.new(0,DOT_SZ,0,DOT_SZ)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+						tw(dotStroke,{Color=T.Accent,Thickness=1.8},0.12)
+					end
+				end
+			end)
+
+			local hitBtn = ni("TextButton",{
+				Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,
+				Text="",BorderSizePixel=0,ZIndex=9,
 			},row)
 
 			hitBtn.MouseButton1Down:Connect(function(x)
-				isDragging=true fromScreenX(x)
-			end)
-			UserInputService.InputChanged:Connect(function(i)
-				if isDragging and i.UserInputType==Enum.UserInputType.MouseMovement then
-					fromScreenX(i.Position.X)
-				end
-			end)
-			UserInputService.InputEnded:Connect(function(i)
-				if i.UserInputType==Enum.UserInputType.MouseButton1 then isDragging=false end
+				isDragging = true
+				fromScreenX(x)
+				tw(dot,{Size=UDim2.new(0,DOT_SZ+4,0,DOT_SZ+4)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+				tw(dotStroke,{Color=Color3.fromRGB(170,120,245),Thickness=2.4},0.12)
 			end)
 
 			hitBtn.MouseEnter:Connect(function()
 				tw(row,{BackgroundColor3=T.elemHover},0.1)
-				tw(dot,{Size=UDim2.new(0,DOT_SZ+4,0,DOT_SZ+4)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
-				tw(dotStroke,{Color=Color3.fromRGB(170,120,245),Thickness=2.2},0.12)
 			end)
 			hitBtn.MouseLeave:Connect(function()
 				tw(row,{BackgroundColor3=T.elemBg},0.1)
@@ -698,16 +728,26 @@ function EcohubLibrarys.new(config)
 				end
 			end)
 
-			task.defer(function() applyValue(value) callback(value) end)
+			task.defer(function() applyValue(value) end)
 
-			local el={Value=value}
-			function el:Set(v) applyValue(v) el.Value=value end
+			local el = {Value=value}
+
+			function el:Set(v)
+				local ok, err = pcall(function()
+					applyValue(v)
+					self.Value = value
+				end)
+				if not ok then print("[EcoHub Error] Slider:Set: " .. tostring(err)) end
+			end
+
 			function el:SetTitle(t) sliderTitleLbl.Text=t end
+
 			function el:OnChanged(fn)
-				local old=callback
-				callback=function(val) old(val) fn(val) end
+				local old = callback
+				callback = function(val) old(val) fn(val) end
 				fn(value)
 			end
+
 			return el
 		end
 
@@ -985,7 +1025,7 @@ function EcohubLibrarys.new(config)
 
 			for i2,opt in ipairs(options) do
 				local ok,err=pcall(buildOpt,i2,opt)
-				if not ok then print("[EcoHub] " .. tostring(err)) end
+				if not ok then print("[EcoHub Error] AddDropdown buildOpt: " .. tostring(err)) end
 			end
 
 			local togBtn=ni("TextButton",{
@@ -1027,7 +1067,7 @@ function EcohubLibrarys.new(config)
 				optScr.ScrollBarThickness=(#options>MAX_VIS) and 3 or 0
 				for i2,opt in ipairs(options) do
 					local ok,err=pcall(buildOpt,i2,opt)
-					if not ok then print("[EcoHub] " .. tostring(err)) end
+					if not ok then print("[EcoHub Error] SetOptions buildOpt: " .. tostring(err)) end
 				end
 			end
 			function el:SetTitle(t) ddTitleLbl.Text=t end
@@ -1618,7 +1658,6 @@ function EcohubLibrarys.new(config)
 
 		local function layout()
 			local tW=PageArea.AbsoluteSize.X
-			local tH=PageArea.AbsoluteSize.Y
 			local gap=PAD
 			local eW=math.floor((tW-gap*2)/3)
 			sL.Position=UDim2.new(0,0,0,0) sL.Size=UDim2.new(0,eW,1,0)
