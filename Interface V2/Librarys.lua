@@ -5,7 +5,7 @@ local HttpService      = game:GetService("HttpService")
 local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
-local SAVE_KEY = "ecohub/universal/config.json"
+local SAVE_KEY = "ecohub/configs/universal.json"
 local SaveData = {}
 
 local function loadSave()
@@ -18,7 +18,7 @@ end
 local function writeSave()
 	local ok, err = pcall(function()
 		if not isfolder("ecohub") then makefolder("ecohub") end
-		if not isfolder("ecohub/universal") then makefolder("ecohub/universal") end
+		if not isfolder("ecohub/universal") then makefolder("ecohub/configs") end
 		writefile(SAVE_KEY, HttpService:JSONEncode(SaveData))
 	end)
 	if not ok then print("[EcoHub Error] " .. tostring(err)) end
