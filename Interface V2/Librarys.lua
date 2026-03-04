@@ -37,398 +37,102 @@ end
 loadSave()
 
 local ICONS = {
-	aim                  = "rbxassetid://10709818534",
-	crosshair            = "rbxassetid://10709818534",
-	target               = "rbxassetid://10734977012",
-	swords               = "rbxassetid://10734975692",
-	sword                = "rbxassetid://10734975486",
-	flame                = "rbxassetid://10723376114",
-	skull                = "rbxassetid://10734962068",
-	shield               = "rbxassetid://10734951847",
-	shieldCheck          = "rbxassetid://10734951367",
-	shieldAlert          = "rbxassetid://10734951173",
-	shieldClose          = "rbxassetid://10734951535",
-	shieldOff            = "rbxassetid://10734951684",
-	bomb                 = "rbxassetid://10709781460",
-	zap                  = "rbxassetid://10723345749",
-	visuals              = "rbxassetid://10723346959",
-	eye                  = "rbxassetid://10723346959",
-	eyeOff               = "rbxassetid://10723346871",
-	image                = "rbxassetid://10723415040",
-	imageMinus           = "rbxassetid://10723414487",
-	imageOff             = "rbxassetid://10723414677",
-	imagePlus            = "rbxassetid://10723414827",
-	layers               = "rbxassetid://10723424505",
-	palette              = "rbxassetid://10734910430",
-	paintbrush           = "rbxassetid://10734910187",
-	paintbrush2          = "rbxassetid://10734910030",
-	paintBucket          = "rbxassetid://10734909847",
-	focus                = "rbxassetid://10723377537",
-	scan                 = "rbxassetid://10734942565",
-	scanFace             = "rbxassetid://10734942198",
-	scanLine             = "rbxassetid://10734942351",
-	vehicle              = "rbxassetid://10709789810",
-	car                  = "rbxassetid://10709789810",
-	bike                 = "rbxassetid://10709775894",
-	plane                = "rbxassetid://10734922971",
-	rocket               = "rbxassetid://10734934585",
-	navigation           = "rbxassetid://10734906744",
-	navigation2          = "rbxassetid://10734906332",
-	navigation2Off       = "rbxassetid://10734906144",
-	navigationOff        = "rbxassetid://10734906580",
-	move                 = "rbxassetid://10734900011",
-	move3d               = "rbxassetid://10734898756",
-	moveDiagonal         = "rbxassetid://10734899164",
-	moveDiagonal2        = "rbxassetid://10734898934",
-	moveHorizontal       = "rbxassetid://10734899414",
-	moveVertical         = "rbxassetid://10734899821",
-	wind                 = "rbxassetid://10747382750",
-	players              = "rbxassetid://10747373176",
-	user                 = "rbxassetid://10747373176",
-	userCheck            = "rbxassetid://10747371901",
-	userCog              = "rbxassetid://10747372167",
-	userMinus            = "rbxassetid://10747372346",
-	userPlus             = "rbxassetid://10747372702",
-	userX                = "rbxassetid://10747372992",
-	users                = "rbxassetid://10747373426",
-	contact              = "rbxassetid://10709811834",
-	fingerprint          = "rbxassetid://10723375250",
-	misc                 = "rbxassetid://10723345749",
-	electricity          = "rbxassetid://10723345749",
-	electricityOff       = "rbxassetid://10723345643",
-	star                 = "rbxassetid://10734966248",
-	starHalf             = "rbxassetid://10734965897",
-	starOff              = "rbxassetid://10734966097",
-	crown                = "rbxassetid://10709818626",
-	trophy               = "rbxassetid://10747363809",
-	medal                = "rbxassetid://10734887072",
-	ghost                = "rbxassetid://10723396107",
-	alertTriangle        = "rbxassetid://10709753149",
-	alertCircle          = "rbxassetid://10709752996",
-	alertOctagon         = "rbxassetid://10709753064",
-	info                 = "rbxassetid://10723415903",
-	bell                 = "rbxassetid://10709775704",
-	bellMinus            = "rbxassetid://10709775241",
-	bellOff              = "rbxassetid://10709775320",
-	bellPlus             = "rbxassetid://10709775448",
-	bellRing             = "rbxassetid://10709775560",
-	config               = "rbxassetid://10734950309",
-	settings             = "rbxassetid://10734950309",
-	settings2            = "rbxassetid://10734950020",
-	cog                  = "rbxassetid://10709810948",
-	sliders              = "rbxassetid://10734963400",
-	slidersHorizontal    = "rbxassetid://10734963191",
-	wrench               = "rbxassetid://10747383470",
-	tool                 = "rbxassetid://10747383470",
-	cpu                  = "rbxassetid://10709813383",
-	terminal             = "rbxassetid://10734982144",
-	terminalSquare       = "rbxassetid://10734981995",
-	code                 = "rbxassetid://10709810463",
-	code2                = "rbxassetid://10709807111",
-	database             = "rbxassetid://10709818996",
-	weapon               = "rbxassetid://10734975486",
-	crosshair2           = "rbxassetid://10709818534",
-	gauge                = "rbxassetid://10723395708",
-	activity             = "rbxassetid://10709752035",
-	lock                 = "rbxassetid://10723434711",
-	unlock               = "rbxassetid://10747366027",
-	key                  = "rbxassetid://10723416652",
-	save                 = "rbxassetid://10734941499",
-	download             = "rbxassetid://10723344270",
-	downloadCloud        = "rbxassetid://10723344088",
-	upload               = "rbxassetid://10747366434",
-	uploadCloud          = "rbxassetid://10747366266",
-	trash                = "rbxassetid://10747362393",
-	trash2               = "rbxassetid://10747362241",
-	copy                 = "rbxassetid://10709812159",
-	refresh              = "rbxassetid://10734933222",
-	refreshCcw           = "rbxassetid://10734933056",
-	search               = "rbxassetid://10734943674",
-	filter               = "rbxassetid://10723375128",
-	list                 = "rbxassetid://10723433811",
-	listChecks           = "rbxassetid://10734884548",
-	listEnd              = "rbxassetid://10723426886",
-	listMinus            = "rbxassetid://10723426986",
-	listOrdered          = "rbxassetid://10723427199",
-	listPlus             = "rbxassetid://10723427334",
-	listX                = "rbxassetid://10723433655",
-	grid                 = "rbxassetid://10723404936",
-	home                 = "rbxassetid://10723407389",
-	compass              = "rbxassetid://10709811445",
-	map                  = "rbxassetid://10734886202",
-	mapPin               = "rbxassetid://10734886004",
-	mapPinOff            = "rbxassetid://10734885803",
-	globe                = "rbxassetid://10723404337",
-	globe2               = "rbxassetid://10723398002",
-	network              = "rbxassetid://10734906975",
-	barChart             = "rbxassetid://10709773755",
-	barChart2            = "rbxassetid://10709770317",
-	barChart3            = "rbxassetid://10709770431",
-	barChart4            = "rbxassetid://10709770560",
-	barChartH            = "rbxassetid://10709773669",
-	lineChart            = "rbxassetid://10723426393",
-	pieChart             = "rbxassetid://10734921727",
-	trendingUp           = "rbxassetid://10747363465",
-	trendingDown         = "rbxassetid://10747363205",
-	siren                = "rbxassetid://10734961284",
-	arrowUp              = "rbxassetid://10709768939",
-	arrowDown            = "rbxassetid://10709767827",
-	arrowLeft            = "rbxassetid://10709768114",
-	arrowRight           = "rbxassetid://10709768347",
-	arrowUpDown          = "rbxassetid://10709768538",
-	arrowLeftRight       = "rbxassetid://10709768019",
-	check                = "rbxassetid://10709790644",
-	checkCircle          = "rbxassetid://10709790387",
-	checkCircle2         = "rbxassetid://10709790298",
-	checkSquare          = "rbxassetid://10709790537",
-	x                    = "rbxassetid://10747384394",
-	xCircle              = "rbxassetid://10747383819",
-	xSquare              = "rbxassetid://10747384217",
-	plus                 = "rbxassetid://10734924532",
-	plusCircle           = "rbxassetid://10734923868",
-	plusSquare           = "rbxassetid://10734924219",
-	minus                = "rbxassetid://10734896206",
-	minusCircle          = "rbxassetid://10734895856",
-	minusSquare          = "rbxassetid://10734896029",
-	zoomIn               = "rbxassetid://10747384552",
-	zoomOut              = "rbxassetid://10747384679",
-	maximize             = "rbxassetid://10734886735",
-	maximize2            = "rbxassetid://10734886496",
-	minimize             = "rbxassetid://10734895698",
-	minimize2            = "rbxassetid://10734895530",
-	rotateCw             = "rbxassetid://10734940654",
-	rotateCcw            = "rbxassetid://10734940376",
-	refreshCw            = "rbxassetid://10734933222",
-	share                = "rbxassetid://10734950813",
-	share2               = "rbxassetid://10734950553",
-	link                 = "rbxassetid://10723426722",
-	link2                = "rbxassetid://10723426595",
-	externalLink         = "rbxassetid://10723346684",
-	clipboard            = "rbxassetid://10709799288",
-	clipboardCheck       = "rbxassetid://10709798443",
-	clipboardCopy        = "rbxassetid://10709798574",
-	clipboardList        = "rbxassetid://10709798792",
-	clipboardX           = "rbxassetid://10709799124",
-	edit                 = "rbxassetid://10734883598",
-	edit2                = "rbxassetid://10723344885",
-	edit3                = "rbxassetid://10723345088",
-	pencil               = "rbxassetid://10734919691",
-	eraser               = "rbxassetid://10723346158",
-	scissors             = "rbxassetid://10734942778",
-	wifi                 = "rbxassetid://10747382504",
-	wifiOff              = "rbxassetid://10747382268",
-	bluetooth            = "rbxassetid://10709776655",
-	bluetoothOff         = "rbxassetid://10709776344",
-	signal               = "rbxassetid://10734961133",
-	signalHigh           = "rbxassetid://10734954807",
-	signalMedium         = "rbxassetid://10734955336",
-	signalLow            = "rbxassetid://10734955080",
-	signalZero           = "rbxassetid://10734960878",
-	battery              = "rbxassetid://10709774640",
-	batteryFull          = "rbxassetid://10709774206",
-	batteryMedium        = "rbxassetid://10709774513",
-	batteryLow           = "rbxassetid://10709774370",
-	batteryCharging      = "rbxassetid://10709774068",
-	monitor              = "rbxassetid://10734896881",
-	monitorOff           = "rbxassetid://10734896360",
-	server               = "rbxassetid://10734949856",
-	serverCog            = "rbxassetid://10734944444",
-	serverCrash          = "rbxassetid://10734944554",
-	serverOff            = "rbxassetid://10734944668",
-	hardDrive            = "rbxassetid://10723405749",
-	keyboard             = "rbxassetid://10723416765",
-	mouse                = "rbxassetid://10734898592",
-	printer              = "rbxassetid://10734930632",
-	smartphone           = "rbxassetid://10734963940",
-	tablet               = "rbxassetid://10734976394",
-	laptop               = "rbxassetid://10723423881",
-	camera               = "rbxassetid://10709789686",
-	cameraOff            = "rbxassetid://10747822677",
-	mic                  = "rbxassetid://10734888864",
-	mic2                 = "rbxassetid://10734888430",
-	micOff               = "rbxassetid://10734888646",
-	volume               = "rbxassetid://10747376008",
-	volume1              = "rbxassetid://10747375450",
-	volume2              = "rbxassetid://10747375679",
-	volumeX              = "rbxassetid://10747375880",
-	headphones           = "rbxassetid://10723406165",
-	speaker              = "rbxassetid://10734965419",
-	music                = "rbxassetid://10734905958",
-	music2               = "rbxassetid://10734900215",
-	play                 = "rbxassetid://10734923549",
-	playCircle           = "rbxassetid://10734923214",
-	pause                = "rbxassetid://10734919336",
-	pauseCircle          = "rbxassetid://10735024209",
-	stopCircle           = "rbxassetid://10734972621",
-	skipBack             = "rbxassetid://10734961526",
-	skipForward          = "rbxassetid://10734961809",
-	rewind               = "rbxassetid://10734934347",
-	fastForward          = "rbxassetid://10723354521",
-	repeat1              = "rbxassetid://10734933826",
-	shuffle              = "rbxassetid://10734953451",
-	heart                = "rbxassetid://10723406885",
-	heartCrack           = "rbxassetid://10723406299",
-	heartOff             = "rbxassetid://10723406662",
-	heartPulse           = "rbxassetid://10723406795",
-	thumbsUp             = "rbxassetid://10734983629",
-	thumbsDown           = "rbxassetid://10734983359",
-	smile                = "rbxassetid://10734964441",
-	smilePlus            = "rbxassetid://10734964188",
-	frown                = "rbxassetid://10723394681",
-	meh                  = "rbxassetid://10734887603",
-	laugh                = "rbxassetid://10723424372",
-	angry                = "rbxassetid://10709761629",
-	annoyed              = "rbxassetid://10709761722",
-	gift                 = "rbxassetid://10723396402",
-	giftCard             = "rbxassetid://10723396225",
-	package              = "rbxassetid://10734909540",
-	package2             = "rbxassetid://10734908151",
-	packageCheck         = "rbxassetid://10734908384",
-	packageOpen          = "rbxassetid://10734908793",
-	packagePlus          = "rbxassetid://10734909016",
-	packageX             = "rbxassetid://10734909375",
-	shoppingBag          = "rbxassetid://10734952273",
-	shoppingCart         = "rbxassetid://10734952479",
-	tag                  = "rbxassetid://10734976528",
-	tags                 = "rbxassetid://10734976739",
-	ticket               = "rbxassetid://10734983868",
-	banknote             = "rbxassetid://10709770178",
-	coins                = "rbxassetid://10709811110",
-	dollarSign           = "rbxassetid://10723343958",
-	euro                 = "rbxassetid://10723346372",
-	wallet               = "rbxassetid://10747376205",
-	piggyBank            = "rbxassetid://10734921935",
-	gem                  = "rbxassetid://10723396000",
-	award                = "rbxassetid://10709769406",
-	bookmark             = "rbxassetid://10709782154",
-	bookmarkMinus        = "rbxassetid://10709781919",
-	bookmarkPlus         = "rbxassetid://10709782044",
-	flag                 = "rbxassetid://10723375890",
-	flagOff              = "rbxassetid://10723375443",
-	folder               = "rbxassetid://10723387563",
-	folderOpen           = "rbxassetid://10723386277",
-	folderPlus           = "rbxassetid://10723386531",
-	folderMinus          = "rbxassetid://10723386127",
-	folderX              = "rbxassetid://10723387448",
-	folderCheck          = "rbxassetid://10723384605",
-	folderLock           = "rbxassetid://10723386005",
-	file                 = "rbxassetid://10723374641",
-	fileText             = "rbxassetid://10723367380",
-	fileCode             = "rbxassetid://10723356507",
-	fileImage            = "rbxassetid://10723357790",
-	filePlus             = "rbxassetid://10723365877",
-	fileMinus            = "rbxassetid://10723365254",
-	fileX                = "rbxassetid://10723374544",
-	fileCheck            = "rbxassetid://10723356210",
-	fileLock             = "rbxassetid://10723364957",
-	fileSearch           = "rbxassetid://10723366550",
-	fileEdit             = "rbxassetid://10723357495",
-	mail                 = "rbxassetid://10734885430",
-	mailCheck            = "rbxassetid://10723435182",
-	mailOpen             = "rbxassetid://10723435342",
-	mailPlus             = "rbxassetid://10723435443",
-	mailX                = "rbxassetid://10734885247",
-	mailWarning          = "rbxassetid://10734885015",
-	messageCircle        = "rbxassetid://10734888000",
-	messageSquare        = "rbxassetid://10734888228",
-	send                 = "rbxassetid://10734943902",
-	reply                = "rbxassetid://10734934252",
-	replyAll             = "rbxassetid://10734934132",
-	forward              = "rbxassetid://10723388016",
-	calendar             = "rbxassetid://10709789505",
-	calendarCheck        = "rbxassetid://10709783474",
-	calendarPlus         = "rbxassetid://10709788937",
-	calendarMinus        = "rbxassetid://10709783959",
-	calendarX            = "rbxassetid://10709789407",
-	calendarClock        = "rbxassetid://10709783577",
-	calendarDays         = "rbxassetid://10709783673",
-	clock                = "rbxassetid://10709805144",
-	timer                = "rbxassetid://10734984606",
-	timerOff             = "rbxassetid://10734984138",
-	timerReset           = "rbxassetid://10734984355",
-	hourglass            = "rbxassetid://10723407498",
-	history              = "rbxassetid://10723407335",
-	sun                  = "rbxassetid://10734974297",
-	moon                 = "rbxassetid://10734897102",
-	cloud                = "rbxassetid://10709806740",
-	cloudRain            = "rbxassetid://10709806277",
-	cloudSnow            = "rbxassetid://10709806374",
-	cloudLightning       = "rbxassetid://10709805727",
-	snowflake            = "rbxassetid://10734964600",
-	thermometer          = "rbxassetid://10734983134",
-	droplet              = "rbxassetid://10723344432",
-	droplets             = "rbxassetid://10734883356",
-	waves                = "rbxassetid://10747376931",
-	flame2               = "rbxassetid://10723376114",
-	tornado              = "rbxassetid://10734985247",
-	anchor               = "rbxassetid://10709761530",
-	sailboat             = "rbxassetid://10734941354",
-	bus                  = "rbxassetid://10709783137",
-	train                = "rbxassetid://10747362105",
-	truck                = "rbxassetid://10747364031",
-	hammer               = "rbxassetid://10723405360",
-	axe                  = "rbxassetid://10709769508",
-	shovel               = "rbxassetid://10734952773",
-	ruler                = "rbxassetid://10734941018",
-	magnet               = "rbxassetid://10723435069",
-	microscope           = "rbxassetid://10734889106",
-	syringe              = "rbxassetid://10734975932",
-	stethoscope          = "rbxassetid://10734966384",
-	pill                 = "rbxassetid://10734922497",
-	beaker               = "rbxassetid://10709774756",
-	flaskConical         = "rbxassetid://10734883986",
-	flaskRound           = "rbxassetid://10723376614",
-	atom                 = "rbxassetid://10709769598",
-	bot                  = "rbxassetid://10709782230",
-	binary               = "rbxassetid://10709776050",
-	hash                 = "rbxassetid://10723405975",
-	percent              = "rbxassetid://10734919919",
-	power                = "rbxassetid://10734930466",
-	powerOff             = "rbxassetid://10734930257",
-	toggleLeft           = "rbxassetid://10734984834",
-	toggleRight          = "rbxassetid://10734985040",
-	loader               = "rbxassetid://10723434070",
-	loader2              = "rbxassetid://10723433935",
-	moreHorizontal       = "rbxassetid://10734897250",
-	moreVertical         = "rbxassetid://10734897387",
-	menu                 = "rbxassetid://10734887784",
-	sidebar              = "rbxassetid://10734954301",
-	sidebarClose         = "rbxassetid://10734953715",
-	sidebarOpen          = "rbxassetid://10734954000",
-	layout               = "rbxassetid://10723425376",
-	layoutDashboard      = "rbxassetid://10723424646",
-	layoutGrid           = "rbxassetid://10723424838",
-	layoutList           = "rbxassetid://10723424963",
-	columns              = "rbxassetid://10709811261",
-	rows                 = "rbxassetid://10709753570",
-	table                = "rbxassetid://10734976230",
-	table2               = "rbxassetid://10734976097",
-	component            = "rbxassetid://10709811595",
-	puzzle               = "rbxassetid://10734930886",
-	penTool              = "rbxassetid://10734919503",
-	wand                 = "rbxassetid://10747376565",
-	wand2                = "rbxassetid://10747376349",
-	brush                = "rbxassetid://10709782758",
-	pipette              = "rbxassetid://10734922497",
-	highlighter          = "rbxassetid://10723407192",
-	bold                 = "rbxassetid://10747813908",
-	italic               = "rbxassetid://10723416195",
-	underline            = "rbxassetid://10747365191",
-	strikethrough        = "rbxassetid://10734973290",
-	quote                = "rbxassetid://10734931234",
-	indent               = "rbxassetid://10723415494",
-	outdent              = "rbxassetid://10734907933",
-	wrapText             = "rbxassetid://10747383065",
-	locate               = "rbxassetid://10723434557",
-	locateFixed          = "rbxassetid://10723434236",
-	locateOff            = "rbxassetid://10723434379",
-	helpCircle           = "rbxassetid://10723406988",
-	logIn                = "rbxassetid://10723434830",
-	logOut               = "rbxassetid://10723434906",
-	import               = "rbxassetid://10723415205",
-	verified             = "rbxassetid://10747374131",
-	accessibility        = "rbxassetid://10709751939",
-	buttonArrow          = "rbxassetid://10709791437",
+	aim = "rbxassetid://10709818534", crosshair = "rbxassetid://10709818534",
+	target = "rbxassetid://10734977012", swords = "rbxassetid://10734975692",
+	sword = "rbxassetid://10734975486", flame = "rbxassetid://10723376114",
+	skull = "rbxassetid://10734962068", shield = "rbxassetid://10734951847",
+	shieldCheck = "rbxassetid://10734951367", shieldAlert = "rbxassetid://10734951173",
+	bomb = "rbxassetid://10709781460", zap = "rbxassetid://10723345749",
+	visuals = "rbxassetid://10723346959", eye = "rbxassetid://10723346959",
+	eyeOff = "rbxassetid://10723346871", layers = "rbxassetid://10723424505",
+	palette = "rbxassetid://10734910430", focus = "rbxassetid://10723377537",
+	vehicle = "rbxassetid://10709789810", car = "rbxassetid://10709789810",
+	plane = "rbxassetid://10734922971", rocket = "rbxassetid://10734934585",
+	navigation = "rbxassetid://10734906744", move = "rbxassetid://10734900011",
+	wind = "rbxassetid://10747382750", players = "rbxassetid://10747373176",
+	user = "rbxassetid://10747373176", userCheck = "rbxassetid://10747371901",
+	userPlus = "rbxassetid://10747372702", userX = "rbxassetid://10747372992",
+	users = "rbxassetid://10747373426", contact = "rbxassetid://10709811834",
+	fingerprint = "rbxassetid://10723375250", misc = "rbxassetid://10723345749",
+	star = "rbxassetid://10734966248", crown = "rbxassetid://10709818626",
+	trophy = "rbxassetid://10747363809", medal = "rbxassetid://10734887072",
+	ghost = "rbxassetid://10723396107", alertTriangle = "rbxassetid://10709753149",
+	alertCircle = "rbxassetid://10709752996", info = "rbxassetid://10723415903",
+	bell = "rbxassetid://10709775704", bellOff = "rbxassetid://10709775320",
+	bellRing = "rbxassetid://10709775560", config = "rbxassetid://10734950309",
+	settings = "rbxassetid://10734950309", settings2 = "rbxassetid://10734950020",
+	cog = "rbxassetid://10709810948", sliders = "rbxassetid://10734963400",
+	wrench = "rbxassetid://10747383470", tool = "rbxassetid://10747383470",
+	cpu = "rbxassetid://10709813383", terminal = "rbxassetid://10734982144",
+	code = "rbxassetid://10709810463", database = "rbxassetid://10709818996",
+	weapon = "rbxassetid://10734975486", gauge = "rbxassetid://10723395708",
+	activity = "rbxassetid://10709752035", lock = "rbxassetid://10723434711",
+	unlock = "rbxassetid://10747366027", key = "rbxassetid://10723416652",
+	save = "rbxassetid://10734941499", download = "rbxassetid://10723344270",
+	upload = "rbxassetid://10747366434", trash = "rbxassetid://10747362393",
+	copy = "rbxassetid://10709812159", refresh = "rbxassetid://10734933222",
+	search = "rbxassetid://10734943674", filter = "rbxassetid://10723375128",
+	list = "rbxassetid://10723433811", grid = "rbxassetid://10723404936",
+	home = "rbxassetid://10723407389", compass = "rbxassetid://10709811445",
+	map = "rbxassetid://10734886202", globe = "rbxassetid://10723404337",
+	network = "rbxassetid://10734906975", barChart = "rbxassetid://10709773755",
+	lineChart = "rbxassetid://10723426393", pieChart = "rbxassetid://10734921727",
+	trendingUp = "rbxassetid://10747363465", trendingDown = "rbxassetid://10747363205",
+	siren = "rbxassetid://10734961284", arrowUp = "rbxassetid://10709768939",
+	arrowDown = "rbxassetid://10709767827", arrowLeft = "rbxassetid://10709768114",
+	arrowRight = "rbxassetid://10709768347", check = "rbxassetid://10709790644",
+	checkCircle = "rbxassetid://10709790387", checkSquare = "rbxassetid://10709790537",
+	x = "rbxassetid://10747384394", xCircle = "rbxassetid://10747383819",
+	plus = "rbxassetid://10734924532", minus = "rbxassetid://10734896206",
+	zoomIn = "rbxassetid://10747384552", zoomOut = "rbxassetid://10747384679",
+	maximize = "rbxassetid://10734886735", minimize = "rbxassetid://10734895698",
+	rotateCw = "rbxassetid://10734940654", share = "rbxassetid://10734950813",
+	link = "rbxassetid://10723426722", clipboard = "rbxassetid://10709799288",
+	edit = "rbxassetid://10734883598", pencil = "rbxassetid://10734919691",
+	scissors = "rbxassetid://10734942778", wifi = "rbxassetid://10747382504",
+	wifiOff = "rbxassetid://10747382268", signal = "rbxassetid://10734961133",
+	battery = "rbxassetid://10709774640", batteryFull = "rbxassetid://10709774206",
+	monitor = "rbxassetid://10734896881", server = "rbxassetid://10734949856",
+	hardDrive = "rbxassetid://10723405749", keyboard = "rbxassetid://10723416765",
+	laptop = "rbxassetid://10723423881", camera = "rbxassetid://10709789686",
+	mic = "rbxassetid://10734888864", micOff = "rbxassetid://10734888646",
+	volume = "rbxassetid://10747376008", volumeX = "rbxassetid://10747375880",
+	headphones = "rbxassetid://10723406165", music = "rbxassetid://10734905958",
+	play = "rbxassetid://10734923549", pause = "rbxassetid://10734919336",
+	heart = "rbxassetid://10723406885", heartOff = "rbxassetid://10723406662",
+	thumbsUp = "rbxassetid://10734983629", thumbsDown = "rbxassetid://10734983359",
+	smile = "rbxassetid://10734964441", frown = "rbxassetid://10723394681",
+	gift = "rbxassetid://10723396402", package = "rbxassetid://10734909540",
+	shoppingBag = "rbxassetid://10734952273", tag = "rbxassetid://10734976528",
+	banknote = "rbxassetid://10709770178", coins = "rbxassetid://10709811110",
+	dollarSign = "rbxassetid://10723343958", wallet = "rbxassetid://10747376205",
+	gem = "rbxassetid://10723396000", award = "rbxassetid://10709769406",
+	bookmark = "rbxassetid://10709782154", flag = "rbxassetid://10723375890",
+	folder = "rbxassetid://10723387563", file = "rbxassetid://10723374641",
+	fileText = "rbxassetid://10723367380", fileCode = "rbxassetid://10723356507",
+	mail = "rbxassetid://10734885430", mailOpen = "rbxassetid://10723435342",
+	messageCircle = "rbxassetid://10734888000", send = "rbxassetid://10734943902",
+	calendar = "rbxassetid://10709789505", clock = "rbxassetid://10709805144",
+	timer = "rbxassetid://10734984606", hourglass = "rbxassetid://10723407498",
+	history = "rbxassetid://10723407335", sun = "rbxassetid://10734974297",
+	moon = "rbxassetid://10734897102", cloud = "rbxassetid://10709806740",
+	cloudRain = "rbxassetid://10709806277", snowflake = "rbxassetid://10734964600",
+	thermometer = "rbxassetid://10734983134", droplet = "rbxassetid://10723344432",
+	waves = "rbxassetid://10747376931", flame2 = "rbxassetid://10723376114",
+	anchor = "rbxassetid://10709761530", bus = "rbxassetid://10709783137",
+	train = "rbxassetid://10747362105", truck = "rbxassetid://10747364031",
+	hammer = "rbxassetid://10723405360", axe = "rbxassetid://10709769508",
+	ruler = "rbxassetid://10734941018", magnet = "rbxassetid://10723435069",
+	microscope = "rbxassetid://10734889106", atom = "rbxassetid://10709769598",
+	bot = "rbxassetid://10709782230", hash = "rbxassetid://10723405975",
+	power = "rbxassetid://10734930466", powerOff = "rbxassetid://10734930257",
+	loader = "rbxassetid://10723434070", menu = "rbxassetid://10734887784",
+	layout = "rbxassetid://10723425376", component = "rbxassetid://10709811595",
+	puzzle = "rbxassetid://10734930886", wand = "rbxassetid://10747376565",
+	brush = "rbxassetid://10709782758", bold = "rbxassetid://10747813908",
+	helpCircle = "rbxassetid://10723406988", logIn = "rbxassetid://10723434830",
+	logOut = "rbxassetid://10723434906", verified = "rbxassetid://10747374131",
+	accessibility = "rbxassetid://10709751939", buttonArrow = "rbxassetid://10709791437",
 }
 
 local Theme = {
@@ -446,9 +150,10 @@ local Theme = {
 	dim             = Color3.fromRGB(55, 55, 55),
 	section         = Color3.fromRGB(25, 25, 25),
 	elemBg          = Color3.fromRGB(35, 35, 35),
-	elemHover       = Color3.fromRGB(45, 45, 45),
-	dropdownBg      = Color3.fromRGB(35, 35, 35),
-	dropdownHolder  = Color3.fromRGB(28, 28, 28),
+	elemHover       = Color3.fromRGB(48, 48, 48),
+	dropdownBg      = Color3.fromRGB(26, 26, 28),
+	toggleOff       = Color3.fromRGB(45, 45, 48),
+	toggleOn        = Color3.fromRGB(72, 138, 182),
 }
 
 local NOISE_TEX  = "rbxassetid://9968344919"
@@ -456,6 +161,7 @@ local SCROLL_TOP = "rbxassetid://6276641225"
 local SCROLL_MID = "rbxassetid://6889812721"
 local SCROLL_BOT = "rbxassetid://6889812791"
 local ARROW_ICO  = "rbxassetid://10709790948"
+local LOGO_ID    = "rbxassetid://134382458890933"
 
 local W        = 660
 local H        = 460
@@ -525,6 +231,14 @@ function EcohubLibrarys.new(config)
 	corner(Main, 12)
 	addTexture(Main, 0.96, 1)
 
+	-- overlay sem clips para o dropdown flutuar por cima de tudo
+	local DropOverlay = ni("Frame", {
+		Size                   = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		BorderSizePixel        = 0,
+		ZIndex                 = 200,
+	}, ScreenGui)
+
 	local TopBar = ni("Frame", {
 		Size             = UDim2.new(1, 0, 0, TOPBAR),
 		BackgroundColor3 = Theme.AcrylicMain,
@@ -560,7 +274,7 @@ function EcohubLibrarys.new(config)
 		ZIndex                 = 4,
 	}, TopBar)
 
-	local logoSize = 48
+	local logoSize = 50
 	local logoFrame = ni("Frame", {
 		Size                   = UDim2.new(0, logoSize, 0, logoSize),
 		Position               = UDim2.new(0.5, -logoSize / 2, 0.5, -logoSize / 2),
@@ -570,7 +284,7 @@ function EcohubLibrarys.new(config)
 	ni("ImageLabel", {
 		Size                   = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
-		Image                  = config.Logo or "",
+		Image                  = LOGO_ID,
 		ScaleType              = Enum.ScaleType.Fit,
 		ZIndex                 = 4,
 	}, logoFrame)
@@ -649,14 +363,15 @@ function EcohubLibrarys.new(config)
 	}, TabBar)
 	addTexture(TabBar, 0.92, 6)
 
-	local ICON_SIZE  = 20
-	local SMALL_W    = 48
-	local EXPANDED_W = 124
-	local tabList    = {}
-	local tabBtns    = {}
-	local pages      = {}
-	local curTab     = nil
-	local animating  = false
+	local ICON_SIZE    = 20
+	local SMALL_W      = 48
+	local EXPANDED_W   = 124
+	local tabList      = {}
+	local tabBtns      = {}
+	local pages        = {}
+	local curTab       = nil
+	local animating    = false
+	local openDropdown = nil
 
 	local function getExpW()
 		local total = #tabList
@@ -701,6 +416,7 @@ function EcohubLibrarys.new(config)
 
 	local function switchTo(name)
 		if curTab == name then return end
+		if openDropdown then openDropdown() openDropdown = nil end
 		if curTab and pages[curTab] then pages[curTab].Visible = false end
 		curTab              = name
 		pages[name].Visible = true
@@ -747,6 +463,7 @@ function EcohubLibrarys.new(config)
 	local function hideGui()
 		if animating then return end
 		animating = true
+		if openDropdown then openDropdown() openDropdown = nil end
 		setChildrenVisible(false)
 		tw(Main, { BackgroundTransparency = 1 }, 0.20, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
 		task.delay(0.22, function() Main.Visible = false animating = false end)
@@ -873,6 +590,7 @@ function EcohubLibrarys.new(config)
 				Name             = secName,
 				BackgroundColor3 = Theme.section,
 				BorderSizePixel  = 0,
+				ClipsDescendants = false,
 			}, pg)
 			addTexture(f, 0.94, 1)
 			return f
@@ -1007,6 +725,7 @@ function EcohubLibrarys.new(config)
 					LayoutOrder      = rowCount,
 					ZIndex           = 3,
 				}, scroll)
+				corner(r, 6)
 				addTexture(r, 0.90, 4)
 				return r
 			end
@@ -1020,8 +739,9 @@ function EcohubLibrarys.new(config)
 				local state    = getSaved(saveId, not not default)
 
 				local row = newRow(ELEM_H)
+
 				ni("TextLabel", {
-					Size                   = UDim2.new(1, -60, 1, 0),
+					Size                   = UDim2.new(1, -66, 1, 0),
 					Position               = UDim2.new(0, 10, 0, 0),
 					BackgroundTransparency = 1,
 					Text                   = label,
@@ -1032,41 +752,55 @@ function EcohubLibrarys.new(config)
 					ZIndex                 = 5,
 				}, row)
 
-				local trkW, trkH = 32, 17
+				local trkW, trkH = 38, 20
 				local track = ni("Frame", {
 					Size             = UDim2.new(0, trkW, 0, trkH),
 					Position         = UDim2.new(1, -trkW - 8, 0.5, -trkH / 2),
-					BackgroundColor3 = state and Theme.Accent or Theme.dim,
+					BackgroundColor3 = state and Theme.toggleOn or Theme.toggleOff,
 					BorderSizePixel  = 0,
 					ZIndex           = 5,
 				}, row)
 				corner(track, trkH)
-				addTexture(track, 0.84, 6)
-				local stroke = ni("UIStroke", {
-					Color     = state and Theme.Accent or Theme.InElementBorder,
-					Thickness = 1,
-				}, track)
 
-				local knobSz = 13
+				local glow = ni("Frame", {
+					Size                   = UDim2.new(1, 8, 1, 8),
+					Position               = UDim2.new(0, -4, 0, -4),
+					BackgroundColor3       = Theme.Accent,
+					BackgroundTransparency = state and 0.65 or 1,
+					BorderSizePixel        = 0,
+					ZIndex                 = 4,
+				}, track)
+				corner(glow, trkH + 4)
+
+				local knobSz = 14
 				local knob   = ni("Frame", {
 					Size             = UDim2.new(0, knobSz, 0, knobSz),
 					Position         = state
-						and UDim2.new(1, -knobSz - 2, 0.5, -knobSz / 2)
-						or  UDim2.new(0, 2, 0.5, -knobSz / 2),
-					BackgroundColor3 = Theme.text,
+						and UDim2.new(1, -knobSz - 3, 0.5, -knobSz / 2)
+						or  UDim2.new(0, 3, 0.5, -knobSz / 2),
+					BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 175),
 					BorderSizePixel  = 0,
 					ZIndex           = 7,
 				}, track)
 				corner(knob, knobSz)
-				ni("UIStroke", { Color = Color3.fromRGB(140, 160, 180), Thickness = 0.5 }, knob)
 
-				local function applyState(v, animate)
-					local dur = animate and 0.20 or 0
-					tw(track,  { BackgroundColor3 = v and Theme.Accent or Theme.dim },                0.20)
-					tw(stroke, { Color = v and Theme.Accent or Theme.InElementBorder },               0.20)
-					tw(knob,   { Position = v
-						and UDim2.new(1, -knobSz - 2, 0.5, -knobSz / 2)
-						or  UDim2.new(0, 2, 0.5, -knobSz / 2) },                                     0.20)
+				local shine = ni("Frame", {
+					Size                   = UDim2.new(0, 5, 0, 5),
+					Position               = UDim2.new(0, 2, 0, 2),
+					BackgroundColor3       = Color3.fromRGB(255, 255, 255),
+					BackgroundTransparency = 0.45,
+					BorderSizePixel        = 0,
+					ZIndex                 = 8,
+				}, knob)
+				corner(shine, 5)
+
+				local function applyState(v)
+					tw(track, { BackgroundColor3 = v and Theme.toggleOn or Theme.toggleOff }, 0.18)
+					tw(glow,  { BackgroundTransparency = v and 0.65 or 1 },                  0.18)
+					tw(knob,  { Position = v
+						and UDim2.new(1, -knobSz - 3, 0.5, -knobSz / 2)
+						or  UDim2.new(0, 3, 0.5, -knobSz / 2),
+					BackgroundColor3 = v and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(170, 170, 175) }, 0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 				end
 
 				local btn = ni("TextButton", {
@@ -1078,7 +812,7 @@ function EcohubLibrarys.new(config)
 				}, row)
 				btn.MouseButton1Click:Connect(function()
 					state = not state
-					applyState(state, true)
+					applyState(state)
 					setSaved(saveId, state)
 					callback(state)
 				end)
@@ -1089,7 +823,7 @@ function EcohubLibrarys.new(config)
 				function el:Set(v)
 					state    = not not v
 					el.Value = state
-					applyState(state, true)
+					applyState(state)
 					setSaved(saveId, state)
 					callback(state)
 				end
@@ -1098,7 +832,7 @@ function EcohubLibrarys.new(config)
 					callback = function(val) oldCb(val) fn(val) end
 					fn(state)
 				end
-				applyState(state, false)
+				applyState(state)
 				task.defer(function() callback(state) end)
 				return el
 			end
@@ -1152,7 +886,6 @@ function EcohubLibrarys.new(config)
 					ZIndex           = 5,
 				}, row)
 				corner(railBg, 5)
-				addTexture(railBg, 0.80, 6)
 
 				local pct  = (value - minV) / (maxV - minV)
 				local fill = ni("Frame", {
@@ -1214,7 +947,6 @@ function EcohubLibrarys.new(config)
 				UserInputService.InputEnded:Connect(function(i)
 					if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
 				end)
-
 				hitBtn.MouseEnter:Connect(function() tw(row, { BackgroundColor3 = Theme.elemHover }, 0.1) end)
 				hitBtn.MouseLeave:Connect(function() tw(row, { BackgroundColor3 = Theme.elemBg },    0.1) end)
 
@@ -1349,6 +1081,8 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
+			-- DROPDOWN com overlay: o painel flutua no DropOverlay (sem ClipsDescendants),
+			-- posicionado via AbsolutePosition do row. Resolve o bug de corte pelo ScrollingFrame.
 			function sec:AddDropdown(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Dropdown"
@@ -1361,26 +1095,9 @@ function EcohubLibrarys.new(config)
 
 				local MAX_VISIBLE = 5
 				local OPT_H       = 28
-				local PADDING     = 5
+				local PADDING     = 4
 
-				rowCount = rowCount + 1
-				local wrapper = ni("Frame", {
-					Size                   = UDim2.new(1, 0, 0, ELEM_H),
-					BackgroundTransparency = 1,
-					BorderSizePixel        = 0,
-					LayoutOrder            = rowCount,
-					ClipsDescendants       = false,
-					ZIndex                 = 30,
-				}, scroll)
-
-				local row = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, ELEM_H),
-					BackgroundColor3 = Theme.elemBg,
-					BorderSizePixel  = 0,
-					ZIndex           = 31,
-				}, wrapper)
-				addTexture(row, 0.90, 32)
-				local rowStroke = ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, row)
+				local row = newRow(ELEM_H)
 
 				ni("TextLabel", {
 					Size                   = UDim2.new(1, -92, 1, 0),
@@ -1391,18 +1108,18 @@ function EcohubLibrarys.new(config)
 					TextSize               = 10,
 					Font                   = Enum.Font.Gotham,
 					TextXAlignment         = Enum.TextXAlignment.Left,
-					ZIndex                 = 33,
+					ZIndex                 = 5,
 				}, row)
 
 				local selBox = ni("Frame", {
 					Size             = UDim2.new(0, 80, 0, 20),
 					Position         = UDim2.new(1, -86, 0.5, -10),
-					BackgroundColor3 = Color3.fromRGB(20, 20, 22),
+					BackgroundColor3 = Color3.fromRGB(22, 22, 24),
 					BorderSizePixel  = 0,
-					ZIndex           = 33,
+					ZIndex           = 5,
 				}, row)
 				corner(selBox, 5)
-				addTexture(selBox, 0.86, 34)
+				addTexture(selBox, 0.86, 6)
 				local selStroke = ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 1 }, selBox)
 
 				local selLbl = ni("TextLabel", {
@@ -1415,7 +1132,7 @@ function EcohubLibrarys.new(config)
 					Font                   = Enum.Font.GothamBold,
 					TextXAlignment         = Enum.TextXAlignment.Left,
 					TextTruncate           = Enum.TextTruncate.AtEnd,
-					ZIndex                 = 35,
+					ZIndex                 = 7,
 				}, selBox)
 
 				local arrowIco = ni("ImageLabel", {
@@ -1424,42 +1141,44 @@ function EcohubLibrarys.new(config)
 					BackgroundTransparency = 1,
 					Image                  = ARROW_ICO,
 					ImageColor3            = Theme.muted,
-					ZIndex                 = 35,
+					ZIndex                 = 7,
 				}, selBox)
 
 				local dropVisibleH = math.min(#options, MAX_VISIBLE) * OPT_H + PADDING * 2
 
+				-- painel no overlay global, sem ClipsDescendants
 				local dropBg = ni("Frame", {
-					Size             = UDim2.new(1, 0, 0, 0),
-					Position         = UDim2.new(0, 0, 0, ELEM_H + 3),
-					BackgroundColor3 = Theme.dropdownHolder,
+					Size             = UDim2.new(0, 10, 0, 0),
+					Position         = UDim2.new(0, 0, 0, 0),
+					BackgroundColor3 = Theme.dropdownBg,
 					BorderSizePixel  = 0,
 					ClipsDescendants = true,
-					ZIndex           = 50,
+					ZIndex           = 202,
 					Visible          = false,
-				}, wrapper)
+				}, DropOverlay)
+				corner(dropBg, 6)
 				ni("UIStroke", { Color = Theme.AcrylicBorder, Thickness = 1 }, dropBg)
-				addTexture(dropBg, 0.90, 51)
+				addTexture(dropBg, 0.88, 203)
 
 				local accentLine = ni("Frame", {
-					Size             = UDim2.new(1, -20, 0, 1),
-					Position         = UDim2.new(0, 10, 0, 0),
+					Size             = UDim2.new(1, -14, 0, 1),
+					Position         = UDim2.new(0, 7, 0, 0),
 					BackgroundColor3 = Theme.Accent,
 					BorderSizePixel  = 0,
-					ZIndex           = 53,
+					ZIndex           = 205,
 				}, dropBg)
 				local accentGrad = Instance.new("UIGradient")
 				accentGrad.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0,    Theme.dropdownHolder),
+					ColorSequenceKeypoint.new(0,    Theme.dropdownBg),
 					ColorSequenceKeypoint.new(0.15, Theme.Accent),
 					ColorSequenceKeypoint.new(0.85, Theme.Accent),
-					ColorSequenceKeypoint.new(1,    Theme.dropdownHolder),
+					ColorSequenceKeypoint.new(1,    Theme.dropdownBg),
 				})
 				accentGrad.Parent = accentLine
 
 				local optScroll = ni("ScrollingFrame", {
-					Size                   = UDim2.new(1, -6, 1, -(PADDING * 2)),
-					Position               = UDim2.new(0, 3, 0, PADDING),
+					Size                   = UDim2.new(1, -4, 1, -(PADDING * 2)),
+					Position               = UDim2.new(0, 2, 0, PADDING),
 					BackgroundTransparency = 1,
 					BorderSizePixel        = 0,
 					ScrollBarThickness     = (#options > MAX_VISIBLE) and 3 or 0,
@@ -1470,13 +1189,13 @@ function EcohubLibrarys.new(config)
 					CanvasSize             = UDim2.new(0, 0, 0, #options * OPT_H),
 					ScrollingDirection     = Enum.ScrollingDirection.Y,
 					ClipsDescendants       = true,
-					ZIndex                 = 52,
+					ZIndex                 = 206,
 				}, dropBg)
 
 				local optHolder = ni("Frame", {
 					Size                   = UDim2.new(1, 0, 0, #options * OPT_H),
 					BackgroundTransparency = 1,
-					ZIndex                 = 53,
+					ZIndex                 = 207,
 				}, optScroll)
 
 				ni("UIListLayout", {
@@ -1486,35 +1205,51 @@ function EcohubLibrarys.new(config)
 				}, optHolder)
 
 				local optButtons = {}
+				local el         = { Value = selected }
 
 				local function applySelected()
 					for idx2, ob in pairs(optButtons) do
 						local iS = options[idx2] == selected
-						tw(ob.row, { BackgroundColor3 = iS and Theme.AccentDark or Theme.dropdownHolder }, 0.12)
-						tw(ob.lbl, { TextColor3 = iS and Theme.text or Theme.muted },                      0.12)
-						tw(ob.bar, { Size = UDim2.new(0, iS and 3 or 0, 0, 12) },                         0.14)
-						ob.chkIco.Visible = iS
-						ob.lbl.Font = iS and Enum.Font.GothamBold or Enum.Font.Gotham
+						tw(ob.row, { BackgroundColor3 = iS and Theme.AccentDark or Theme.dropdownBg }, 0.12)
+						tw(ob.lbl, { TextColor3 = iS and Theme.text or Theme.muted },                  0.12)
+						tw(ob.bar, { Size = UDim2.new(0, iS and 3 or 0, 0, 12) },                     0.14)
+						ob.chk.Visible = iS
+						ob.lbl.Font    = iS and Enum.Font.GothamBold or Enum.Font.Gotham
 					end
 				end
 
 				local function closeDD()
+					if not open then return end
 					open = false
-					tw(arrowIco,  { ImageColor3 = Theme.muted, Rotation = 0 }, 0.18)
-					tw(selStroke, { Color = Theme.InElementBorder },           0.14)
-					tw(rowStroke, { Color = Theme.InElementBorder },           0.14)
-					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
-					tw(dropBg, { Size = UDim2.new(1, 0, 0, 0) }, 0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-					task.delay(0.20, function() dropBg.Visible = false end)
+					if openDropdown == closeDD then openDropdown = nil end
+					tw(arrowIco,  { ImageColor3 = Theme.muted, Rotation = 0 }, 0.15)
+					tw(selStroke, { Color = Theme.InElementBorder },           0.12)
+					local curW = dropBg.AbsoluteSize.X
+					tw(dropBg, { Size = UDim2.new(0, curW, 0, 0) }, 0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+					task.delay(0.17, function() dropBg.Visible = false end)
+				end
+
+				local function openDD()
+					if openDropdown and openDropdown ~= closeDD then openDropdown() end
+					open           = true
+					openDropdown   = closeDD
+					local rowAbs   = row.AbsolutePosition
+					local rowW     = row.AbsoluteSize.X
+					dropBg.Size     = UDim2.new(0, rowW, 0, 0)
+					dropBg.Position = UDim2.new(0, rowAbs.X, 0, rowAbs.Y + ELEM_H + 2)
+					dropBg.Visible  = true
+					tw(arrowIco,  { ImageColor3 = Theme.Accent, Rotation = 180 }, 0.15)
+					tw(selStroke, { Color = Theme.Accent },                       0.12)
+					tw(dropBg, { Size = UDim2.new(0, rowW, 0, dropVisibleH) }, 0.20, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 				end
 
 				local function buildOptionItem(i2, opt)
 					local isSel  = (opt == selected)
 					local optRow = ni("Frame", {
 						Size             = UDim2.new(1, 0, 0, OPT_H),
-						BackgroundColor3 = isSel and Theme.AccentDark or Theme.dropdownHolder,
+						BackgroundColor3 = isSel and Theme.AccentDark or Theme.dropdownBg,
 						BorderSizePixel  = 0,
-						ZIndex           = 54,
+						ZIndex           = 208,
 						LayoutOrder      = i2,
 					}, optHolder)
 
@@ -1523,7 +1258,7 @@ function EcohubLibrarys.new(config)
 						Position         = UDim2.new(0, 0, 0.5, -6),
 						BackgroundColor3 = Theme.Accent,
 						BorderSizePixel  = 0,
-						ZIndex           = 56,
+						ZIndex           = 210,
 					}, optRow)
 					corner(leftBar, 2)
 
@@ -1536,7 +1271,7 @@ function EcohubLibrarys.new(config)
 						TextSize               = 10,
 						Font                   = isSel and Enum.Font.GothamBold or Enum.Font.Gotham,
 						TextXAlignment         = Enum.TextXAlignment.Left,
-						ZIndex                 = 55,
+						ZIndex                 = 209,
 					}, optRow)
 
 					local chkIco = ni("ImageLabel", {
@@ -1545,18 +1280,18 @@ function EcohubLibrarys.new(config)
 						BackgroundTransparency = 1,
 						Image                  = ICONS.check,
 						ImageColor3            = Theme.Accent,
-						ZIndex                 = 56,
+						ZIndex                 = 210,
 						Visible                = isSel,
 					}, optRow)
 
 					if i2 < #options then
 						ni("Frame", {
-							Size                   = UDim2.new(1, -12, 0, 1),
-							Position               = UDim2.new(0, 6, 1, -1),
+							Size                   = UDim2.new(1, -10, 0, 1),
+							Position               = UDim2.new(0, 5, 1, -1),
 							BackgroundColor3       = Theme.dim,
-							BackgroundTransparency = 0.5,
+							BackgroundTransparency = 0.6,
 							BorderSizePixel        = 0,
-							ZIndex                 = 55,
+							ZIndex                 = 209,
 						}, optRow)
 					end
 
@@ -1565,10 +1300,10 @@ function EcohubLibrarys.new(config)
 						BackgroundTransparency = 1,
 						Text                   = "",
 						BorderSizePixel        = 0,
-						ZIndex                 = 60,
+						ZIndex                 = 215,
 					}, optRow)
 
-					optButtons[i2] = { row = optRow, lbl = optLbl, bar = leftBar, chkIco = chkIco }
+					optButtons[i2] = { row = optRow, lbl = optLbl, bar = leftBar, chk = chkIco }
 
 					optBtn.MouseButton1Click:Connect(function()
 						selected    = opt
@@ -1581,14 +1316,14 @@ function EcohubLibrarys.new(config)
 					end)
 					optBtn.MouseEnter:Connect(function()
 						if opt ~= selected then
-							tw(optRow, { BackgroundColor3 = Theme.elemHover }, 0.1)
-							tw(optLbl, { TextColor3 = Theme.text },            0.1)
+							tw(optRow, { BackgroundColor3 = Theme.elemHover }, 0.08)
+							tw(optLbl, { TextColor3 = Theme.text },            0.08)
 						end
 					end)
 					optBtn.MouseLeave:Connect(function()
 						if opt ~= selected then
-							tw(optRow, { BackgroundColor3 = Theme.dropdownHolder }, 0.1)
-							tw(optLbl, { TextColor3 = Theme.muted },               0.1)
+							tw(optRow, { BackgroundColor3 = Theme.dropdownBg }, 0.08)
+							tw(optLbl, { TextColor3 = Theme.muted },           0.08)
 						end
 					end)
 				end
@@ -1603,21 +1338,8 @@ function EcohubLibrarys.new(config)
 					BackgroundTransparency = 1,
 					Text                   = "",
 					BorderSizePixel        = 0,
-					ZIndex                 = 36,
+					ZIndex                 = 8,
 				}, row)
-
-				local el = { Value = selected }
-
-				local function openDD()
-					open           = true
-					dropBg.Visible = true
-					dropBg.Size    = UDim2.new(1, 0, 0, 0)
-					wrapper.Size   = UDim2.new(1, 0, 0, ELEM_H + dropVisibleH + 3)
-					tw(arrowIco,  { ImageColor3 = Theme.Accent, Rotation = 180 }, 0.18)
-					tw(selStroke, { Color = Theme.Accent },                       0.14)
-					tw(rowStroke, { Color = Theme.Accent },                       0.14)
-					tw(dropBg, { Size = UDim2.new(1, 0, 0, dropVisibleH) }, 0.24, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-				end
 
 				toggleBtn.MouseButton1Click:Connect(function()
 					if open then closeDD() else openDD() end
@@ -1626,15 +1348,17 @@ function EcohubLibrarys.new(config)
 				toggleBtn.MouseLeave:Connect(function() tw(row, { BackgroundColor3 = Theme.elemBg },    0.1) end)
 
 				UserInputService.InputBegan:Connect(function(input)
-					if open and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-						local absPos  = dropBg.AbsolutePosition
-						local absSize = dropBg.AbsoluteSize
-						local mX      = UserInputService:GetMouseLocation().X
-						local mY      = UserInputService:GetMouseLocation().Y
-						if mX < absPos.X or mX > absPos.X + absSize.X
-							or mY < absPos.Y - ELEM_H - 3 or mY > absPos.Y + absSize.Y then
-							closeDD()
-						end
+					if not open then return end
+					if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+						local mX  = UserInputService:GetMouseLocation().X
+						local mY  = UserInputService:GetMouseLocation().Y
+						local abs = dropBg.AbsolutePosition
+						local sz  = dropBg.AbsoluteSize
+						local rA  = row.AbsolutePosition
+						local rS  = row.AbsoluteSize
+						local inDrop = mX >= abs.X and mX <= abs.X + sz.X and mY >= abs.Y and mY <= abs.Y + sz.Y
+						local inRow  = mX >= rA.X  and mX <= rA.X  + rS.X  and mY >= rA.Y  and mY <= rA.Y  + rS.Y
+						if not inDrop and not inRow then closeDD() end
 					end
 				end)
 
@@ -1703,7 +1427,6 @@ function EcohubLibrarys.new(config)
 					TextWrapped            = true,
 					ZIndex                 = 5,
 				}, row)
-
 				local el = { Frame = row }
 				function el:Set(t) txtLbl.Text = t end
 				return el
@@ -1842,6 +1565,7 @@ function EcohubLibrarys.new(config)
 					BorderSizePixel  = 0,
 					ZIndex           = 3,
 				}, wrapper)
+				corner(row, 6)
 				addTexture(row, 0.90, 4)
 
 				ni("TextLabel", {
@@ -1875,6 +1599,7 @@ function EcohubLibrarys.new(config)
 					Visible          = false,
 					ZIndex           = 20,
 				}, wrapper)
+				corner(picker, 6)
 				ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, picker)
 				addTexture(picker, 0.92, 21)
 
@@ -1953,10 +1678,10 @@ function EcohubLibrarys.new(config)
 				local hueH2, satV2, briV = Color3.toHSV(color)
 
 				local function updateThumbs()
-					hueThumb.Position            = UDim2.new(hueH2, 0, 0.5, 0)
-					satThumb.Position            = UDim2.new(satV2, 0, 1 - briV, 0)
-					satGradH.Color               = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromHSV(hueH2, 1, 1))
-					preview.BackgroundColor3     = Color3.fromHSV(hueH2, satV2, briV)
+					hueThumb.Position        = UDim2.new(hueH2, 0, 0.5, 0)
+					satThumb.Position        = UDim2.new(satV2, 0, 1 - briV, 0)
+					satGradH.Color           = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromHSV(hueH2, 1, 1))
+					preview.BackgroundColor3 = Color3.fromHSV(hueH2, satV2, briV)
 				end
 
 				local function commitColor()
