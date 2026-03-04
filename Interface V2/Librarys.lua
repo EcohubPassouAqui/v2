@@ -228,7 +228,7 @@ function EcohubLibrarys.new(config)
 		Size=UDim2.new(0,5000,0,5000),
 		Position=UDim2.new(0,0,0,0),
 		BackgroundTransparency=1,BorderSizePixel=0,
-		ZIndex=900, Active=false,
+		ZIndex=900,Active=false,
 	},ScreenGui)
 
 	local TopBar = ni("Frame",{
@@ -474,8 +474,8 @@ function EcohubLibrarys.new(config)
 				},row)
 			end
 
-			local txtX = (icnF and 28) or 10
-			ni("TextLabel",{
+			local txtX=(icnF and 28) or 10
+			local titleLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-70,1,0),Position=UDim2.new(0,txtX,0,0),
 				BackgroundTransparency=1,Text=label,
 				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
@@ -527,6 +527,7 @@ function EcohubLibrarys.new(config)
 				state=not not v el.Value=state
 				applyS(state) setSaved(saveId,state) callback(state)
 			end
+			function el:SetTitle(t) titleLbl.Text=t end
 			function el:OnChanged(fn)
 				local old=callback callback=function(val) old(val) fn(val) end fn(state)
 			end
@@ -545,19 +546,25 @@ function EcohubLibrarys.new(config)
 			local suffix   = cfg.Suffix or ""
 			local callback = cfg.Callback or function() end
 
-			local function rv(v) return math.floor(v / rounding + 0.5) * rounding end
+			local function rv(v)
+				return math.floor(v / rounding + 0.5) * rounding
+			end
 			local value = getSaved(saveId, rv(math.clamp(cfg.Default or minV, minV, maxV)))
 
-			local ROW_H   = 52
-			local RAIL_H  = 4
-			local THUMB_W = 14
-			local THUMB_H = 26
+			-- Layout constants
+			local ROW_H    = 56
+			local RAIL_H   = 6
+			local KNOB_W   = 18
+			local KNOB_H   = 30
+			local PAD_X    = 12
 
+			-- row
 			local row = newRow(ROW_H)
 
-			ni("TextLabel",{
-				Size=UDim2.new(1,-80,0,16),
-				Position=UDim2.new(0,10,0,8),
+			-- label (top-left)
+			local sliderTitleLbl=ni("TextLabel",{
+				Size=UDim2.new(1,-74,0,15),
+				Position=UDim2.new(0,PAD_X,0,7),
 				BackgroundTransparency=1,
 				Text=label,
 				TextColor3=T.text,
@@ -567,15 +574,15 @@ function EcohubLibrarys.new(config)
 				ZIndex=5,
 			},row)
 
+			-- value badge (top-right)
 			local valFrame = ni("Frame",{
-				Size=UDim2.new(0,54,0,20),
-				Position=UDim2.new(1,-62,0,6),
-				BackgroundColor3=Color3.fromRGB(16,16,20),
+				Size=UDim2.new(0,52,0,19),
+				Position=UDim2.new(1,-62,0,7),
+				BackgroundColor3=Color3.fromRGB(15,15,19),
 				BorderSizePixel=0,ZIndex=5,
 			},row)
 			rnd(valFrame,5)
 			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},valFrame)
-
 			local valLbl = ni("TextLabel",{
 				Size=UDim2.new(1,0,1,0),
 				BackgroundTransparency=1,
@@ -587,128 +594,146 @@ function EcohubLibrarys.new(config)
 				ZIndex=6,
 			},valFrame)
 
-			local trackOuter = ni("Frame",{
-				Size=UDim2.new(1,-20,0,RAIL_H+8),
-				Position=UDim2.new(0,10,1,-(RAIL_H+8+8)),
-				BackgroundColor3=Color3.fromRGB(22,22,28),
-				BorderSizePixel=0,ZIndex=5,
-			},row)
-			rnd(trackOuter,6)
-			ni("UIStroke",{Color=Color3.fromRGB(48,48,58),Thickness=0.8},trackOuter)
+			-- track container — holds only the rail, NOT the knob
+			-- offset by PAD_X on each side; knob lives in row directly
+			local TRACK_X  = PAD_X
+			local TRACK_R  = PAD_X
+			local TRACK_Y  = ROW_H - RAIL_H - 10  -- distance from top of row
 
-			local rail = ni("Frame",{
-				Size=UDim2.new(1,0,0,RAIL_H),
-				Position=UDim2.new(0,0,0.5,-RAIL_H/2),
-				BackgroundColor3=T.dim,
-				BorderSizePixel=0,ZIndex=6,
-			},trackOuter)
-			rnd(rail,RAIL_H)
+			local railBg = ni("Frame",{
+				Size=UDim2.new(1,-(TRACK_X+TRACK_R),0,RAIL_H),
+				Position=UDim2.new(0,TRACK_X,0,TRACK_Y),
+				BackgroundColor3=Color3.fromRGB(36,36,46),
+				BorderSizePixel=0,ZIndex=5,
+				ClipsDescendants=true,  -- fill never overflows
+			},row)
+			rnd(railBg,RAIL_H)
+			ni("UIStroke",{Color=Color3.fromRGB(52,52,65),Thickness=0.7},railBg)
 
 			local pct = (value - minV) / (maxV - minV)
 
 			local fill = ni("Frame",{
 				Size=UDim2.new(pct,0,1,0),
 				BackgroundColor3=T.Accent,
-				BorderSizePixel=0,ZIndex=7,
-			},rail)
+				BorderSizePixel=0,ZIndex=6,
+			},railBg)
 			rnd(fill,RAIL_H)
-
 			local fillGrad = Instance.new("UIGradient")
 			fillGrad.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(95, 50, 160)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 105, 230)),
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(88,42,152)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(158,102,230)),
 			})
 			fillGrad.Parent = fill
 
-			local thumb = ni("Frame",{
-				Size=UDim2.new(0,THUMB_W,0,THUMB_H),
+			-- knob parented to ROW — never clips out of rail
+			local knob = ni("Frame",{
+				Size=UDim2.new(0,KNOB_W,0,KNOB_H),
 				AnchorPoint=Vector2.new(0.5,0.5),
-				Position=UDim2.new(pct,0,0.5,0),
-				BackgroundColor3=Color3.fromRGB(230,230,240),
-				BorderSizePixel=0,ZIndex=9,
-			},trackOuter)
-			rnd(thumb,4)
-			local thumbStroke = ni("UIStroke",{Color=T.Accent,Thickness=1.5},thumb)
+				-- Y center = TRACK_Y + RAIL_H/2
+				Position=UDim2.new(0, TRACK_X + pct * (row.AbsoluteSize.X - TRACK_X - TRACK_R), 0, TRACK_Y + RAIL_H/2),
+				BackgroundColor3=Color3.fromRGB(240,240,248),
+				BorderSizePixel=0,ZIndex=8,
+			},row)
+			rnd(knob,5)
+			local knobStroke = ni("UIStroke",{Color=T.Accent,Thickness=1.8},knob)
 
-			local thumbInner = ni("Frame",{
-				Size=UDim2.new(0,4,0,12),
-				AnchorPoint=Vector2.new(0.5,0.5),
-				Position=UDim2.new(0.5,0,0.5,0),
-				BackgroundColor3=T.Accent,
-				BorderSizePixel=0,ZIndex=10,
-			},thumb)
-			rnd(thumbInner,2)
-
-			local function applyPct(p, instant)
-				local dur = instant and 0 or 0.05
-				tw(fill,  {Size=UDim2.new(p,0,1,0)},   dur)
-				tw(thumb, {Position=UDim2.new(p,0,0.5,0)}, dur)
+			-- two grip lines inside knob
+			for _, xOff in ipairs({-3,3}) do
+				ni("Frame",{
+					Size=UDim2.new(0,1,0,12),
+					AnchorPoint=Vector2.new(0.5,0.5),
+					Position=UDim2.new(0.5,xOff,0.5,0),
+					BackgroundColor3=Color3.fromRGB(160,110,220),
+					BorderSizePixel=0,ZIndex=9,
+				},knob)
 			end
 
-			local function setV(v, instant)
+			-- update visuals — knob position computed from AbsoluteSize
+			local function applyValue(v)
 				value = rv(math.clamp(v, minV, maxV))
 				local p = (value - minV) / (maxV - minV)
-				applyPct(p, instant)
+				-- rail fill
+				fill.Size = UDim2.new(p, 0, 1, 0)
+				-- knob: needs to know actual pixel width of rail
+				local railW = railBg.AbsoluteSize.X
+				if railW > 0 then
+					knob.Position = UDim2.new(0, TRACK_X + p * railW, 0, TRACK_Y + RAIL_H/2)
+				end
 				valLbl.Text = tostring(value)..suffix
 				setSaved(saveId, value)
 				callback(value)
 			end
 
-			local drag = false
+			-- reposition knob when layout resolves (first frame AbsoluteSize may be 0)
+			row:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+				local p = (value - minV) / (maxV - minV)
+				local railW = railBg.AbsoluteSize.X
+				if railW > 0 then
+					knob.Position = UDim2.new(0, TRACK_X + p * railW, 0, TRACK_Y + RAIL_H/2)
+				end
+			end)
 
-			local function resolveX(ax)
-				local abs = trackOuter.AbsolutePosition.X
-				local sz  = trackOuter.AbsoluteSize.X
+			local isDragging = false
+
+			local function computeFromX(screenX)
+				local abs = railBg.AbsolutePosition.X
+				local sz  = railBg.AbsoluteSize.X
 				if sz <= 0 then return end
-				local rel = math.clamp((ax - abs) / sz, 0, 1)
-				setV(minV + rel * (maxV - minV), true)
+				local rel = math.clamp((screenX - abs) / sz, 0, 1)
+				applyValue(minV + rel * (maxV - minV))
 			end
 
 			local hitBtn = ni("TextButton",{
 				Size=UDim2.new(1,0,1,0),
 				BackgroundTransparency=1,
-				Text="",BorderSizePixel=0,ZIndex=11,
-			},trackOuter)
+				Text="",BorderSizePixel=0,ZIndex=10,
+			},row)
 
 			hitBtn.MouseButton1Down:Connect(function(x)
-				drag = true
-				resolveX(x)
+				isDragging = true
+				computeFromX(x)
 			end)
-
 			UserInputService.InputChanged:Connect(function(inp)
-				if drag and inp.UserInputType == Enum.UserInputType.MouseMovement then
-					resolveX(inp.Position.X)
+				if isDragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
+					computeFromX(inp.Position.X)
 				end
 			end)
-
 			UserInputService.InputEnded:Connect(function(inp)
 				if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-					drag = false
+					isDragging = false
 				end
 			end)
 
 			hitBtn.MouseEnter:Connect(function()
 				tw(row,   {BackgroundColor3=T.elemHover}, 0.1)
-				tw(thumb, {BackgroundColor3=Color3.new(1,1,1)}, 0.12)
-				tw(thumbStroke, {Color=Color3.fromRGB(160,110,240)}, 0.12)
+				tw(knob,  {Size=UDim2.new(0,KNOB_W+2,0,KNOB_H+2)}, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+				tw(knobStroke, {Color=Color3.fromRGB(170,120,245), Thickness=2.2}, 0.12)
 			end)
 			hitBtn.MouseLeave:Connect(function()
-				if not drag then
-					tw(row,   {BackgroundColor3=T.elemBg}, 0.1)
-					tw(thumb, {BackgroundColor3=Color3.fromRGB(230,230,240)}, 0.12)
-					tw(thumbStroke, {Color=T.Accent}, 0.12)
+				tw(row,  {BackgroundColor3=T.elemBg}, 0.1)
+				if not isDragging then
+					tw(knob, {Size=UDim2.new(0,KNOB_W,0,KNOB_H)}, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+					tw(knobStroke, {Color=T.Accent, Thickness=1.8}, 0.12)
 				end
 			end)
 
+			-- initialise
+			task.defer(function()
+				applyValue(value)
+				callback(value)
+			end)
+
 			local el = {Value=value}
-			function el:Set(v) setV(v, true) el.Value = value end
+			function el:Set(v)
+				applyValue(v)
+				el.Value = value
+			end
+			function el:SetTitle(t) sliderTitleLbl.Text=t end
 			function el:OnChanged(fn)
 				local old = callback
 				callback = function(val) old(val) fn(val) end
 				fn(value)
 			end
-			setV(value, true)
-			task.defer(function() callback(value) end)
 			return el
 		end
 
@@ -726,7 +751,7 @@ function EcohubLibrarys.new(config)
 			local listening=false
 			local row=newRow(ELEM_H)
 
-			ni("TextLabel",{
+			local kbTitleLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-80,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
 				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
@@ -783,6 +808,7 @@ function EcohubLibrarys.new(config)
 				key=k el.Value=k kLbl.Text="[ "..kname(k).." ]"
 				setSaved(saveId,type(k)=="userdata" and k.Name or tostring(k)) callback(key)
 			end
+			function el:SetTitle(t) kbTitleLbl.Text=t end
 			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(key) end
 			task.defer(function() callback(key) end)
 			return el
@@ -803,7 +829,7 @@ function EcohubLibrarys.new(config)
 
 			local row=newRow(ELEM_H)
 
-			ni("TextLabel",{
+			local ddTitleLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-96,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
 				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
@@ -1030,6 +1056,7 @@ function EcohubLibrarys.new(config)
 					if not ok then print("[EcoHub] " .. tostring(err)) end
 				end
 			end
+			function el:SetTitle(t) ddTitleLbl.Text=t end
 			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(selected) end
 			task.defer(function() callback(selected) end)
 			return el
@@ -1103,7 +1130,22 @@ function EcohubLibrarys.new(config)
 				tw(arrImg,{ImageColor3=T.muted},0.1)
 			end)
 
-			return {Frame=row}
+			local el={Frame=row}
+			function el:SetTitle(t)
+				for _,c in ipairs(row:GetChildren()) do
+					if c:IsA("TextLabel") and c.ZIndex==5 and c.TextSize==11 then
+						c.Text=t break
+					end
+				end
+			end
+			function el:SetDescription(d)
+				for _,c in ipairs(row:GetChildren()) do
+					if c:IsA("TextLabel") and c.ZIndex==5 and c.TextSize==9 then
+						c.Text=d break
+					end
+				end
+			end
+			return el
 		end
 
 		function sec:AddLabel(cfg)
@@ -1159,6 +1201,11 @@ function EcohubLibrarys.new(config)
 			},row)
 			local el={Frame=row}
 			function el:Set(t) txtLbl.Text=t end
+			function el:SetTitle(t)
+				for _,c in ipairs(row:GetChildren()) do
+					if c:IsA("TextLabel") and c.TextSize==10 and c.ZIndex==5 then c.Text=t break end
+				end
+			end
 			return el
 		end
 
@@ -1172,7 +1219,7 @@ function EcohubLibrarys.new(config)
 
 			local row=newRow(ELEM_H+10)
 
-			ni("TextLabel",{
+			local inputTitleLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-10,0,13),Position=UDim2.new(0,10,0,4),
 				BackgroundTransparency=1,Text=label,
 				TextColor3=T.muted,TextSize=8,Font=Enum.Font.GothamBold,
@@ -1202,6 +1249,7 @@ function EcohubLibrarys.new(config)
 
 			local el={Value=value}
 			function el:Set(v) value=v iBox.Text=v el.Value=v setSaved(saveId,v) callback(v) end
+			function el:SetTitle(t) inputTitleLbl.Text=t end
 			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(value) end
 			return el
 		end
@@ -1234,7 +1282,7 @@ function EcohubLibrarys.new(config)
 			rnd(row,7) noise(row,0.94,4)
 			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},row)
 
-			ni("TextLabel",{
+			local cpTitleLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-52,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
 				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
@@ -1395,6 +1443,7 @@ function EcohubLibrarys.new(config)
 			updateT()
 			local el={Value=color}
 			function el:Set(c) color=c el.Value=c local h,s,v=Color3.toHSV(c) hH=h sV=s bV=v updateT() commit() end
+			function el:SetTitle(t) cpTitleLbl.Text=t end
 			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(color) end
 			task.defer(function() callback(color) end)
 			return el
