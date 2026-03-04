@@ -8,7 +8,6 @@ end)
 
 local win = V2.new({
 	Title  = gameName,
-	Logo   = "rbxassetid://134382458890933",
 	Toggle = Enum.KeyCode.LeftAlt,
 })
 
