@@ -18,7 +18,7 @@ end
 local function writeSave()
 	local ok, err = pcall(function()
 		if not isfolder("ecohub") then makefolder("ecohub") end
-		if not isfolder("ecohub/universal") then makefolder("ecohub/configs") end
+		if not isfolder("ecohub/configs") then makefolder("ecohub/configs") end
 		writefile(SAVE_KEY, HttpService:JSONEncode(SaveData))
 	end)
 	if not ok then print("[EcoHub Error] " .. tostring(err)) end
