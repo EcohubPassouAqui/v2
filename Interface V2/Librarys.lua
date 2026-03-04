@@ -5,9 +5,6 @@ local HttpService      = game:GetService("HttpService")
 local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 
--- ════════════════════════════════════════════
---  SAVE SYSTEM
--- ════════════════════════════════════════════
 local SAVE_KEY = "ecohub/universal/config.json"
 local SaveData = {}
 
@@ -39,9 +36,6 @@ end
 
 loadSave()
 
--- ════════════════════════════════════════════
---  ICONS
--- ════════════════════════════════════════════
 local ICONS = {
 	aim                  = "rbxassetid://10709818534",
 	crosshair            = "rbxassetid://10709818534",
@@ -437,9 +431,6 @@ local ICONS = {
 	buttonArrow          = "rbxassetid://10709791437",
 }
 
--- ════════════════════════════════════════════
---  THEME  (Darker)
--- ════════════════════════════════════════════
 local Theme = {
 	Accent          = Color3.fromRGB(72, 138, 182),
 	AccentDark      = Color3.fromRGB(20, 50, 75),
@@ -460,29 +451,19 @@ local Theme = {
 	dropdownHolder  = Color3.fromRGB(28, 28, 28),
 }
 
--- ════════════════════════════════════════════
---  ASSETS
--- ════════════════════════════════════════════
 local NOISE_TEX  = "rbxassetid://9968344919"
 local SCROLL_TOP = "rbxassetid://6276641225"
 local SCROLL_MID = "rbxassetid://6889812721"
 local SCROLL_BOT = "rbxassetid://6889812791"
 local ARROW_ICO  = "rbxassetid://10709790948"
-local SHADOW_TEX = "http://www.roblox.com/asset/?id=5554236805"
 
--- ════════════════════════════════════════════
---  CONSTANTS
--- ════════════════════════════════════════════
-local W       = 660
-local H       = 460
-local TOPBAR  = 60
+local W        = 660
+local H        = 460
+local TOPBAR   = 60
 local TABBAR_H = 54
-local ELEM_H  = 32
-local PAD     = 6
+local ELEM_H   = 32
+local PAD      = 6
 
--- ════════════════════════════════════════════
---  HELPERS
--- ════════════════════════════════════════════
 local function ni(class, props, parent)
 	local o = Instance.new(class)
 	for k, v in pairs(props) do
@@ -515,21 +496,6 @@ local function addTexture(parent, alpha, zidx)
 	}, parent)
 end
 
-local function addSeparator(parent, yOffset)
-	local line = ni("Frame", {
-		Size             = UDim2.new(1, -12, 0, 1),
-		Position         = UDim2.new(0, 6, 0, yOffset or 0),
-		BackgroundColor3 = Theme.dim,
-		BackgroundTransparency = 0.5,
-		BorderSizePixel  = 0,
-	}, parent)
-	corner(line, 1)
-	return line
-end
-
--- ════════════════════════════════════════════
---  LIBRARY
--- ════════════════════════════════════════════
 local EcohubLibrarys = {}
 EcohubLibrarys.Icons = ICONS
 
@@ -540,14 +506,12 @@ function EcohubLibrarys.new(config)
 		PlayerGui.EcoHubV2_Gui:Destroy()
 	end
 
-	-- ── ScreenGui ────────────────────────────
 	local ScreenGui = ni("ScreenGui", {
 		Name           = "EcoHubV2_Gui",
 		ResetOnSpawn   = false,
 		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 	}, PlayerGui)
 
-	-- ── Main Frame ───────────────────────────
 	local Main = ni("Frame", {
 		Size             = UDim2.new(0, W, 0, H),
 		Position         = UDim2.new(0.5, -W / 2, 0.5, -H / 2),
@@ -560,9 +524,7 @@ function EcohubLibrarys.new(config)
 	}, ScreenGui)
 	corner(Main, 12)
 	addTexture(Main, 0.96, 1)
-	ni("UIStroke", { Color = Theme.AcrylicBorder, Thickness = 1.2 }, Main)
 
-	-- ── Top Bar ──────────────────────────────
 	local TopBar = ni("Frame", {
 		Size             = UDim2.new(1, 0, 0, TOPBAR),
 		BackgroundColor3 = Theme.AcrylicMain,
@@ -586,7 +548,6 @@ function EcohubLibrarys.new(config)
 		ZIndex           = 3,
 	}, TopBar)
 
-	-- Title
 	ni("TextLabel", {
 		Size                   = UDim2.new(0, 200, 1, 0),
 		Position               = UDim2.new(0, 14, 0, 0),
@@ -599,8 +560,7 @@ function EcohubLibrarys.new(config)
 		ZIndex                 = 4,
 	}, TopBar)
 
-	-- Logo
-	local logoSize = 44
+	local logoSize = 48
 	local logoFrame = ni("Frame", {
 		Size                   = UDim2.new(0, logoSize, 0, logoSize),
 		Position               = UDim2.new(0.5, -logoSize / 2, 0.5, -logoSize / 2),
@@ -615,7 +575,6 @@ function EcohubLibrarys.new(config)
 		ZIndex                 = 4,
 	}, logoFrame)
 
-	-- User block
 	local blockW    = 160
 	local UserBlock = ni("Frame", {
 		Size                   = UDim2.new(0, blockW, 0, TOPBAR),
@@ -623,13 +582,6 @@ function EcohubLibrarys.new(config)
 		BackgroundTransparency = 1,
 		ZIndex                 = 4,
 	}, TopBar)
-	ni("Frame", {
-		Size             = UDim2.new(0, 1, 0, 32),
-		Position         = UDim2.new(0, 0, 0.5, -16),
-		BackgroundColor3 = Theme.TitleBarLine,
-		BorderSizePixel  = 0,
-		ZIndex           = 4,
-	}, UserBlock)
 
 	local AvatarFrame = ni("Frame", {
 		Size             = UDim2.new(0, 32, 0, 32),
@@ -639,7 +591,6 @@ function EcohubLibrarys.new(config)
 		ZIndex           = 4,
 	}, UserBlock)
 	corner(AvatarFrame, 8)
-	ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 1 }, AvatarFrame)
 	local av = ni("ImageLabel", {
 		Size                   = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
@@ -674,7 +625,6 @@ function EcohubLibrarys.new(config)
 		ZIndex                 = 4,
 	}, UserBlock)
 
-	-- ── Page Area ────────────────────────────
 	local PageArea = ni("Frame", {
 		Size                   = UDim2.new(1, -PAD * 2, 1, -TOPBAR - TABBAR_H - PAD * 2),
 		Position               = UDim2.new(0, PAD, 0, TOPBAR + PAD),
@@ -682,7 +632,6 @@ function EcohubLibrarys.new(config)
 		BorderSizePixel        = 0,
 	}, Main)
 
-	-- ── Tab Bar ──────────────────────────────
 	local TabBar = ni("Frame", {
 		Size             = UDim2.new(1, 0, 0, TABBAR_H),
 		Position         = UDim2.new(0, 0, 1, -TABBAR_H),
@@ -698,15 +647,8 @@ function EcohubLibrarys.new(config)
 		BorderSizePixel  = 0,
 		ZIndex           = 5,
 	}, TabBar)
-	ni("Frame", {
-		Size             = UDim2.new(1, 0, 0, 1),
-		BackgroundColor3 = Theme.TitleBarLine,
-		BorderSizePixel  = 0,
-		ZIndex           = 5,
-	}, TabBar)
 	addTexture(TabBar, 0.92, 6)
 
-	-- ── Tab State ────────────────────────────
 	local ICON_SIZE  = 20
 	local SMALL_W    = 48
 	local EXPANDED_W = 124
@@ -760,9 +702,9 @@ function EcohubLibrarys.new(config)
 	local function switchTo(name)
 		if curTab == name then return end
 		if curTab and pages[curTab] then pages[curTab].Visible = false end
-		curTab             = name
+		curTab              = name
 		pages[name].Visible = true
-		local activeIdx    = 1
+		local activeIdx     = 1
 		for i, t in ipairs(tabList) do
 			if t.name == name then activeIdx = i break end
 		end
@@ -770,22 +712,21 @@ function EcohubLibrarys.new(config)
 		for i, tb in ipairs(tabBtns) do
 			local active = tabList[i].name == name
 			if active then
-				tw(tb.sq,  { BackgroundColor3 = Theme.AccentDark },                 0.22)
-				tw(tb.str, { Color = Theme.Accent, Thickness = 1.5 },               0.22)
-				tw(tb.img, { ImageColor3 = Theme.Accent },                           0.22)
-				tw(tb.lbl, { TextColor3 = Theme.text,  TextTransparency = 0 },      0.22)
-				tw(tb.sub, { TextColor3 = Theme.muted, TextTransparency = 0 },      0.22)
+				tw(tb.sq,  { BackgroundColor3 = Theme.AccentDark },            0.22)
+				tw(tb.str, { Color = Theme.Accent, Thickness = 1.5 },          0.22)
+				tw(tb.img, { ImageColor3 = Theme.Accent },                     0.22)
+				tw(tb.lbl, { TextColor3 = Theme.text, TextTransparency = 0 },  0.22)
+				tw(tb.sub, { TextColor3 = Theme.muted, TextTransparency = 0 }, 0.22)
 			else
-				tw(tb.sq,  { BackgroundColor3 = Theme.card },                        0.22)
-				tw(tb.str, { Color = Theme.InElementBorder, Thickness = 1 },        0.22)
-				tw(tb.img, { ImageColor3 = Theme.dim },                              0.22)
-				tw(tb.lbl, { TextTransparency = 1 },                                 0.16)
-				tw(tb.sub, { TextTransparency = 1 },                                 0.16)
+				tw(tb.sq,  { BackgroundColor3 = Theme.card },                  0.22)
+				tw(tb.str, { Color = Theme.InElementBorder, Thickness = 1 },   0.22)
+				tw(tb.img, { ImageColor3 = Theme.dim },                        0.22)
+				tw(tb.lbl, { TextTransparency = 1 },                           0.16)
+				tw(tb.sub, { TextTransparency = 1 },                           0.16)
 			end
 		end
 	end
 
-	-- ── Show / Hide ──────────────────────────
 	local function setChildrenVisible(state)
 		for _, v in ipairs(Main:GetChildren()) do
 			if v:IsA("GuiObject") then v.Visible = state end
@@ -795,12 +736,12 @@ function EcohubLibrarys.new(config)
 	local function showGui()
 		if animating then return end
 		animating = true
-		Main.Visible            = true
+		Main.Visible                = true
 		Main.BackgroundTransparency = 1
 		setChildrenVisible(false)
 		tw(Main, { BackgroundTransparency = 0 }, 0.24, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-		task.delay(0.08,  function() setChildrenVisible(true) end)
-		task.delay(0.26,  function() animating = false end)
+		task.delay(0.08, function() setChildrenVisible(true) end)
+		task.delay(0.26, function() animating = false end)
 	end
 
 	local function hideGui()
@@ -822,9 +763,6 @@ function EcohubLibrarys.new(config)
 		end
 	end)
 
-	-- ════════════════════════════════════════
-	--  win object
-	-- ════════════════════════════════════════
 	local win = {}
 
 	function win:AddTab(cfg)
@@ -836,7 +774,6 @@ function EcohubLibrarys.new(config)
 			iconId = ICONS[iconId] or ICONS.aim
 		end
 
-		-- Page container
 		local pg = ni("Frame", {
 			Name                   = name,
 			Size                   = UDim2.new(1, 0, 1, 0),
@@ -848,14 +785,13 @@ function EcohubLibrarys.new(config)
 
 		local idx = #tabList
 
-		-- Tab button bg
 		local bg = ni("Frame", {
-			Size             = UDim2.new(0, SMALL_W, 1, 0),
-			Position         = UDim2.new(0, 0, 0, 0),
+			Size                   = UDim2.new(0, SMALL_W, 1, 0),
+			Position               = UDim2.new(0, 0, 0, 0),
 			BackgroundTransparency = 1,
-			BorderSizePixel  = 0,
-			ClipsDescendants = true,
-			ZIndex           = 6,
+			BorderSizePixel        = 0,
+			ClipsDescendants       = true,
+			ZIndex                 = 6,
 		}, TabBar)
 
 		local sq = ni("Frame", {
@@ -932,16 +868,13 @@ function EcohubLibrarys.new(config)
 			end
 		end)
 
-		-- ── Sections layout ──────────────────
 		local function makeSection(secName)
 			local f = ni("Frame", {
 				Name             = secName,
 				BackgroundColor3 = Theme.section,
 				BorderSizePixel  = 0,
 			}, pg)
-			corner(f, 10)
 			addTexture(f, 0.94, 1)
-			ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.8 }, f)
 			return f
 		end
 
@@ -971,9 +904,6 @@ function EcohubLibrarys.new(config)
 		tab.SectionCenter = sectionCenter
 		tab.SectionRight  = sectionRight
 
-		-- ════════════════════════════════════
-		--  AddSection
-		-- ════════════════════════════════════
 		function tab:AddSection(cfg2)
 			cfg2 = cfg2 or {}
 			local side    = cfg2.Side  or "Left"
@@ -1029,7 +959,6 @@ function EcohubLibrarys.new(config)
 				}, titleBar)
 			end
 
-			-- Scrolling content area
 			local scroll = ni("ScrollingFrame", {
 				Size                   = UDim2.new(1, -4, 1, -HEADER_H),
 				Position               = UDim2.new(0, 2, 0, HEADER_H),
@@ -1060,7 +989,6 @@ function EcohubLibrarys.new(config)
 			pad.PaddingBottom = UDim.new(0, 5)
 			pad.Parent        = scroll
 
-			-- Auto-resize canvas based on content
 			layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 				scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 14)
 			end)
@@ -1079,15 +1007,10 @@ function EcohubLibrarys.new(config)
 					LayoutOrder      = rowCount,
 					ZIndex           = 3,
 				}, scroll)
-				corner(r, 7)
 				addTexture(r, 0.90, 4)
-				ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, r)
 				return r
 			end
 
-			-- ─────────────────────────────────
-			--  TOGGLE
-			-- ─────────────────────────────────
 			function sec:AddToggle(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Toggle"
@@ -1139,11 +1062,11 @@ function EcohubLibrarys.new(config)
 
 				local function applyState(v, animate)
 					local dur = animate and 0.20 or 0
-					tw(track,  { BackgroundColor3 = v and Theme.Accent or Theme.dim },                         dur)
-					tw(stroke, { Color = v and Theme.Accent or Theme.InElementBorder },                        dur)
+					tw(track,  { BackgroundColor3 = v and Theme.Accent or Theme.dim },                0.20)
+					tw(stroke, { Color = v and Theme.Accent or Theme.InElementBorder },               0.20)
 					tw(knob,   { Position = v
 						and UDim2.new(1, -knobSz - 2, 0.5, -knobSz / 2)
-						or  UDim2.new(0, 2, 0.5, -knobSz / 2) },                                              dur)
+						or  UDim2.new(0, 2, 0.5, -knobSz / 2) },                                     0.20)
 				end
 
 				local btn = ni("TextButton", {
@@ -1180,9 +1103,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  SLIDER
-			-- ─────────────────────────────────
 			function sec:AddSlider(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Slider"
@@ -1258,8 +1178,8 @@ function EcohubLibrarys.new(config)
 					value       = roundVal(math.clamp(v, minV, maxV))
 					local p     = (value - minV) / (maxV - minV)
 					local dur   = animate and 0.08 or 0
-					tw(fill, { Size     = UDim2.new(p, 0, 1, 0) },          dur)
-					tw(dot,  { Position = UDim2.new(p, 0, 0.5, 0) },        dur)
+					tw(fill, { Size     = UDim2.new(p, 0, 1, 0) },   dur)
+					tw(dot,  { Position = UDim2.new(p, 0, 0.5, 0) }, dur)
 					valLbl.Text = tostring(value) .. suffix
 					setSaved(saveId, value)
 					callback(value)
@@ -1313,9 +1233,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  KEYBIND
-			-- ─────────────────────────────────
 			function sec:AddKeybind(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Keybind"
@@ -1432,9 +1349,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  DROPDOWN
-			-- ─────────────────────────────────
 			function sec:AddDropdown(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Dropdown"
@@ -1465,7 +1379,6 @@ function EcohubLibrarys.new(config)
 					BorderSizePixel  = 0,
 					ZIndex           = 31,
 				}, wrapper)
-				corner(row, 7)
 				addTexture(row, 0.90, 32)
 				local rowStroke = ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, row)
 
@@ -1525,21 +1438,8 @@ function EcohubLibrarys.new(config)
 					ZIndex           = 50,
 					Visible          = false,
 				}, wrapper)
-				corner(dropBg, 7)
 				ni("UIStroke", { Color = Theme.AcrylicBorder, Thickness = 1 }, dropBg)
 				addTexture(dropBg, 0.90, 51)
-
-				ni("ImageLabel", {
-					BackgroundTransparency = 1,
-					Image                  = SHADOW_TEX,
-					ScaleType              = Enum.ScaleType.Slice,
-					SliceCenter            = Rect.new(23, 23, 277, 277),
-					Size                   = UDim2.new(1, 28, 1, 28),
-					Position               = UDim2.new(0, -14, 0, -14),
-					ImageColor3            = Color3.fromRGB(0, 0, 0),
-					ImageTransparency      = 0.2,
-					ZIndex                 = 49,
-				}, dropBg)
 
 				local accentLine = ni("Frame", {
 					Size             = UDim2.new(1, -20, 0, 1),
@@ -1596,6 +1496,16 @@ function EcohubLibrarys.new(config)
 						ob.chkIco.Visible = iS
 						ob.lbl.Font = iS and Enum.Font.GothamBold or Enum.Font.Gotham
 					end
+				end
+
+				local function closeDD()
+					open = false
+					tw(arrowIco,  { ImageColor3 = Theme.muted, Rotation = 0 }, 0.18)
+					tw(selStroke, { Color = Theme.InElementBorder },           0.14)
+					tw(rowStroke, { Color = Theme.InElementBorder },           0.14)
+					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
+					tw(dropBg, { Size = UDim2.new(1, 0, 0, 0) }, 0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+					task.delay(0.20, function() dropBg.Visible = false end)
 				end
 
 				local function buildOptionItem(i2, opt)
@@ -1663,13 +1573,8 @@ function EcohubLibrarys.new(config)
 					optBtn.MouseButton1Click:Connect(function()
 						selected    = opt
 						selLbl.Text = opt
-						open        = false
-						tw(arrowIco,  { ImageColor3 = Theme.muted, Rotation = 0 },    0.18)
-						tw(selStroke, { Color = Theme.InElementBorder },              0.14)
-						tw(rowStroke, { Color = Theme.InElementBorder },              0.14)
-						wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
-						tw(dropBg, { Size = UDim2.new(1, 0, 0, 0) }, 0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-						task.delay(0.20, function() dropBg.Visible = false end)
+						el.Value    = opt
+						closeDD()
 						applySelected()
 						setSaved(saveId, selected)
 						callback(selected)
@@ -1701,6 +1606,8 @@ function EcohubLibrarys.new(config)
 					ZIndex                 = 36,
 				}, row)
 
+				local el = { Value = selected }
+
 				local function openDD()
 					open           = true
 					dropBg.Visible = true
@@ -1710,16 +1617,6 @@ function EcohubLibrarys.new(config)
 					tw(selStroke, { Color = Theme.Accent },                       0.14)
 					tw(rowStroke, { Color = Theme.Accent },                       0.14)
 					tw(dropBg, { Size = UDim2.new(1, 0, 0, dropVisibleH) }, 0.24, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-				end
-
-				local function closeDD()
-					open = false
-					tw(arrowIco,  { ImageColor3 = Theme.muted, Rotation = 0 }, 0.18)
-					tw(selStroke, { Color = Theme.InElementBorder },           0.14)
-					tw(rowStroke, { Color = Theme.InElementBorder },           0.14)
-					wrapper.Size = UDim2.new(1, 0, 0, ELEM_H)
-					tw(dropBg, { Size = UDim2.new(1, 0, 0, 0) }, 0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-					task.delay(0.20, function() dropBg.Visible = false end)
 				end
 
 				toggleBtn.MouseButton1Click:Connect(function()
@@ -1741,7 +1638,6 @@ function EcohubLibrarys.new(config)
 					end
 				end)
 
-				local el = { Value = selected }
 				function el:Set(v)
 					selected    = v
 					selLbl.Text = v
@@ -1774,9 +1670,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  PARAGRAPH
-			-- ─────────────────────────────────
 			function sec:AddParagraph(cfg3)
 				cfg3 = cfg3 or {}
 				local title = cfg3.Title or ""
@@ -1816,9 +1709,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  LABEL
-			-- ─────────────────────────────────
 			function sec:AddLabel(cfg3)
 				cfg3 = cfg3 or {}
 				local text  = cfg3.Text  or "Label"
@@ -1844,9 +1734,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  BUTTON
-			-- ─────────────────────────────────
 			function sec:AddButton(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Button"
@@ -1876,7 +1763,6 @@ function EcohubLibrarys.new(config)
 					ZIndex                 = 6,
 				}, row)
 
-				-- Accent bar on left
 				local acBar = ni("Frame", {
 					Size             = UDim2.new(0, 0, 0, 14),
 					Position         = UDim2.new(0, 0, 0.5, -7),
@@ -1895,13 +1781,13 @@ function EcohubLibrarys.new(config)
 				}, row)
 
 				btn.MouseButton1Click:Connect(function()
-					tw(row,      { BackgroundColor3 = Theme.AccentDark },  0.08)
-					tw(arrowImg, { ImageColor3 = Theme.Accent },            0.08)
-					tw(acBar,    { Size = UDim2.new(0, 3, 0, 14) },        0.08)
+					tw(row,      { BackgroundColor3 = Theme.AccentDark }, 0.08)
+					tw(arrowImg, { ImageColor3 = Theme.Accent },          0.08)
+					tw(acBar,    { Size = UDim2.new(0, 3, 0, 14) },       0.08)
 					task.delay(0.14, function()
-						tw(row,      { BackgroundColor3 = Theme.elemBg },   0.14)
-						tw(arrowImg, { ImageColor3 = Theme.muted },         0.14)
-						tw(acBar,    { Size = UDim2.new(0, 0, 0, 14) },     0.14)
+						tw(row,      { BackgroundColor3 = Theme.elemBg }, 0.14)
+						tw(arrowImg, { ImageColor3 = Theme.muted },       0.14)
+						tw(acBar,    { Size = UDim2.new(0, 0, 0, 14) },   0.14)
 					end)
 					callback()
 				end)
@@ -1920,9 +1806,6 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  COLOR PICKER
-			-- ─────────────────────────────────
 			function sec:AddColorPicker(cfg3)
 				cfg3 = cfg3 or {}
 				local label    = cfg3.Name     or "Color"
@@ -1959,9 +1842,7 @@ function EcohubLibrarys.new(config)
 					BorderSizePixel  = 0,
 					ZIndex           = 3,
 				}, wrapper)
-				corner(row, 7)
 				addTexture(row, 0.90, 4)
-				ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, row)
 
 				ni("TextLabel", {
 					Size                   = UDim2.new(1, -50, 1, 0),
@@ -1994,11 +1875,9 @@ function EcohubLibrarys.new(config)
 					Visible          = false,
 					ZIndex           = 20,
 				}, wrapper)
-				corner(picker, 7)
 				ni("UIStroke", { Color = Theme.InElementBorder, Thickness = 0.7 }, picker)
 				addTexture(picker, 0.92, 21)
 
-				-- Hue bar
 				local huebar = ni("Frame", {
 					Size             = UDim2.new(1, -14, 0, 14),
 					Position         = UDim2.new(0, 7, 0, 8),
@@ -2031,7 +1910,6 @@ function EcohubLibrarys.new(config)
 				corner(hueThumb, 4)
 				ni("UIStroke", { Color = Color3.fromRGB(0, 0, 0), Thickness = 1.5 }, hueThumb)
 
-				-- Saturation/Brightness field
 				local satFrame = ni("Frame", {
 					Size             = UDim2.new(1, -14, 0, 56),
 					Position         = UDim2.new(0, 7, 0, 30),
@@ -2183,17 +2061,14 @@ function EcohubLibrarys.new(config)
 				return el
 			end
 
-			-- ─────────────────────────────────
-			--  INPUT (text field)
-			-- ─────────────────────────────────
 			function sec:AddInput(cfg3)
 				cfg3 = cfg3 or {}
-				local label    = cfg3.Name        or "Input"
-				local saveId   = cfg3.SaveId      or label
-				local default  = cfg3.Default     or ""
+				local label       = cfg3.Name        or "Input"
+				local saveId      = cfg3.SaveId      or label
+				local default     = cfg3.Default     or ""
 				local placeholder = cfg3.Placeholder or "Type here..."
-				local callback = cfg3.Callback    or function() end
-				local value    = getSaved(saveId, default)
+				local callback    = cfg3.Callback    or function() end
+				local value       = getSaved(saveId, default)
 
 				local row = newRow(ELEM_H + 6)
 				ni("TextLabel", {
@@ -2209,19 +2084,19 @@ function EcohubLibrarys.new(config)
 				}, row)
 
 				local inputBox = ni("TextBox", {
-					Size                   = UDim2.new(1, -16, 0, 18),
-					Position               = UDim2.new(0, 8, 0, 17),
-					BackgroundColor3       = Color3.fromRGB(20, 20, 22),
-					BorderSizePixel        = 0,
-					Text                   = value,
-					PlaceholderText        = placeholder,
-					TextColor3             = Theme.text,
-					PlaceholderColor3      = Theme.muted,
-					TextSize               = 9,
-					Font                   = Enum.Font.Gotham,
-					TextXAlignment         = Enum.TextXAlignment.Left,
-					ClearTextOnFocus       = false,
-					ZIndex                 = 6,
+					Size              = UDim2.new(1, -16, 0, 18),
+					Position          = UDim2.new(0, 8, 0, 17),
+					BackgroundColor3  = Color3.fromRGB(20, 20, 22),
+					BorderSizePixel   = 0,
+					Text              = value,
+					PlaceholderText   = placeholder,
+					TextColor3        = Theme.text,
+					PlaceholderColor3 = Theme.muted,
+					TextSize          = 9,
+					Font              = Enum.Font.Gotham,
+					TextXAlignment    = Enum.TextXAlignment.Left,
+					ClearTextOnFocus  = false,
+					ZIndex            = 6,
 				}, row)
 				corner(inputBox, 5)
 				addTexture(inputBox, 0.86, 7)
@@ -2243,9 +2118,9 @@ function EcohubLibrarys.new(config)
 
 				local el = { Value = value }
 				function el:Set(v)
-					value          = v
-					inputBox.Text  = v
-					el.Value       = v
+					value         = v
+					inputBox.Text = v
+					el.Value      = v
 					setSaved(saveId, v)
 					callback(v)
 				end
@@ -2260,12 +2135,11 @@ function EcohubLibrarys.new(config)
 			return sec
 		end
 
-		-- Activate first tab automatically
 		if #tabList == 1 then
-			curTab             = name
+			curTab              = name
 			pages[name].Visible = true
 			applyPositions(1, false)
-			local tb         = tabBtns[1]
+			local tb                = tabBtns[1]
 			tb.sq.BackgroundColor3  = Theme.AccentDark
 			tb.str.Color            = Theme.Accent
 			tb.str.Thickness        = 1.5
