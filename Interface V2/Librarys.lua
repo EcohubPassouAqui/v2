@@ -551,187 +551,161 @@ function EcohubLibrarys.new(config)
 			end
 			local value = getSaved(saveId, rv(math.clamp(cfg.Default or minV, minV, maxV)))
 
-			-- Layout constants
-			local ROW_H    = 56
-			local RAIL_H   = 6
-			local KNOB_W   = 18
-			local KNOB_H   = 30
-			local PAD_X    = 12
+			-- ─── layout ───────────────────────────────────────────────────
+			-- Top row  : label  +  value badge
+			-- Bottom   : rail (takes full width with small side padding)
+			-- The DOT sits INSIDE the SliderRail frame (a transparent spacer
+			-- inset by half-dot on each side) so scale 0→1 maps perfectly.
+			-- ──────────────────────────────────────────────────────────────
+			local ROW_H   = 54
+			local RAIL_H  = 4
+			local DOT_SZ  = 14   -- circle dot, same idea as Linoria reference
+			local PAD_LR  = 10   -- left/right padding of the track area
 
-			-- row
 			local row = newRow(ROW_H)
 
-			-- label (top-left)
-			local sliderTitleLbl=ni("TextLabel",{
-				Size=UDim2.new(1,-74,0,15),
-				Position=UDim2.new(0,PAD_X,0,7),
+			-- name label
+			local sliderTitleLbl = ni("TextLabel",{
+				Size     = UDim2.new(1,-76,0,16),
+				Position = UDim2.new(0,PAD_LR,0,8),
 				BackgroundTransparency=1,
-				Text=label,
-				TextColor3=T.text,
-				TextSize=11,
-				Font=Enum.Font.GothamSemibold,
-				TextXAlignment=Enum.TextXAlignment.Left,
-				ZIndex=5,
+				Text=label, TextColor3=T.text,
+				TextSize=11, Font=Enum.Font.GothamSemibold,
+				TextXAlignment=Enum.TextXAlignment.Left, ZIndex=5,
 			},row)
 
-			-- value badge (top-right)
+			-- value badge (top-right, same as in screenshot)
 			local valFrame = ni("Frame",{
-				Size=UDim2.new(0,52,0,19),
-				Position=UDim2.new(1,-62,0,7),
-				BackgroundColor3=Color3.fromRGB(15,15,19),
-				BorderSizePixel=0,ZIndex=5,
+				Size=UDim2.new(0,54,0,18),
+				Position=UDim2.new(1,-64,0,8),
+				BackgroundColor3=Color3.fromRGB(14,14,18),
+				BorderSizePixel=0, ZIndex=5,
 			},row)
 			rnd(valFrame,5)
 			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},valFrame)
 			local valLbl = ni("TextLabel",{
-				Size=UDim2.new(1,0,1,0),
-				BackgroundTransparency=1,
+				Size=UDim2.new(1,0,1,0), BackgroundTransparency=1,
 				Text=tostring(rv(value))..suffix,
-				TextColor3=T.Accent,
-				TextSize=10,
+				TextColor3=T.Accent, TextSize=10,
 				Font=Enum.Font.GothamBold,
-				TextXAlignment=Enum.TextXAlignment.Center,
-				ZIndex=6,
+				TextXAlignment=Enum.TextXAlignment.Center, ZIndex=6,
 			},valFrame)
 
-			-- track container — holds only the rail, NOT the knob
-			-- offset by PAD_X on each side; knob lives in row directly
-			local TRACK_X  = PAD_X
-			local TRACK_R  = PAD_X
-			local TRACK_Y  = ROW_H - RAIL_H - 10  -- distance from top of row
-
-			local railBg = ni("Frame",{
-				Size=UDim2.new(1,-(TRACK_X+TRACK_R),0,RAIL_H),
-				Position=UDim2.new(0,TRACK_X,0,TRACK_Y),
-				BackgroundColor3=Color3.fromRGB(36,36,46),
-				BorderSizePixel=0,ZIndex=5,
-				ClipsDescendants=true,  -- fill never overflows
+			-- ── track (background rail) ──────────────────────────────────
+			local trackBg = ni("Frame",{
+				Size     = UDim2.new(1,-(PAD_LR*2),0,RAIL_H),
+				Position = UDim2.new(0,PAD_LR,1,-(RAIL_H+10)),
+				BackgroundColor3=Color3.fromRGB(38,38,50),
+				BorderSizePixel=0, ZIndex=5,
 			},row)
-			rnd(railBg,RAIL_H)
-			ni("UIStroke",{Color=Color3.fromRGB(52,52,65),Thickness=0.7},railBg)
+			rnd(trackBg, RAIL_H)
+			ni("UIStroke",{Color=Color3.fromRGB(54,54,68),Thickness=0.7},trackBg)
 
-			local pct = (value - minV) / (maxV - minV)
-
+			-- fill (inside trackBg, clipped by it — pure scale, never overflows)
+			trackBg.ClipsDescendants = true
+			local pct = (value-minV)/(maxV-minV)
 			local fill = ni("Frame",{
-				Size=UDim2.new(pct,0,1,0),
+				Size = UDim2.new(pct,0,1,0),
 				BackgroundColor3=T.Accent,
-				BorderSizePixel=0,ZIndex=6,
-			},railBg)
+				BorderSizePixel=0, ZIndex=6,
+			},trackBg)
 			rnd(fill,RAIL_H)
-			local fillGrad = Instance.new("UIGradient")
-			fillGrad.Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, Color3.fromRGB(88,42,152)),
-				ColorSequenceKeypoint.new(1, Color3.fromRGB(158,102,230)),
-			})
-			fillGrad.Parent = fill
-
-			-- knob parented to ROW — never clips out of rail
-			local knob = ni("Frame",{
-				Size=UDim2.new(0,KNOB_W,0,KNOB_H),
-				AnchorPoint=Vector2.new(0.5,0.5),
-				-- Y center = TRACK_Y + RAIL_H/2
-				Position=UDim2.new(0, TRACK_X + pct * (row.AbsoluteSize.X - TRACK_X - TRACK_R), 0, TRACK_Y + RAIL_H/2),
-				BackgroundColor3=Color3.fromRGB(240,240,248),
-				BorderSizePixel=0,ZIndex=8,
-			},row)
-			rnd(knob,5)
-			local knobStroke = ni("UIStroke",{Color=T.Accent,Thickness=1.8},knob)
-
-			-- two grip lines inside knob
-			for _, xOff in ipairs({-3,3}) do
-				ni("Frame",{
-					Size=UDim2.new(0,1,0,12),
-					AnchorPoint=Vector2.new(0.5,0.5),
-					Position=UDim2.new(0.5,xOff,0.5,0),
-					BackgroundColor3=Color3.fromRGB(160,110,220),
-					BorderSizePixel=0,ZIndex=9,
-				},knob)
+			do
+				local g=Instance.new("UIGradient")
+				g.Color=ColorSequence.new({
+					ColorSequenceKeypoint.new(0,Color3.fromRGB(88,42,152)),
+					ColorSequenceKeypoint.new(1,Color3.fromRGB(158,102,230)),
+				})
+				g.Parent=fill
 			end
 
-			-- update visuals — knob position computed from AbsoluteSize
+			-- ── SliderRail (transparent, inset by DOT_SZ/2 each side) ───
+			-- Dot position = UDim2.new(pct, -DOT_SZ/2, 0.5, -DOT_SZ/2)
+			-- At pct=0  → X offset = -7 → dot left edge = rail.X - 7
+			-- But rail is inset by 7, so dot left edge = trackBg.X  ✓
+			local sliderRail = ni("Frame",{
+				BackgroundTransparency=1,
+				Position = UDim2.new(0, DOT_SZ/2, 0, 0),
+				Size     = UDim2.new(1,-(DOT_SZ), 1, 0),
+				ZIndex   = 7,
+			},trackBg)
+
+			local dot = ni("Frame",{
+				Size        = UDim2.new(0,DOT_SZ,0,DOT_SZ),
+				AnchorPoint = Vector2.new(0.5,0.5),
+				Position    = UDim2.new(pct,0,0.5,0),
+				BackgroundColor3=Color3.fromRGB(235,235,248),
+				BorderSizePixel=0, ZIndex=8,
+			},sliderRail)
+			rnd(dot,DOT_SZ)
+			local dotStroke=ni("UIStroke",{Color=T.Accent,Thickness=1.8},dot)
+			-- tiny accent centre
+			ni("Frame",{
+				Size=UDim2.new(0,5,0,5),AnchorPoint=Vector2.new(0.5,0.5),
+				Position=UDim2.new(0.5,0,0.5,0),
+				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=9,
+			},dot)
+			rnd(dot:FindFirstChildWhichIsA("Frame"),5)
+
+			-- ── logic ────────────────────────────────────────────────────
 			local function applyValue(v)
-				value = rv(math.clamp(v, minV, maxV))
-				local p = (value - minV) / (maxV - minV)
-				-- rail fill
-				fill.Size = UDim2.new(p, 0, 1, 0)
-				-- knob: needs to know actual pixel width of rail
-				local railW = railBg.AbsoluteSize.X
-				if railW > 0 then
-					knob.Position = UDim2.new(0, TRACK_X + p * railW, 0, TRACK_Y + RAIL_H/2)
-				end
-				valLbl.Text = tostring(value)..suffix
-				setSaved(saveId, value)
+				value = rv(math.clamp(v,minV,maxV))
+				local p = (value-minV)/(maxV-minV)
+				fill.Size     = UDim2.new(p,0,1,0)
+				dot.Position  = UDim2.new(p,0,0.5,0)
+				valLbl.Text   = tostring(value)..suffix
+				setSaved(saveId,value)
 				callback(value)
 			end
 
-			-- reposition knob when layout resolves (first frame AbsoluteSize may be 0)
-			row:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-				local p = (value - minV) / (maxV - minV)
-				local railW = railBg.AbsoluteSize.X
-				if railW > 0 then
-					knob.Position = UDim2.new(0, TRACK_X + p * railW, 0, TRACK_Y + RAIL_H/2)
-				end
-			end)
+			local isDragging=false
 
-			local isDragging = false
-
-			local function computeFromX(screenX)
-				local abs = railBg.AbsolutePosition.X
-				local sz  = railBg.AbsoluteSize.X
-				if sz <= 0 then return end
-				local rel = math.clamp((screenX - abs) / sz, 0, 1)
-				applyValue(minV + rel * (maxV - minV))
+			local function fromScreenX(sx)
+				local rail=sliderRail
+				local ax,sz=rail.AbsolutePosition.X,rail.AbsoluteSize.X
+				if sz<=0 then return end
+				local rel=math.clamp((sx-ax)/sz,0,1)
+				applyValue(minV+rel*(maxV-minV))
 			end
 
-			local hitBtn = ni("TextButton",{
-				Size=UDim2.new(1,0,1,0),
-				BackgroundTransparency=1,
+			local hitBtn=ni("TextButton",{
+				Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,
 				Text="",BorderSizePixel=0,ZIndex=10,
 			},row)
 
 			hitBtn.MouseButton1Down:Connect(function(x)
-				isDragging = true
-				computeFromX(x)
+				isDragging=true fromScreenX(x)
 			end)
-			UserInputService.InputChanged:Connect(function(inp)
-				if isDragging and inp.UserInputType == Enum.UserInputType.MouseMovement then
-					computeFromX(inp.Position.X)
+			UserInputService.InputChanged:Connect(function(i)
+				if isDragging and i.UserInputType==Enum.UserInputType.MouseMovement then
+					fromScreenX(i.Position.X)
 				end
 			end)
-			UserInputService.InputEnded:Connect(function(inp)
-				if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-					isDragging = false
-				end
+			UserInputService.InputEnded:Connect(function(i)
+				if i.UserInputType==Enum.UserInputType.MouseButton1 then isDragging=false end
 			end)
 
 			hitBtn.MouseEnter:Connect(function()
-				tw(row,   {BackgroundColor3=T.elemHover}, 0.1)
-				tw(knob,  {Size=UDim2.new(0,KNOB_W+2,0,KNOB_H+2)}, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-				tw(knobStroke, {Color=Color3.fromRGB(170,120,245), Thickness=2.2}, 0.12)
+				tw(row,{BackgroundColor3=T.elemHover},0.1)
+				tw(dot,{Size=UDim2.new(0,DOT_SZ+4,0,DOT_SZ+4)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+				tw(dotStroke,{Color=Color3.fromRGB(170,120,245),Thickness=2.2},0.12)
 			end)
 			hitBtn.MouseLeave:Connect(function()
-				tw(row,  {BackgroundColor3=T.elemBg}, 0.1)
+				tw(row,{BackgroundColor3=T.elemBg},0.1)
 				if not isDragging then
-					tw(knob, {Size=UDim2.new(0,KNOB_W,0,KNOB_H)}, 0.14, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-					tw(knobStroke, {Color=T.Accent, Thickness=1.8}, 0.12)
+					tw(dot,{Size=UDim2.new(0,DOT_SZ,0,DOT_SZ)},0.14,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+					tw(dotStroke,{Color=T.Accent,Thickness=1.8},0.12)
 				end
 			end)
 
-			-- initialise
-			task.defer(function()
-				applyValue(value)
-				callback(value)
-			end)
+			task.defer(function() applyValue(value) callback(value) end)
 
-			local el = {Value=value}
-			function el:Set(v)
-				applyValue(v)
-				el.Value = value
-			end
+			local el={Value=value}
+			function el:Set(v) applyValue(v) el.Value=value end
 			function el:SetTitle(t) sliderTitleLbl.Text=t end
 			function el:OnChanged(fn)
-				local old = callback
-				callback = function(val) old(val) fn(val) end
+				local old=callback
+				callback=function(val) old(val) fn(val) end
 				fn(value)
 			end
 			return el
