@@ -21,7 +21,7 @@ local function writeSave()
 		if not isfolder("ecohub/universal") then makefolder("ecohub/universal") end
 		writefile(SAVE_KEY, HttpService:JSONEncode(SaveData))
 	end)
-	if not ok then print("[EcoHub] writeSave error: " .. tostring(err)) end
+	if not ok then print("[EcoHub] " .. tostring(err)) end
 end
 
 local function getSaved(id, default)
@@ -154,6 +154,9 @@ local T = {
 	dropBg       = Color3.fromRGB(24, 24, 28),
 	toggleOff    = Color3.fromRGB(42, 42, 50),
 	toggleOn     = Color3.fromRGB(130, 80, 200),
+	success      = Color3.fromRGB(80, 200, 120),
+	warning      = Color3.fromRGB(200, 160, 60),
+	danger       = Color3.fromRGB(200, 70, 70),
 }
 
 local NOISE   = "rbxassetid://9968344919"
@@ -167,7 +170,7 @@ local W        = 680
 local H        = 470
 local TOPBAR   = 62
 local TABBAR_H = 56
-local ELEM_H   = 34
+local ELEM_H   = 36
 local PAD      = 6
 
 local function ni(cls, props, par)
@@ -221,9 +224,6 @@ function EcohubLibrarys.new(config)
 	rnd(Main,12)
 	noise(Main,0.96,1)
 
-	-- DropOverlay: tamanho absoluto enorme para cobrir qualquer resolucao.
-	-- Dropdowns vivem aqui, fora de qualquer ClipsDescendants.
-	-- ZIndex 900 garante que fica acima de tudo no ScreenGui.
 	local DropOverlay = ni("Frame",{
 		Size=UDim2.new(0,5000,0,5000),
 		Position=UDim2.new(0,0,0,0),
@@ -231,7 +231,6 @@ function EcohubLibrarys.new(config)
 		ZIndex=900, Active=false,
 	},ScreenGui)
 
-	-- TopBar
 	local TopBar = ni("Frame",{
 		Size=UDim2.new(1,0,0,TOPBAR),
 		BackgroundColor3=T.AcrylicMain,BorderSizePixel=0,ZIndex=2,
@@ -243,7 +242,6 @@ function EcohubLibrarys.new(config)
 	ni("Frame",{Size=UDim2.new(1,0,0,1),Position=UDim2.new(0,0,1,-1),
 		BackgroundColor3=T.TitleLine,BorderSizePixel=0,ZIndex=3},TopBar)
 
-	-- Title text
 	ni("TextLabel",{
 		Size=UDim2.new(0,220,1,0),Position=UDim2.new(0,14,0,0),
 		BackgroundTransparency=1,Text=config.Title or "EcoHub",
@@ -251,7 +249,6 @@ function EcohubLibrarys.new(config)
 		TextXAlignment=Enum.TextXAlignment.Left,ZIndex=4,
 	},TopBar)
 
-	-- Logo: grande, sem fundo, hardcoded
 	local logoSz = 54
 	local logoF = ni("Frame",{
 		Size=UDim2.new(0,logoSz,0,logoSz),
@@ -263,7 +260,6 @@ function EcohubLibrarys.new(config)
 		Image=LOGO_ID,ScaleType=Enum.ScaleType.Fit,ZIndex=4,
 	},logoF)
 
-	-- User block
 	local bW = 160
 	local UB = ni("Frame",{
 		Size=UDim2.new(0,bW,0,TOPBAR),Position=UDim2.new(1,-bW,0,0),
@@ -293,14 +289,12 @@ function EcohubLibrarys.new(config)
 		TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd,ZIndex=4,
 	},UB)
 
-	-- Page area
 	local PageArea = ni("Frame",{
 		Size=UDim2.new(1,-PAD*2,1,-TOPBAR-TABBAR_H-PAD*2),
 		Position=UDim2.new(0,PAD,0,TOPBAR+PAD),
 		BackgroundTransparency=1,BorderSizePixel=0,
 	},Main)
 
-	-- TabBar
 	local TabBar = ni("Frame",{
 		Size=UDim2.new(1,0,0,TABBAR_H),Position=UDim2.new(0,0,1,-TABBAR_H),
 		BackgroundColor3=T.tabbar,BorderSizePixel=0,ClipsDescendants=true,ZIndex=5,
@@ -317,7 +311,7 @@ function EcohubLibrarys.new(config)
 	local pages   = {}
 	local curTab  = nil
 	local anim    = false
-	local openDD  = nil -- referência para fechar dropdown aberto
+	local openDD  = nil
 
 	local function calcPos(ai)
 		local n=math.max(1,#tabList)
@@ -407,9 +401,6 @@ function EcohubLibrarys.new(config)
 		end
 	end)
 
-	-- helper: build a scrollable elements container inside a parent frame
-	-- returns sec object with all AddXxx methods
-	-- indent: left padding multiplier for nested look
 	local function buildElementContainer(parent, topOffset, indent)
 		indent = indent or 0
 		local padL = 5 + indent * 4
@@ -454,12 +445,16 @@ function EcohubLibrarys.new(config)
 				BackgroundColor3=T.elemBg,
 				BorderSizePixel=0,LayoutOrder=rowN,ZIndex=3,
 			},scroll)
-			rnd(r,6)
-			noise(r,0.91,4)
+			rnd(r,7)
+			noise(r,0.94,4)
+			ni("UIStroke",{
+				Color=T.ElemBorder,
+				Thickness=0.8,
+				ApplyStrokeMode=Enum.ApplyStrokeMode.Border,
+			},r)
 			return r
 		end
 
-		-- ── TOGGLE ──────────────────────────────────────────────────────
 		function sec:AddToggle(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Toggle"
@@ -469,22 +464,25 @@ function EcohubLibrarys.new(config)
 
 			local row=newRow(ELEM_H)
 
-			-- left accent bar
-			local acBar=ni("Frame",{
-				Size=UDim2.new(0,state and 3 or 0,0,18),
-				Position=UDim2.new(0,0,0.5,-9),
-				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=4,
-			},row)
-			rnd(acBar,2)
+			local icnF
+			if cfg.Icon and cfg.Icon~="" then
+				local iId=cfg.Icon
+				if not iId:match("rbxasset") then iId=ICONS[iId] or iId end
+				icnF=ni("ImageLabel",{
+					Size=UDim2.new(0,14,0,14),Position=UDim2.new(0,10,0.5,-7),
+					BackgroundTransparency=1,Image=iId,ImageColor3=T.muted,ZIndex=5,
+				},row)
+			end
 
+			local txtX = (icnF and 28) or 10
 			ni("TextLabel",{
-				Size=UDim2.new(1,-70,1,0),Position=UDim2.new(0,10,0,0),
+				Size=UDim2.new(1,-70,1,0),Position=UDim2.new(0,txtX,0,0),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.Gotham,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 
-			local trkW,trkH=40,22
+			local trkW,trkH=42,24
 			local track=ni("Frame",{
 				Size=UDim2.new(0,trkW,0,trkH),
 				Position=UDim2.new(1,-trkW-8,0.5,-trkH/2),
@@ -492,41 +490,26 @@ function EcohubLibrarys.new(config)
 				BorderSizePixel=0,ZIndex=5,
 			},row)
 			rnd(track,trkH)
+			ni("UIStroke",{Color=Color3.fromRGB(70,70,85),Thickness=0.7},track)
 
-			-- glow ring
-			local glow=ni("Frame",{
-				Size=UDim2.new(1,10,1,10),Position=UDim2.new(0,-5,0,-5),
-				BackgroundColor3=T.Accent,
-				BackgroundTransparency=state and 0.60 or 1,
-				BorderSizePixel=0,ZIndex=4,
-			},track)
-			rnd(glow,trkH+5)
-
-			local kSz=16
+			local kSz=18
 			local knob=ni("Frame",{
 				Size=UDim2.new(0,kSz,0,kSz),
 				Position=state
 					and UDim2.new(1,-kSz-3,0.5,-kSz/2)
 					or  UDim2.new(0,3,0.5,-kSz/2),
-				BackgroundColor3=state and Color3.new(1,1,1) or Color3.fromRGB(160,160,170),
+				BackgroundColor3=state and Color3.new(1,1,1) or Color3.fromRGB(150,150,165),
 				BorderSizePixel=0,ZIndex=7,
 			},track)
 			rnd(knob,kSz)
-			local kshine=ni("Frame",{
-				Size=UDim2.new(0,6,0,6),Position=UDim2.new(0,2,0,2),
-				BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=0.5,
-				BorderSizePixel=0,ZIndex=8,
-			},knob)
-			rnd(kshine,6)
 
 			local function applyS(v)
-				tw(acBar,{Size=UDim2.new(0,v and 3 or 0,0,18)},0.16)
 				tw(track,{BackgroundColor3=v and T.toggleOn or T.toggleOff},0.18)
-				tw(glow,{BackgroundTransparency=v and 0.60 or 1},0.18)
 				tw(knob,{
 					Position=v and UDim2.new(1,-kSz-3,0.5,-kSz/2) or UDim2.new(0,3,0.5,-kSz/2),
-					BackgroundColor3=v and Color3.new(1,1,1) or Color3.fromRGB(160,160,170),
-				},0.18,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+					BackgroundColor3=v and Color3.new(1,1,1) or Color3.fromRGB(150,150,165),
+				},0.20,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+				if icnF then tw(icnF,{ImageColor3=v and T.Accent or T.muted},0.18) end
 			end
 
 			local btn=ni("TextButton",{
@@ -552,7 +535,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── SLIDER ──────────────────────────────────────────────────────
 		function sec:AddSlider(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Slider"
@@ -565,27 +547,35 @@ function EcohubLibrarys.new(config)
 			local function rv(v) return math.floor(v/rounding+0.5)*rounding end
 			local value=getSaved(saveId,rv(math.clamp(cfg.Default or minV,minV,maxV)))
 
-			local row=newRow(ELEM_H+20)
+			local row=newRow(ELEM_H+18)
 
 			ni("TextLabel",{
-				Size=UDim2.new(1,-56,0,14),Position=UDim2.new(0,10,0,5),
+				Size=UDim2.new(1,-60,0,14),Position=UDim2.new(0,10,0,4),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.Gotham,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 
+			local valBox=ni("Frame",{
+				Size=UDim2.new(0,52,0,18),Position=UDim2.new(1,-58,0,4),
+				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,ZIndex=5,
+			},row)
+			rnd(valBox,5)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},valBox)
+
 			local valLbl=ni("TextLabel",{
-				Size=UDim2.new(0,46,0,14),Position=UDim2.new(1,-52,0,5),
+				Size=UDim2.new(1,0,1,0),Position=UDim2.new(0,0,0,0),
 				BackgroundTransparency=1,Text=tostring(rv(value))..suffix,
 				TextColor3=T.Accent,TextSize=10,Font=Enum.Font.GothamBold,
-				TextXAlignment=Enum.TextXAlignment.Right,ZIndex=5,
-			},row)
+				TextXAlignment=Enum.TextXAlignment.Center,ZIndex=6,
+			},valBox)
 
 			local railBg=ni("Frame",{
-				Size=UDim2.new(1,-20,0,6),Position=UDim2.new(0,10,0,28),
+				Size=UDim2.new(1,-20,0,6),Position=UDim2.new(0,10,0,30),
 				BackgroundColor3=T.dim,BorderSizePixel=0,ZIndex=5,
 			},row)
 			rnd(railBg,6)
+			ni("UIStroke",{Color=Color3.fromRGB(60,60,70),Thickness=0.6},railBg)
 
 			local pct=(value-minV)/(maxV-minV)
 			local fill=ni("Frame",{
@@ -593,26 +583,33 @@ function EcohubLibrarys.new(config)
 				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=6,
 			},railBg)
 			rnd(fill,6)
-			-- fill glow
-			local fglow=ni("Frame",{
-				Size=UDim2.new(1,0,1,4),Position=UDim2.new(0,0,0,-2),
-				BackgroundColor3=T.Accent,BackgroundTransparency=0.7,
-				BorderSizePixel=0,ZIndex=5,
-			},fill)
-			rnd(fglow,6)
+
+			local fillGrad=Instance.new("UIGradient")
+			fillGrad.Color=ColorSequence.new({
+				ColorSequenceKeypoint.new(0,Color3.fromRGB(100,55,170)),
+				ColorSequenceKeypoint.new(1,Color3.fromRGB(155,100,220)),
+			})
+			fillGrad.Parent=fill
 
 			local dot=ni("Frame",{
-				Size=UDim2.new(0,14,0,14),AnchorPoint=Vector2.new(0.5,0.5),
+				Size=UDim2.new(0,16,0,16),AnchorPoint=Vector2.new(0.5,0.5),
 				Position=UDim2.new(pct,0,0.5,0),
 				BackgroundColor3=T.text,BorderSizePixel=0,ZIndex=8,
 			},railBg)
-			rnd(dot,14)
+			rnd(dot,16)
 			ni("UIStroke",{Color=T.Accent,Thickness=2},dot)
 
-			local function setV(v,anim2)
+			local dotInner=ni("Frame",{
+				Size=UDim2.new(0,6,0,6),AnchorPoint=Vector2.new(0.5,0.5),
+				Position=UDim2.new(0.5,0,0.5,0),
+				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=9,
+			},dot)
+			rnd(dotInner,6)
+
+			local function setV(v,an)
 				value=rv(math.clamp(v,minV,maxV))
 				local p=(value-minV)/(maxV-minV)
-				local d=anim2 and 0.06 or 0
+				local d=an and 0.06 or 0
 				tw(fill,{Size=UDim2.new(p,0,1,0)},d)
 				tw(dot,{Position=UDim2.new(p,0,0.5,0)},d)
 				valLbl.Text=tostring(value)..suffix
@@ -650,7 +647,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── KEYBIND ─────────────────────────────────────────────────────
 		function sec:AddKeybind(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Keybind"
@@ -660,9 +656,7 @@ function EcohubLibrarys.new(config)
 			local key=cfg.Default or Enum.KeyCode.Unknown
 			if savedName then
 				local ok,k=pcall(function() return Enum.KeyCode[savedName] end)
-				if ok and k and k~=Enum.KeyCode.Unknown then key=k else
-					print("[EcoHub] AddKeybind: invalid saved key '"..tostring(savedName).."'")
-				end
+				if ok and k and k~=Enum.KeyCode.Unknown then key=k end
 			end
 			local listening=false
 			local row=newRow(ELEM_H)
@@ -670,16 +664,16 @@ function EcohubLibrarys.new(config)
 			ni("TextLabel",{
 				Size=UDim2.new(1,-80,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.Gotham,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 
 			local kBox=ni("Frame",{
-				Size=UDim2.new(0,68,0,22),Position=UDim2.new(1,-74,0.5,-11),
+				Size=UDim2.new(0,68,0,24),Position=UDim2.new(1,-74,0.5,-12),
 				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,ZIndex=5,
 			},row)
 			rnd(kBox,5) noise(kBox,0.86,6)
-			local kStr=ni("UIStroke",{Color=T.ElemBorder,Thickness=1},kBox)
+			local kStr=ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8},kBox)
 
 			local function kname(k)
 				if type(k)~="userdata" then return tostring(k) end
@@ -729,7 +723,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── DROPDOWN (overlay) ───────────────────────────────────────────
 		function sec:AddDropdown(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Dropdown"
@@ -739,27 +732,25 @@ function EcohubLibrarys.new(config)
 			local selected=getSaved(saveId,cfg.Default or (options[1] or ""))
 			local isOpen=false
 
-			local MAX_VIS=5
-			local OPT_H=30
+			local MAX_VIS=6
+			local OPT_H=32
 			local DPAD=4
 
 			local row=newRow(ELEM_H)
 
-			-- left label
 			ni("TextLabel",{
 				Size=UDim2.new(1,-96,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.Gotham,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 
-			-- selection box
 			local selBox=ni("Frame",{
-				Size=UDim2.new(0,82,0,22),Position=UDim2.new(1,-88,0.5,-11),
+				Size=UDim2.new(0,82,0,24),Position=UDim2.new(1,-88,0.5,-12),
 				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,ZIndex=5,
 			},row)
 			rnd(selBox,5) noise(selBox,0.86,6)
-			local selStr=ni("UIStroke",{Color=T.ElemBorder,Thickness=1},selBox)
+			local selStr=ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8},selBox)
 
 			local selLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-22,1,0),Position=UDim2.new(0,6,0,0),
@@ -774,9 +765,9 @@ function EcohubLibrarys.new(config)
 				BackgroundTransparency=1,Image=ARR_ICO,ImageColor3=T.muted,ZIndex=7,
 			},selBox)
 
-			-- dropdown panel lives in DropOverlay — completely outside ClipsDescendants chain
-			-- ZIndex aqui eh relativo ao DropOverlay (ZIndex 900), entao 10 = ZIndex global 910
-			local dropVisH=math.min(#options,MAX_VIS)*OPT_H+DPAD*2
+			local function getDropH()
+				return math.min(#options,MAX_VIS)*OPT_H+DPAD*2
+			end
 
 			local dropBg=ni("Frame",{
 				Size=UDim2.new(0,10,0,0),Position=UDim2.new(0,0,0,0),
@@ -784,10 +775,9 @@ function EcohubLibrarys.new(config)
 				ClipsDescendants=true,ZIndex=10,Visible=false,
 			},DropOverlay)
 			rnd(dropBg,7)
-			ni("UIStroke",{Color=T.ElemBorder,Thickness=1},dropBg)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8},dropBg)
 			noise(dropBg,0.88,11)
 
-			-- accent top line
 			local aLine=ni("Frame",{
 				Size=UDim2.new(1,-14,0,1),Position=UDim2.new(0,7,0,0),
 				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=13,
@@ -801,22 +791,22 @@ function EcohubLibrarys.new(config)
 			}) aGrad.Parent=aLine
 
 			local optScr=ni("ScrollingFrame",{
-				Size=UDim2.new(1,-4,1,-DPAD*2),Position=UDim2.new(0,2,0,DPAD),
+				Size=UDim2.new(1,-2,1,-DPAD*2),Position=UDim2.new(0,1,0,DPAD),
 				BackgroundTransparency=1,BorderSizePixel=0,
 				ScrollBarThickness=(#options>MAX_VIS) and 3 or 0,
 				ScrollBarImageColor3=T.Accent,
 				BottomImage=S_BOT,MidImage=S_MID,TopImage=S_TOP,
 				CanvasSize=UDim2.new(0,0,0,#options*OPT_H),
 				ScrollingDirection=Enum.ScrollingDirection.Y,
-				ClipsDescendants=true,ZIndex=506,
+				ClipsDescendants=true,ZIndex=14,
 			},dropBg)
 
 			local optHolder=ni("Frame",{
 				Size=UDim2.new(1,0,0,#options*OPT_H),
-				BackgroundTransparency=1,ZIndex=507,
+				BackgroundTransparency=1,ZIndex=15,
 			},optScr)
 
-			ni("UIListLayout",{
+			local optLayout=ni("UIListLayout",{
 				SortOrder=Enum.SortOrder.LayoutOrder,
 				Padding=UDim.new(0,0),
 				FillDirection=Enum.FillDirection.Vertical,
@@ -830,7 +820,6 @@ function EcohubLibrarys.new(config)
 					local iS=options[i2]==selected
 					tw(ob.row,{BackgroundColor3=iS and T.AccentDark or T.dropBg},0.12)
 					tw(ob.lbl,{TextColor3=iS and T.text or T.muted},0.12)
-					tw(ob.bar,{Size=UDim2.new(0,iS and 3 or 0,0,14)},0.14)
 					ob.chk.Visible=iS
 					ob.lbl.Font=iS and Enum.Font.GothamBold or Enum.Font.Gotham
 				end
@@ -844,21 +833,34 @@ function EcohubLibrarys.new(config)
 				tw(selStr,{Color=T.ElemBorder},0.12)
 				local cW=dropBg.AbsoluteSize.X
 				tw(dropBg,{Size=UDim2.new(0,cW,0,0)},0.14,Enum.EasingStyle.Quint,Enum.EasingDirection.In)
-				task.delay(0.16,function() dropBg.Visible=false end)
+				task.delay(0.16,function() if not isOpen then dropBg.Visible=false end end)
 			end
 
 			local function openD()
 				if openDD and openDD~=closeD then openDD() end
 				isOpen=true openDD=closeD
-				-- position relative to row's absolute position on screen
+
 				local rAbs=row.AbsolutePosition
 				local rW=row.AbsoluteSize.X
+				local screenH=ScreenGui.AbsoluteSize.Y
+				local dropH=getDropH()
+
+				local posY=rAbs.Y+ELEM_H+2
+				if posY+dropH > screenH-10 then
+					posY=rAbs.Y-dropH-2
+				end
+
 				dropBg.Size=UDim2.new(0,rW,0,0)
-				dropBg.Position=UDim2.new(0,rAbs.X,0,rAbs.Y+ELEM_H+2)
+				dropBg.Position=UDim2.new(0,rAbs.X,0,posY)
 				dropBg.Visible=true
+
+				optScr.CanvasSize=UDim2.new(0,0,0,#options*OPT_H)
+				optScr.ScrollBarThickness=(#options>MAX_VIS) and 3 or 0
+				optScr.CanvasPosition=Vector2.new(0,0)
+
 				tw(arrIco,{ImageColor3=T.Accent,Rotation=180},0.14)
 				tw(selStr,{Color=T.Accent},0.12)
-				tw(dropBg,{Size=UDim2.new(0,rW,0,dropVisH)},0.18,Enum.EasingStyle.Quint,Enum.EasingDirection.Out)
+				tw(dropBg,{Size=UDim2.new(0,rW,0,dropH)},0.18,Enum.EasingStyle.Quint,Enum.EasingDirection.Out)
 			end
 
 			local function buildOpt(i2,opt)
@@ -866,44 +868,37 @@ function EcohubLibrarys.new(config)
 				local optRow=ni("Frame",{
 					Size=UDim2.new(1,0,0,OPT_H),
 					BackgroundColor3=isSel and T.AccentDark or T.dropBg,
-					BorderSizePixel=0,ZIndex=508,LayoutOrder=i2,
+					BorderSizePixel=0,ZIndex=16,LayoutOrder=i2,
 				},optHolder)
 
-				local leftBar=ni("Frame",{
-					Size=UDim2.new(0,isSel and 3 or 0,0,14),
-					Position=UDim2.new(0,0,0.5,-7),
-					BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=510,
-				},optRow)
-				rnd(leftBar,2)
-
 				local optLbl=ni("TextLabel",{
-					Size=UDim2.new(1,-32,1,0),Position=UDim2.new(0,11,0,0),
+					Size=UDim2.new(1,-30,1,0),Position=UDim2.new(0,10,0,0),
 					BackgroundTransparency=1,Text=opt,
 					TextColor3=isSel and T.text or T.muted,
 					TextSize=10,Font=isSel and Enum.Font.GothamBold or Enum.Font.Gotham,
-					TextXAlignment=Enum.TextXAlignment.Left,ZIndex=509,
+					TextXAlignment=Enum.TextXAlignment.Left,ZIndex=17,
 				},optRow)
 
 				local chk=ni("ImageLabel",{
-					Size=UDim2.new(0,12,0,12),Position=UDim2.new(1,-18,0.5,-6),
+					Size=UDim2.new(0,13,0,13),Position=UDim2.new(1,-18,0.5,-6.5),
 					BackgroundTransparency=1,Image=ICONS.check,
-					ImageColor3=T.Accent,ZIndex=510,Visible=isSel,
+					ImageColor3=T.Accent,ZIndex=18,Visible=isSel,
 				},optRow)
 
 				if i2<#options then
 					ni("Frame",{
 						Size=UDim2.new(1,-10,0,1),Position=UDim2.new(0,5,1,-1),
-						BackgroundColor3=T.dim,BackgroundTransparency=0.55,
-						BorderSizePixel=0,ZIndex=509,
+						BackgroundColor3=T.dim,BackgroundTransparency=0.6,
+						BorderSizePixel=0,ZIndex=17,
 					},optRow)
 				end
 
 				local optBtn=ni("TextButton",{
 					Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,
-					Text="",BorderSizePixel=0,ZIndex=515,
+					Text="",BorderSizePixel=0,ZIndex=22,
 				},optRow)
 
-				optBtns[i2]={row=optRow,lbl=optLbl,bar=leftBar,chk=chk}
+				optBtns[i2]={row=optRow,lbl=optLbl,chk=chk}
 
 				optBtn.MouseButton1Click:Connect(function()
 					selected=opt selLbl.Text=opt el.Value=opt
@@ -925,7 +920,7 @@ function EcohubLibrarys.new(config)
 
 			for i2,opt in ipairs(options) do
 				local ok,err=pcall(buildOpt,i2,opt)
-				if not ok then print("[EcoHub] AddDropdown buildOpt error: "..tostring(err)) end
+				if not ok then print("[EcoHub] " .. tostring(err)) end
 			end
 
 			local togBtn=ni("TextButton",{
@@ -938,11 +933,11 @@ function EcohubLibrarys.new(config)
 			togBtn.MouseEnter:Connect(function() tw(row,{BackgroundColor3=T.elemHover},0.1) end)
 			togBtn.MouseLeave:Connect(function() tw(row,{BackgroundColor3=T.elemBg},0.1) end)
 
-			-- close when clicking outside
 			UserInputService.InputBegan:Connect(function(inp)
 				if not isOpen then return end
 				if inp.UserInputType~=Enum.UserInputType.MouseButton1
 					and inp.UserInputType~=Enum.UserInputType.Touch then return end
+				task.wait()
 				local mx=UserInputService:GetMouseLocation().X
 				local my=UserInputService:GetMouseLocation().Y
 				local da=dropBg.AbsolutePosition local ds=dropBg.AbsoluteSize
@@ -958,7 +953,6 @@ function EcohubLibrarys.new(config)
 			end
 			function el:SetOptions(newOpts)
 				options=newOpts
-				dropVisH=math.min(#options,MAX_VIS)*OPT_H+DPAD*2
 				optBtns={}
 				for _,ch in ipairs(optHolder:GetChildren()) do
 					if not ch:IsA("UIListLayout") then ch:Destroy() end
@@ -968,7 +962,7 @@ function EcohubLibrarys.new(config)
 				optScr.ScrollBarThickness=(#options>MAX_VIS) and 3 or 0
 				for i2,opt in ipairs(options) do
 					local ok,err=pcall(buildOpt,i2,opt)
-					if not ok then print("[EcoHub] SetOptions error: "..tostring(err)) end
+					if not ok then print("[EcoHub] " .. tostring(err)) end
 				end
 			end
 			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(selected) end
@@ -976,25 +970,40 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── BUTTON ──────────────────────────────────────────────────────
 		function sec:AddButton(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Button"
+			local desc=cfg.Description or ""
 			local callback=cfg.Callback or function() end
-			local row=newRow(ELEM_H)
+			local color=cfg.Color or "accent"
 
-			local acBar=ni("Frame",{
-				Size=UDim2.new(0,0,0,16),Position=UDim2.new(0,0,0.5,-8),
-				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=4,
+			local rowH = desc~="" and ELEM_H+14 or ELEM_H
+			local row=newRow(rowH)
+
+			local btnColor = color=="danger" and T.danger or color=="success" and T.success or color=="warning" and T.warning or T.Accent
+
+			local leftStrip=ni("Frame",{
+				Size=UDim2.new(0,3,0,rowH-12),Position=UDim2.new(0,0,0,6),
+				BackgroundColor3=btnColor,BorderSizePixel=0,ZIndex=4,
 			},row)
-			rnd(acBar,2)
+			rnd(leftStrip,2)
 
 			ni("TextLabel",{
-				Size=UDim2.new(1,-44,1,0),Position=UDim2.new(0,12,0,0),
+				Size=UDim2.new(1,-44,0,desc~="" and 14 or rowH),
+				Position=UDim2.new(0,12,0,desc~="" and 6 or 0),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.GothamBold,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamBold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
+
+			if desc~="" then
+				ni("TextLabel",{
+					Size=UDim2.new(1,-44,0,11),Position=UDim2.new(0,12,0,21),
+					BackgroundTransparency=1,Text=desc,
+					TextColor3=T.muted,TextSize=9,Font=Enum.Font.Gotham,
+					TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
+				},row)
+			end
 
 			local arrImg=ni("ImageLabel",{
 				Image=ICONS.buttonArrow,Size=UDim2.fromOffset(14,14),
@@ -1007,52 +1016,66 @@ function EcohubLibrarys.new(config)
 				Text="",BorderSizePixel=0,ZIndex=8,
 			},row)
 			btn.MouseButton1Click:Connect(function()
-				tw(row,{BackgroundColor3=T.AccentDark},0.07)
-				tw(arrImg,{ImageColor3=T.Accent},0.07)
-				tw(acBar,{Size=UDim2.new(0,3,0,16)},0.07)
-				task.delay(0.13,function()
-					tw(row,{BackgroundColor3=T.elemBg},0.13)
-					tw(arrImg,{ImageColor3=T.muted},0.13)
-					tw(acBar,{Size=UDim2.new(0,0,0,16)},0.13)
+				tw(row,{BackgroundColor3=Color3.fromRGB(
+					math.floor(btnColor.R*255*0.3),
+					math.floor(btnColor.G*255*0.3),
+					math.floor(btnColor.B*255*0.3)
+				)},0.07)
+				tw(arrImg,{ImageColor3=btnColor},0.07)
+				tw(leftStrip,{BackgroundColor3=btnColor},0.07)
+				task.delay(0.14,function()
+					tw(row,{BackgroundColor3=T.elemBg},0.14)
+					tw(arrImg,{ImageColor3=T.muted},0.14)
 				end)
 				callback()
 			end)
 			btn.MouseEnter:Connect(function()
 				tw(row,{BackgroundColor3=T.elemHover},0.1)
 				tw(arrImg,{ImageColor3=T.text},0.1)
-				tw(acBar,{Size=UDim2.new(0,3,0,16)},0.1)
 			end)
 			btn.MouseLeave:Connect(function()
 				tw(row,{BackgroundColor3=T.elemBg},0.1)
 				tw(arrImg,{ImageColor3=T.muted},0.1)
-				tw(acBar,{Size=UDim2.new(0,0,0,16)},0.1)
 			end)
 
 			return {Frame=row}
 		end
 
-		-- ── LABEL ───────────────────────────────────────────────────────
 		function sec:AddLabel(cfg)
 			cfg=cfg or {}
 			local row=newRow(ELEM_H)
+
+			local icnF
+			if cfg.Icon and cfg.Icon~="" then
+				local iId=cfg.Icon
+				if not iId:match("rbxasset") then iId=ICONS[iId] or iId end
+				icnF=ni("ImageLabel",{
+					Size=UDim2.new(0,13,0,13),Position=UDim2.new(0,9,0.5,-6.5),
+					BackgroundTransparency=1,Image=iId,ImageColor3=cfg.Color or T.muted,ZIndex=5,
+				},row)
+			end
+
+			local txtX=(icnF and 26) or 10
 			local lbl=ni("TextLabel",{
-				Size=UDim2.new(1,-10,1,0),Position=UDim2.new(0,10,0,0),
+				Size=UDim2.new(1,-txtX-6,1,0),Position=UDim2.new(0,txtX,0,0),
 				BackgroundTransparency=1,Text=cfg.Text or "Label",
 				TextColor3=cfg.Color or T.muted,TextSize=10,Font=Enum.Font.Gotham,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 			local el={Frame=row}
-			function el:Set(t,c) lbl.Text=t if c then lbl.TextColor3=c end end
+			function el:Set(t,c)
+				lbl.Text=t
+				if c then lbl.TextColor3=c if icnF then icnF.ImageColor3=c end end
+			end
 			return el
 		end
 
-		-- ── PARAGRAPH ───────────────────────────────────────────────────
 		function sec:AddParagraph(cfg)
 			cfg=cfg or {}
 			local title=cfg.Title or ""
 			local text=cfg.Text or ""
 			local lines=math.max(1,math.ceil(#text/26))
-			local rowH=(title~="" and 15 or 0)+lines*13+14
+			local rowH=(title~="" and 16 or 0)+lines*13+14
 			local row=newRow(rowH)
 			if title~="" then
 				ni("TextLabel",{
@@ -1064,7 +1087,7 @@ function EcohubLibrarys.new(config)
 			end
 			local txtLbl=ni("TextLabel",{
 				Size=UDim2.new(1,-12,0,lines*13),
-				Position=UDim2.new(0,10,0,title~="" and 19 or 6),
+				Position=UDim2.new(0,10,0,title~="" and 20 or 6),
 				BackgroundTransparency=1,Text=text,
 				TextColor3=T.muted,TextSize=9,Font=Enum.Font.Gotham,
 				TextXAlignment=Enum.TextXAlignment.Left,TextWrapped=true,ZIndex=5,
@@ -1074,7 +1097,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── INPUT ───────────────────────────────────────────────────────
 		function sec:AddInput(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Input"
@@ -1083,7 +1105,8 @@ function EcohubLibrarys.new(config)
 			local callback=cfg.Callback or function() end
 			local value=getSaved(saveId,cfg.Default or "")
 
-			local row=newRow(ELEM_H+8)
+			local row=newRow(ELEM_H+10)
+
 			ni("TextLabel",{
 				Size=UDim2.new(1,-10,0,13),Position=UDim2.new(0,10,0,4),
 				BackgroundTransparency=1,Text=label,
@@ -1092,8 +1115,8 @@ function EcohubLibrarys.new(config)
 			},row)
 
 			local iBox=ni("TextBox",{
-				Size=UDim2.new(1,-16,0,18),Position=UDim2.new(0,8,0,18),
-				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,
+				Size=UDim2.new(1,-16,0,20),Position=UDim2.new(0,8,0,18),
+				BackgroundColor3=Color3.fromRGB(18,18,22),BorderSizePixel=0,
 				Text=value,PlaceholderText=placeholder,
 				TextColor3=T.text,PlaceholderColor3=T.muted,
 				TextSize=9,Font=Enum.Font.Gotham,
@@ -1118,7 +1141,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── COLOR PICKER ────────────────────────────────────────────────
 		function sec:AddColorPicker(cfg)
 			cfg=cfg or {}
 			local label=cfg.Name or "Color"
@@ -1128,11 +1150,11 @@ function EcohubLibrarys.new(config)
 			local color=cfg.Default or Color3.fromRGB(130,80,200)
 			if savedC and type(savedC)=="table" then
 				local ok,c=pcall(function() return Color3.fromRGB(savedC.r or 130,savedC.g or 80,savedC.b or 200) end)
-				if ok then color=c else print("[EcoHub] AddColorPicker: bad saved color '"..saveId.."'") end
+				if ok then color=c end
 			end
 
 			local isOpen=false
-			local H_PCK=110
+			local H_PCK=118
 			rowN=rowN+1
 
 			local wrapper=ni("Frame",{
@@ -1144,27 +1166,29 @@ function EcohubLibrarys.new(config)
 				Size=UDim2.new(1,0,0,ELEM_H),
 				BackgroundColor3=T.elemBg,BorderSizePixel=0,ZIndex=3,
 			},wrapper)
-			rnd(row,6) noise(row,0.91,4)
+			rnd(row,7) noise(row,0.94,4)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},row)
 
 			ni("TextLabel",{
 				Size=UDim2.new(1,-52,1,0),Position=UDim2.new(0,10,0,0),
 				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=10,Font=Enum.Font.Gotham,
+				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},row)
 
 			local prev=ni("Frame",{
-				Size=UDim2.new(0,24,0,24),Position=UDim2.new(1,-30,0.5,-12),
+				Size=UDim2.new(0,26,0,26),Position=UDim2.new(1,-32,0.5,-13),
 				BackgroundColor3=color,BorderSizePixel=0,ZIndex=5,
 			},row)
-			rnd(prev,5) ni("UIStroke",{Color=T.ElemBorder,Thickness=1},prev)
+			rnd(prev,6)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.8},prev)
 
 			local picker=ni("Frame",{
 				Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,0,ELEM_H+3),
 				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,
 				ClipsDescendants=true,Visible=false,ZIndex=20,
 			},wrapper)
-			rnd(picker,6) ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},picker) noise(picker,0.92,21)
+			rnd(picker,7) ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},picker) noise(picker,0.92,21)
 
 			local huebar=ni("Frame",{
 				Size=UDim2.new(1,-14,0,14),Position=UDim2.new(0,7,0,8),
@@ -1190,10 +1214,11 @@ function EcohubLibrarys.new(config)
 			rnd(hThumb,4) ni("UIStroke",{Color=Color3.new(0,0,0),Thickness=1.5},hThumb)
 
 			local satF=ni("Frame",{
-				Size=UDim2.new(1,-14,0,58),Position=UDim2.new(0,7,0,30),
+				Size=UDim2.new(1,-14,0,64),Position=UDim2.new(0,7,0,30),
 				BackgroundColor3=Color3.new(1,1,1),BorderSizePixel=0,ZIndex=22,
 			},picker)
-			rnd(satF,5)
+			rnd(satF,6)
+			ni("UIStroke",{Color=Color3.fromRGB(50,50,60),Thickness=0.6},satF)
 			local sg=Instance.new("UIGradient")
 			sg.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromHSV(0,1,1)) sg.Parent=satF
 
@@ -1201,26 +1226,43 @@ function EcohubLibrarys.new(config)
 				Size=UDim2.new(1,0,1,0),BackgroundColor3=Color3.new(0,0,0),
 				BorderSizePixel=0,ZIndex=23,
 			},satF)
-			rnd(svF,5)
+			rnd(svF,6)
 			local vg=Instance.new("UIGradient")
 			vg.Color=ColorSequence.new(Color3.new(0,0,0),Color3.new(0,0,0))
 			vg.Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(1,0)})
 			vg.Rotation=90 vg.Parent=svF
 
 			local sThumb=ni("Frame",{
-				Size=UDim2.new(0,12,0,12),AnchorPoint=Vector2.new(0.5,0.5),
+				Size=UDim2.new(0,14,0,14),AnchorPoint=Vector2.new(0.5,0.5),
 				Position=UDim2.new(0,0,0,0),BackgroundColor3=Color3.new(1,1,1),
 				BorderSizePixel=0,ZIndex=25,
 			},satF)
-			rnd(sThumb,12) ni("UIStroke",{Color=Color3.new(0,0,0),Thickness=1.5},sThumb)
+			rnd(sThumb,14) ni("UIStroke",{Color=Color3.new(0,0,0),Thickness=1.5},sThumb)
+
+			local hexLbl=ni("TextBox",{
+				Size=UDim2.new(1,-14,0,20),Position=UDim2.new(0,7,0,102),
+				BackgroundColor3=Color3.fromRGB(18,18,22),BorderSizePixel=0,
+				TextColor3=T.text,PlaceholderColor3=T.muted,
+				TextSize=9,Font=Enum.Font.GothamBold,
+				TextXAlignment=Enum.TextXAlignment.Center,
+				ClearTextOnFocus=false,ZIndex=22,
+			},picker)
+			rnd(hexLbl,5)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},hexLbl)
 
 			local hH,sV,bV=Color3.toHSV(color)
+
+			local function toHex(c)
+				return string.format("#%02X%02X%02X",
+					math.floor(c.R*255),math.floor(c.G*255),math.floor(c.B*255))
+			end
 
 			local function updateT()
 				hThumb.Position=UDim2.new(hH,0,0.5,0)
 				sThumb.Position=UDim2.new(sV,0,1-bV,0)
 				sg.Color=ColorSequence.new(Color3.new(1,1,1),Color3.fromHSV(hH,1,1))
 				prev.BackgroundColor3=Color3.fromHSV(hH,sV,bV)
+				hexLbl.Text=toHex(Color3.fromHSV(hH,sV,bV))
 			end
 
 			local function commit()
@@ -1255,13 +1297,28 @@ function EcohubLibrarys.new(config)
 				if i.UserInputType==Enum.UserInputType.MouseButton1 then hDrag=false sDrag=false end
 			end)
 
+			hexLbl.FocusLost:Connect(function()
+				local hex=hexLbl.Text:gsub("#","")
+				if #hex==6 then
+					local r=tonumber(hex:sub(1,2),16)
+					local g=tonumber(hex:sub(3,4),16)
+					local b=tonumber(hex:sub(5,6),16)
+					if r and g and b then
+						local c=Color3.fromRGB(r,g,b)
+						hH,sV,bV=Color3.toHSV(c)
+						updateT() commit()
+					end
+				end
+				hexLbl.Text=toHex(color)
+			end)
+
 			local openBtn=ni("TextButton",{Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,Text="",BorderSizePixel=0,ZIndex=8},row)
 			openBtn.MouseButton1Click:Connect(function()
 				isOpen=not isOpen
 				if isOpen then
 					picker.Visible=true picker.Size=UDim2.new(1,0,0,0)
 					wrapper.Size=UDim2.new(1,0,0,ELEM_H+H_PCK+5)
-					tw(picker,{Size=UDim2.new(1,0,0,H_PCK)},0.20,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
+					tw(picker,{Size=UDim2.new(1,0,0,H_PCK)},0.22,Enum.EasingStyle.Back,Enum.EasingDirection.Out)
 				else
 					tw(picker,{Size=UDim2.new(1,0,0,0)},0.18,Enum.EasingStyle.Back,Enum.EasingDirection.In)
 					task.delay(0.20,function() picker.Visible=false wrapper.Size=UDim2.new(1,0,0,ELEM_H) end)
@@ -1278,7 +1335,6 @@ function EcohubLibrarys.new(config)
 			return el
 		end
 
-		-- ── SUBSECTION: a nested, indented section inside this section ──
 		function sec:AddSubSection(cfg)
 			cfg=cfg or {}
 			local title=cfg.Title or ""
@@ -1291,15 +1347,14 @@ function EcohubLibrarys.new(config)
 				BorderSizePixel=0,LayoutOrder=rowN,ClipsDescendants=false,
 			},scroll)
 
-			-- header bar
 			local headerH=28
 			local subContainer=ni("Frame",{
 				Size=UDim2.new(1,0,0,headerH),
 				BackgroundColor3=T.subSection,BorderSizePixel=0,ZIndex=3,
 			},wrapper)
 			rnd(subContainer,6) noise(subContainer,0.90,4)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},subContainer)
 
-			-- collapse/expand arrow
 			local expanded=false
 			local arrF=ni("ImageLabel",{
 				Size=UDim2.new(0,12,0,12),Position=UDim2.new(1,-18,0.5,-6),
@@ -1321,7 +1376,6 @@ function EcohubLibrarys.new(config)
 				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
 			},subContainer)
 
-			-- left accent line
 			local acLine=ni("Frame",{
 				Size=UDim2.new(0,2,1,-8),Position=UDim2.new(0,3,0,4),
 				BackgroundColor3=T.Accent,BackgroundTransparency=0.5,
@@ -1329,25 +1383,21 @@ function EcohubLibrarys.new(config)
 			},subContainer)
 			rnd(acLine,1)
 
-			-- inner content frame (starts collapsed)
 			local innerFrame=ni("Frame",{
 				Size=UDim2.new(1,-6,0,0),Position=UDim2.new(0,6,0,headerH+2),
 				BackgroundColor3=T.subSection,BorderSizePixel=0,
 				ClipsDescendants=false,ZIndex=2,
 			},wrapper)
 			rnd(innerFrame,5)
-			-- left indent line
 			ni("Frame",{
 				Size=UDim2.new(0,1,1,0),Position=UDim2.new(0,0,0,0),
 				BackgroundColor3=T.Accent,BackgroundTransparency=0.6,
 				BorderSizePixel=0,ZIndex=3,
 			},innerFrame)
 
-			-- build inner container using same helper (indent level +1)
 			local innerSec=buildElementContainer(innerFrame,0,1)
 			local innerH=0
 
-			-- track inner content height
 			innerSec.Scroll:GetPropertyChangedSignal("AbsoluteCanvasSize"):Connect(function()
 				innerH=innerSec.Scroll.AbsoluteCanvasSize.Y
 				if expanded then
@@ -1394,7 +1444,6 @@ function EcohubLibrarys.new(config)
 		return sec
 	end
 
-	-- ── Main win object ─────────────────────────────────────────────────
 	local win={}
 
 	function win:AddTab(cfg)
@@ -1465,13 +1514,13 @@ function EcohubLibrarys.new(config)
 			if curTab~=name then tw(sq,{BackgroundColor3=T.card},0.1) tw(img,{ImageColor3=T.dim},0.1) end
 		end)
 
-		-- three columns
 		local function makeSec(secName)
 			local f=ni("Frame",{
 				Name=secName,BackgroundColor3=T.section,
 				BorderSizePixel=0,ClipsDescendants=false,
 			},pg)
 			noise(f,0.94,1)
+			rnd(f,8)
 			return f
 		end
 
@@ -1480,13 +1529,13 @@ function EcohubLibrarys.new(config)
 		local sR=makeSec("SectionRight")
 
 		local function layout()
-			local tW=PageArea.AbsoluteSize.X-PAD*2
-			local tH=PageArea.AbsoluteSize.Y-PAD*2
+			local tW=PageArea.AbsoluteSize.X
+			local tH=PageArea.AbsoluteSize.Y
 			local gap=PAD
 			local eW=math.floor((tW-gap*2)/3)
-			sL.Position=UDim2.new(0,PAD,0,PAD) sL.Size=UDim2.new(0,eW,0,tH)
-			sC.Position=UDim2.new(0,PAD+eW+gap,0,PAD) sC.Size=UDim2.new(0,eW,0,tH)
-			sR.Position=UDim2.new(0,PAD+(eW+gap)*2,0,PAD) sR.Size=UDim2.new(0,eW,0,tH)
+			sL.Position=UDim2.new(0,0,0,0) sL.Size=UDim2.new(0,eW,1,0)
+			sC.Position=UDim2.new(0,eW+gap,0,0) sC.Size=UDim2.new(0,eW,1,0)
+			sR.Position=UDim2.new(0,(eW+gap)*2,0,0) sR.Size=UDim2.new(0,eW,1,0)
 		end
 		layout()
 		PageArea:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
@@ -1530,7 +1579,6 @@ function EcohubLibrarys.new(config)
 				},tBar)
 			end
 
-			-- build element container (no indent for top-level section)
 			local sec=buildElementContainer(target,HEADER_H,0)
 			return sec
 		end
