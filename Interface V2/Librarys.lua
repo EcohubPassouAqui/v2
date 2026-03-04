@@ -537,112 +537,177 @@ function EcohubLibrarys.new(config)
 
 		function sec:AddSlider(cfg)
 			cfg=cfg or {}
-			local label=cfg.Name or "Slider"
-			local saveId=cfg.SaveId or label
-			local minV=cfg.Min or 0
-			local maxV=cfg.Max or 100
-			local rounding=cfg.Rounding or 1
-			local suffix=cfg.Suffix or ""
-			local callback=cfg.Callback or function() end
-			local function rv(v) return math.floor(v/rounding+0.5)*rounding end
-			local value=getSaved(saveId,rv(math.clamp(cfg.Default or minV,minV,maxV)))
+			local label    = cfg.Name or "Slider"
+			local saveId   = cfg.SaveId or label
+			local minV     = cfg.Min or 0
+			local maxV     = cfg.Max or 100
+			local rounding = cfg.Rounding or 1
+			local suffix   = cfg.Suffix or ""
+			local callback = cfg.Callback or function() end
 
-			local row=newRow(ELEM_H+18)
+			local function rv(v) return math.floor(v / rounding + 0.5) * rounding end
+			local value = getSaved(saveId, rv(math.clamp(cfg.Default or minV, minV, maxV)))
+
+			local ROW_H   = 52
+			local RAIL_H  = 4
+			local THUMB_W = 14
+			local THUMB_H = 26
+
+			local row = newRow(ROW_H)
 
 			ni("TextLabel",{
-				Size=UDim2.new(1,-60,0,14),Position=UDim2.new(0,10,0,4),
-				BackgroundTransparency=1,Text=label,
-				TextColor3=T.text,TextSize=11,Font=Enum.Font.GothamSemibold,
-				TextXAlignment=Enum.TextXAlignment.Left,ZIndex=5,
+				Size=UDim2.new(1,-80,0,16),
+				Position=UDim2.new(0,10,0,8),
+				BackgroundTransparency=1,
+				Text=label,
+				TextColor3=T.text,
+				TextSize=11,
+				Font=Enum.Font.GothamSemibold,
+				TextXAlignment=Enum.TextXAlignment.Left,
+				ZIndex=5,
 			},row)
 
-			local valBox=ni("Frame",{
-				Size=UDim2.new(0,52,0,18),Position=UDim2.new(1,-58,0,4),
-				BackgroundColor3=Color3.fromRGB(20,20,24),BorderSizePixel=0,ZIndex=5,
+			local valFrame = ni("Frame",{
+				Size=UDim2.new(0,54,0,20),
+				Position=UDim2.new(1,-62,0,6),
+				BackgroundColor3=Color3.fromRGB(16,16,20),
+				BorderSizePixel=0,ZIndex=5,
 			},row)
-			rnd(valBox,5)
-			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},valBox)
+			rnd(valFrame,5)
+			ni("UIStroke",{Color=T.ElemBorder,Thickness=0.7},valFrame)
 
-			local valLbl=ni("TextLabel",{
-				Size=UDim2.new(1,0,1,0),Position=UDim2.new(0,0,0,0),
-				BackgroundTransparency=1,Text=tostring(rv(value))..suffix,
-				TextColor3=T.Accent,TextSize=10,Font=Enum.Font.GothamBold,
-				TextXAlignment=Enum.TextXAlignment.Center,ZIndex=6,
-			},valBox)
+			local valLbl = ni("TextLabel",{
+				Size=UDim2.new(1,0,1,0),
+				BackgroundTransparency=1,
+				Text=tostring(rv(value))..suffix,
+				TextColor3=T.Accent,
+				TextSize=10,
+				Font=Enum.Font.GothamBold,
+				TextXAlignment=Enum.TextXAlignment.Center,
+				ZIndex=6,
+			},valFrame)
 
-			local railBg=ni("Frame",{
-				Size=UDim2.new(1,-20,0,6),Position=UDim2.new(0,10,0,30),
-				BackgroundColor3=T.dim,BorderSizePixel=0,ZIndex=5,
+			local trackOuter = ni("Frame",{
+				Size=UDim2.new(1,-20,0,RAIL_H+8),
+				Position=UDim2.new(0,10,1,-(RAIL_H+8+8)),
+				BackgroundColor3=Color3.fromRGB(22,22,28),
+				BorderSizePixel=0,ZIndex=5,
 			},row)
-			rnd(railBg,6)
-			ni("UIStroke",{Color=Color3.fromRGB(60,60,70),Thickness=0.6},railBg)
+			rnd(trackOuter,6)
+			ni("UIStroke",{Color=Color3.fromRGB(48,48,58),Thickness=0.8},trackOuter)
 
-			local pct=(value-minV)/(maxV-minV)
-			local fill=ni("Frame",{
+			local rail = ni("Frame",{
+				Size=UDim2.new(1,0,0,RAIL_H),
+				Position=UDim2.new(0,0,0.5,-RAIL_H/2),
+				BackgroundColor3=T.dim,
+				BorderSizePixel=0,ZIndex=6,
+			},trackOuter)
+			rnd(rail,RAIL_H)
+
+			local pct = (value - minV) / (maxV - minV)
+
+			local fill = ni("Frame",{
 				Size=UDim2.new(pct,0,1,0),
-				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=6,
-			},railBg)
-			rnd(fill,6)
+				BackgroundColor3=T.Accent,
+				BorderSizePixel=0,ZIndex=7,
+			},rail)
+			rnd(fill,RAIL_H)
 
-			local fillGrad=Instance.new("UIGradient")
-			fillGrad.Color=ColorSequence.new({
-				ColorSequenceKeypoint.new(0,Color3.fromRGB(100,55,170)),
-				ColorSequenceKeypoint.new(1,Color3.fromRGB(155,100,220)),
+			local fillGrad = Instance.new("UIGradient")
+			fillGrad.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromRGB(95, 50, 160)),
+				ColorSequenceKeypoint.new(1, Color3.fromRGB(160, 105, 230)),
 			})
-			fillGrad.Parent=fill
+			fillGrad.Parent = fill
 
-			local dot=ni("Frame",{
-				Size=UDim2.new(0,16,0,16),AnchorPoint=Vector2.new(0.5,0.5),
+			local thumb = ni("Frame",{
+				Size=UDim2.new(0,THUMB_W,0,THUMB_H),
+				AnchorPoint=Vector2.new(0.5,0.5),
 				Position=UDim2.new(pct,0,0.5,0),
-				BackgroundColor3=T.text,BorderSizePixel=0,ZIndex=8,
-			},railBg)
-			rnd(dot,16)
-			ni("UIStroke",{Color=T.Accent,Thickness=2},dot)
+				BackgroundColor3=Color3.fromRGB(230,230,240),
+				BorderSizePixel=0,ZIndex=9,
+			},trackOuter)
+			rnd(thumb,4)
+			local thumbStroke = ni("UIStroke",{Color=T.Accent,Thickness=1.5},thumb)
 
-			local dotInner=ni("Frame",{
-				Size=UDim2.new(0,6,0,6),AnchorPoint=Vector2.new(0.5,0.5),
+			local thumbInner = ni("Frame",{
+				Size=UDim2.new(0,4,0,12),
+				AnchorPoint=Vector2.new(0.5,0.5),
 				Position=UDim2.new(0.5,0,0.5,0),
-				BackgroundColor3=T.Accent,BorderSizePixel=0,ZIndex=9,
-			},dot)
-			rnd(dotInner,6)
+				BackgroundColor3=T.Accent,
+				BorderSizePixel=0,ZIndex=10,
+			},thumb)
+			rnd(thumbInner,2)
 
-			local function setV(v,an)
-				value=rv(math.clamp(v,minV,maxV))
-				local p=(value-minV)/(maxV-minV)
-				local d=an and 0.06 or 0
-				tw(fill,{Size=UDim2.new(p,0,1,0)},d)
-				tw(dot,{Position=UDim2.new(p,0,0.5,0)},d)
-				valLbl.Text=tostring(value)..suffix
-				setSaved(saveId,value) callback(value)
+			local function applyPct(p, instant)
+				local dur = instant and 0 or 0.05
+				tw(fill,  {Size=UDim2.new(p,0,1,0)},   dur)
+				tw(thumb, {Position=UDim2.new(p,0,0.5,0)}, dur)
 			end
 
-			local drag=false
-			local function onDrag(ax)
-				local rel=math.clamp((ax-railBg.AbsolutePosition.X)/railBg.AbsoluteSize.X,0,1)
-				setV(minV+rel*(maxV-minV),false)
+			local function setV(v, instant)
+				value = rv(math.clamp(v, minV, maxV))
+				local p = (value - minV) / (maxV - minV)
+				applyPct(p, instant)
+				valLbl.Text = tostring(value)..suffix
+				setSaved(saveId, value)
+				callback(value)
 			end
 
-			local hit=ni("TextButton",{
-				Size=UDim2.new(1,0,1,0),BackgroundTransparency=1,
-				Text="",BorderSizePixel=0,ZIndex=9,
-			},row)
-			hit.MouseButton1Down:Connect(function(x) drag=true onDrag(x) end)
-			hit.MouseButton1Up:Connect(function() drag=false end)
-			dot.InputBegan:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=true end end)
-			dot.InputEnded:Connect(function(i) if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end end)
-			UserInputService.InputChanged:Connect(function(i)
-				if drag and i.UserInputType==Enum.UserInputType.MouseMovement then onDrag(i.Position.X) end
-			end)
-			UserInputService.InputEnded:Connect(function(i)
-				if i.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end
-			end)
-			hit.MouseEnter:Connect(function() tw(row,{BackgroundColor3=T.elemHover},0.1) end)
-			hit.MouseLeave:Connect(function() tw(row,{BackgroundColor3=T.elemBg},0.1) end)
+			local drag = false
 
-			local el={Value=value}
-			function el:Set(v) setV(v,true) el.Value=value end
-			function el:OnChanged(fn) local old=callback callback=function(val) old(val) fn(val) end fn(value) end
-			setV(value,false)
+			local function resolveX(ax)
+				local abs = trackOuter.AbsolutePosition.X
+				local sz  = trackOuter.AbsoluteSize.X
+				if sz <= 0 then return end
+				local rel = math.clamp((ax - abs) / sz, 0, 1)
+				setV(minV + rel * (maxV - minV), true)
+			end
+
+			local hitBtn = ni("TextButton",{
+				Size=UDim2.new(1,0,1,0),
+				BackgroundTransparency=1,
+				Text="",BorderSizePixel=0,ZIndex=11,
+			},trackOuter)
+
+			hitBtn.MouseButton1Down:Connect(function(x)
+				drag = true
+				resolveX(x)
+			end)
+
+			UserInputService.InputChanged:Connect(function(inp)
+				if drag and inp.UserInputType == Enum.UserInputType.MouseMovement then
+					resolveX(inp.Position.X)
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(inp)
+				if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+					drag = false
+				end
+			end)
+
+			hitBtn.MouseEnter:Connect(function()
+				tw(row,   {BackgroundColor3=T.elemHover}, 0.1)
+				tw(thumb, {BackgroundColor3=Color3.new(1,1,1)}, 0.12)
+				tw(thumbStroke, {Color=Color3.fromRGB(160,110,240)}, 0.12)
+			end)
+			hitBtn.MouseLeave:Connect(function()
+				if not drag then
+					tw(row,   {BackgroundColor3=T.elemBg}, 0.1)
+					tw(thumb, {BackgroundColor3=Color3.fromRGB(230,230,240)}, 0.12)
+					tw(thumbStroke, {Color=T.Accent}, 0.12)
+				end
+			end)
+
+			local el = {Value=value}
+			function el:Set(v) setV(v, true) el.Value = value end
+			function el:OnChanged(fn)
+				local old = callback
+				callback = function(val) old(val) fn(val) end
+				fn(value)
+			end
+			setV(value, true)
 			task.defer(function() callback(value) end)
 			return el
 		end
@@ -806,7 +871,7 @@ function EcohubLibrarys.new(config)
 				BackgroundTransparency=1,ZIndex=15,
 			},optScr)
 
-			local optLayout=ni("UIListLayout",{
+			ni("UIListLayout",{
 				SortOrder=Enum.SortOrder.LayoutOrder,
 				Padding=UDim.new(0,0),
 				FillDirection=Enum.FillDirection.Vertical,
