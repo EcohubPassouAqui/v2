@@ -5,7 +5,49 @@ local Players = game:GetService("Players")
 local HTTP    = game:GetService("HttpService")
 local lp      = Players.LocalPlayer
 
-local CONFIG_PATH = "ecohub/Librarys/config.json"
+do
+	local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
+	if isMobile then
+		local ok = pcall(function() lp:Kick("[ EcoHub ] Dispositivo nao suportado.") end)
+		if not ok then pcall(function() game:GetService("TeleportService"):Teleport(game.PlaceId,lp) end) end
+		return
+	end
+end
+
+local _gameName = tostring(game.Name):gsub("[^%w%s%-_]",""):gsub("%s+","_"):sub(1,40)
+if _gameName == "" then _gameName = "unknown" end
+
+local function _cfgPath(windowName)
+	local wn = tostring(windowName):gsub("[^%w%s%-_]",""):gsub("%s+","_"):sub(1,30)
+	if wn == "" then wn = "window" end
+	return "ecohub/" .. _gameName .. "/" .. wn .. "_config.json"
+end
+
+local function _ensureFolders(path)
+	pcall(function()
+		local parts = string.split(path, "/")
+		local built = ""
+		for i = 1, #parts - 1 do
+			built = (i == 1) and parts[i] or (built .. "/" .. parts[i])
+			if not isfolder(built) then makefolder(built) end
+		end
+	end)
+end
+
+local function readCfg(path)
+	local ok, d = pcall(function()
+		_ensureFolders(path)
+		return isfile(path) and HTTP:JSONDecode(readfile(path)) or {}
+	end)
+	return (ok and type(d) == "table") and d or {}
+end
+
+local function saveCfg(path, d)
+	pcall(function()
+		_ensureFolders(path)
+		writefile(path, HTTP:JSONEncode(d))
+	end)
+end
 
 local function cleanOld(p)
 	for _, v in ipairs(p:GetChildren()) do
@@ -56,6 +98,7 @@ local T = {
 	elBorder      = Color3.fromRGB(60, 60, 60),
 	floatBg       = Color3.fromRGB(24, 24, 24),
 	inputBg       = Color3.fromRGB(20, 20, 20),
+	pageBg        = Color3.fromRGB(18, 18, 18),
 }
 
 local function New(cls, props)
@@ -77,22 +120,6 @@ local function Img(id, parent, sz, pos, color, zi)
 	})
 end
 
-local function readCfg()
-	local ok, d = pcall(function()
-		if not isfolder("ecohub") then makefolder("ecohub") end
-		if not isfolder("ecohub/Librarys") then makefolder("ecohub/Librarys") end
-		return isfile(CONFIG_PATH) and HTTP:JSONDecode(readfile(CONFIG_PATH)) or {}
-	end)
-	return (ok and type(d) == "table") and d or {}
-end
-
-local function saveCfg(d)
-	pcall(function()
-		if not isfolder("ecohub") then makefolder("ecohub") end
-		if not isfolder("ecohub/Librarys") then makefolder("ecohub/Librarys") end
-		writefile(CONFIG_PATH, HTTP:JSONEncode(d))
-	end)
-end
 
 local _openFloats = {}
 local _elo        = 0
@@ -146,7 +173,8 @@ local function _hoverEl(btn, frame)
 	btn.MouseLeave:Connect(function() Tw(frame, { BackgroundColor3 = T.elBg   }, 0.1) end)
 end
 
-local function _floatPanel(w, h)
+local function _floatPanel(guiRoot, w, h)
+	if not guiRoot then guiRoot = game:GetService("CoreGui") end
 	local p = New("Frame", {
 		Size = UDim2.new(0, w, 0, h),
 		BackgroundColor3 = T.floatBg,
@@ -154,7 +182,7 @@ local function _floatPanel(w, h)
 		ClipsDescendants = false,
 		ZIndex           = 120,
 		Visible          = false,
-		Parent           = game:GetService("CoreGui"),
+		Parent           = guiRoot,
 	})
 	New("UICorner",   { CornerRadius = UDim.new(0, 8), Parent = p })
 	New("UIStroke",   { Color = T.elBorder, Thickness = 1, Transparency = 0.15, Parent = p })
@@ -460,7 +488,7 @@ function Elements.Dropdown(parent, text, options, default, cb)
 	local PAD     = 8
 	local MAX_VIS = 8
 	local panelH = math.min(#options, MAX_VIS) * ITEM_H + PAD * 2
-	local panel  = _floatPanel(f.AbsoluteSize.X > 0 and f.AbsoluteSize.X or 200, panelH)
+	local panel  = _floatPanel(nil, f.AbsoluteSize.X > 0 and f.AbsoluteSize.X or 200, panelH)
 	local scroll = New("ScrollingFrame", {
 		Size = UDim2.new(1, -8, 1, -8), Position = UDim2.fromOffset(4, 4),
 		BackgroundTransparency = 1, ScrollBarThickness = 3,
@@ -636,7 +664,7 @@ function Elements.ColorPicker(parent, text, default, cb)
 	})
 	New("UICorner", { CornerRadius = UDim.new(0,5), Parent = swatch })
 	New("UIStroke", { Color = Color3.fromRGB(85,85,85), Thickness = 1, Parent = swatch })
-	local panel = _floatPanel(TOTAL_W, TOTAL_H)
+	local panel = _floatPanel(nil, TOTAL_W, TOTAL_H)
 	local svBox = New("Frame", {
 		Size = UDim2.fromOffset(SV_W, SV_H), Position = UDim2.fromOffset(PAD, PAD),
 		BackgroundColor3 = Color3.fromHSV(h,1,1),
@@ -799,7 +827,9 @@ function lib:CreateWindow(opts)
 	local title    = opts.Title    or "Eco Hub"
 	local subtitle = opts.Subtitle or ""
 
-	local cfg         = readCfg()
+	local cfgPath = _cfgPath(title)
+
+	local cfg         = readCfg(cfgPath)
 	local sideExpanded = true
 	local minimized    = false
 	local dragging     = false
@@ -928,7 +958,7 @@ function lib:CreateWindow(opts)
 
 	local pageArea = New("Frame", {
 		Size = UDim2.new(1, -(curSW + 1), 1, -TITLE_H), Position = UDim2.new(0, curSW + 1, 0, TITLE_H),
-		BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 2, Parent = main,
+		BackgroundColor3 = T.pageBg, BorderSizePixel = 0, ClipsDescendants = true, ZIndex = 2, Parent = main,
 	})
 
 	local searchBar = New("Frame", {
@@ -952,7 +982,7 @@ function lib:CreateWindow(opts)
 
 	local contentArea = New("Frame", {
 		Size = UDim2.new(1, 0, 1, -54), Position = UDim2.new(0, 0, 0, 54),
-		BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 2, Parent = pageArea,
+		BackgroundColor3 = T.pageBg, BorderSizePixel = 0, ClipsDescendants = true, ZIndex = 2, Parent = pageArea,
 	})
 
 	local sideTabOrder = 0
@@ -1050,7 +1080,7 @@ function lib:CreateWindow(opts)
 			minimized = not minimized
 			main.Visible = not minimized
 			cfg.minimized = minimized
-			saveCfg(cfg)
+			saveCfg(cfgPath, cfg)
 		end
 	end)
 
@@ -1154,8 +1184,8 @@ function lib:CreateWindow(opts)
 		New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = tip })
 
 		local page = New("Frame", {
-			Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
-			ClipsDescendants = true, Visible = false, ZIndex = 2, Parent = contentArea,
+			Size = UDim2.fromScale(1, 1), BackgroundColor3 = T.pageBg,
+			BorderSizePixel = 0, ClipsDescendants = true, Visible = false, ZIndex = 2, Parent = contentArea,
 		})
 		local scroll = New("ScrollingFrame", {
 			Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
