@@ -70,12 +70,12 @@ local LOGO_ID   = "rbxassetid://134382458890933"
 local NOISE_ID  = "rbxassetid://9968344919"
 local SHADOW_ID = "rbxassetid://5554236805"
 
-local PANEL_W   = 560
-local PANEL_H   = 360
+local PANEL_W   = 580
+local PANEL_H   = 460
 local TITLE_H   = 36
-local SIDE_W    = 160
+local SIDE_W    = 165
 local SIDE_MINI = 42
-local LOGO_H    = 80
+local LOGO_H    = 96
 local EL_H      = 36
 
 local T = {
@@ -1229,30 +1229,40 @@ function lib:CreateWindow(opts)
 		Parent         = guiParent,
 	})
 
-	local main = N("Frame", {
+	local mainOuter = N("Frame", {
 		AnchorPoint      = Vector2.new(0.5, 0.5),
 		Size             = UDim2.new(0, PANEL_W, 0, PANEL_H),
 		Position         = UDim2.fromScale(0.5, 0.5),
 		BackgroundColor3 = T.bg,
 		BorderSizePixel  = 0,
-		ClipsDescendants = true,
+		ClipsDescendants = false,
 		ZIndex = 1,
 		Parent = gui,
 	})
-	Corner(main, 10)
-	Stroke(main, T.AcrylicBorder, 1, 0)
+	Corner(mainOuter, 10)
+	Stroke(mainOuter, T.AcrylicBorder, 1, 0)
 	N("ImageLabel", {
-		Size     = UDim2.fromScale(1,1) + UDim2.fromOffset(60,60),
-		Position = UDim2.fromOffset(-30,-30),
+		Size     = UDim2.fromScale(1,1) + UDim2.fromOffset(70,70),
+		Position = UDim2.fromOffset(-35,-35),
 		BackgroundTransparency = 1,
 		Image    = SHADOW_ID,
 		ScaleType   = Enum.ScaleType.Slice,
 		SliceCenter = Rect.new(23,23,277,277),
 		ImageColor3 = Color3.fromRGB(0,0,0),
-		ImageTransparency = 0.42,
+		ImageTransparency = 0.35,
 		ZIndex = 0,
-		Parent = main,
+		Parent = mainOuter,
 	})
+
+	local main = N("Frame", {
+		Size             = UDim2.fromScale(1, 1),
+		BackgroundColor3 = T.bg,
+		BorderSizePixel  = 0,
+		ClipsDescendants = true,
+		ZIndex = 1,
+		Parent = mainOuter,
+	})
+	Corner(main, 10)
 
 	local titleBar = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, TITLE_H),
@@ -1326,8 +1336,8 @@ function lib:CreateWindow(opts)
 		Parent = sidebar,
 	})
 	local sideLogoImg = N("ImageLabel", {
-		Size     = UDim2.new(0, 54, 0, 54),
-		Position = UDim2.new(0.5, -27, 0.5, -27),
+		Size     = UDim2.new(0, 72, 0, 72),
+		Position = UDim2.new(0.5, -36, 0.5, -36),
 		BackgroundTransparency = 1,
 		Image    = LOGO_ID,
 		ZIndex   = 6,
@@ -1559,8 +1569,8 @@ function lib:CreateWindow(opts)
 		end
 		if sideLogoImg then
 			Tw(sideLogoImg, {
-				Size     = expanded and UDim2.new(0,54,0,54) or UDim2.new(0,22,0,22),
-				Position = expanded and UDim2.new(0.5,-27,0.5,-27) or UDim2.new(0.5,-11,0.5,-11),
+				Size     = expanded and UDim2.new(0,72,0,72) or UDim2.new(0,22,0,22),
+				Position = expanded and UDim2.new(0.5,-36,0.5,-36) or UDim2.new(0.5,-11,0.5,-11),
 			}, 0.2)
 		end
 		if colIco then
@@ -1592,7 +1602,7 @@ function lib:CreateWindow(opts)
 	titleBar.InputBegan:Connect(function(inp)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
-			local p = main.AbsolutePosition
+			local p = mainOuter.AbsolutePosition
 			dragOff  = Vector2.new(inp.Position.X - p.X, inp.Position.Y - p.Y)
 		end
 	end)
@@ -1600,18 +1610,18 @@ function lib:CreateWindow(opts)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
 	end)
 	RS.RenderStepped:Connect(function()
-		if not dragging or not main then return end
+		if not dragging or not mainOuter then return end
 		local m = UIS:GetMouseLocation()
-		main.Position = UDim2.new(
-			0, m.X - dragOff.X + main.AbsoluteSize.X * 0.5,
-			0, m.Y - dragOff.Y + main.AbsoluteSize.Y * 0.5
+		mainOuter.Position = UDim2.new(
+			0, m.X - dragOff.X + mainOuter.AbsoluteSize.X * 0.5,
+			0, m.Y - dragOff.Y + mainOuter.AbsoluteSize.Y * 0.5
 		)
 	end)
 
 	UIS.InputBegan:Connect(function(inp, _)
 		if inp.KeyCode == Enum.KeyCode.RightAlt then
 			minimized = not minimized
-			if main then main.Visible = not minimized end
+			if mainOuter then mainOuter.Visible = not minimized end
 			cfg.minimized = minimized
 			saveCfg(cfgPath, cfg)
 		end
