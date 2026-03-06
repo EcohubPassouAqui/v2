@@ -24,15 +24,8 @@ end
 pcall(function() cleanOld(game:GetService("CoreGui")) end)
 pcall(function() if gethui then cleanOld(gethui()) end end)
 
-local _iconsOk, _iconsData = pcall(function()
-	return loadstring(game:HttpGet(
-		"https://raw.githubusercontent.com/EcohubPassouAqui/v2/refs/heads/main/icons"
-	))()
-end)
-if not _iconsOk then print("[EcoHub] Error: Failed to load icons: " .. tostring(_iconsData)) end
-local _iconReg = (_iconsOk and type(_iconsData) == "table" and _iconsData.assets) or {}
-local function icon(name)
-	return _iconReg["lucide-" .. tostring(name)] or "rbxassetid://0"
+local function icon(_name)
+	return "rbxassetid://0"
 end
 
 local _gameName = tostring(game.Name):gsub("[^%w%s%-_]",""):gsub("%s+","_"):sub(1,40)
@@ -164,16 +157,13 @@ local function Img(id, par, sz, pos, col, zi)
 	})
 end
 
-local _order = 0
-local function NextOrder() _order = _order + 1 return _order end
-
-local function ElBase(par, h)
+local function ElBase(par, h, orderRef)
 	local f = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, h or EL_H),
 		BackgroundColor3 = T.elBg,
 		BorderSizePixel  = 0,
 		ClipsDescendants = false,
-		LayoutOrder      = NextOrder(),
+		LayoutOrder      = orderRef(),
 		ZIndex           = 3,
 		Parent           = par,
 	})
@@ -190,13 +180,12 @@ local function HoverEl(btn, frame)
 	btn.MouseLeave:Connect(function() Tw(frame, {BackgroundColor3 = T.elBg},    0.1) end)
 end
 
-local function MkSection(par, text)
-	_order = _order + 1
+local function MkSection(par, text, orderRef)
 	local wrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, 28),
 		BackgroundColor3 = Color3.fromRGB(17, 17, 17),
 		BorderSizePixel  = 0,
-		LayoutOrder      = _order,
+		LayoutOrder      = orderRef(),
 		ZIndex           = 2,
 		ClipsDescendants = true,
 		Parent           = par,
@@ -245,31 +234,24 @@ local function MkSection(par, text)
 		Parent       = lbl,
 	})
 
-	local function loopShimmer()
+	task.spawn(function()
 		while wrap and wrap.Parent do
 			Tw(shimmer, { Position = UDim2.new(-0.2, 0, 0, 0) }, 0)
 			task.wait(0.05)
 			Tw(shimmer, { Position = UDim2.new(1.2, 0, 0, 0) }, 1.6, Enum.EasingStyle.Linear)
 			task.wait(3.2)
 		end
-	end
-	task.spawn(loopShimmer)
+	end)
 
 	return wrap
 end
 
-local _allElements = {}
-
-local function RegEl(frame, labelText)
-	table.insert(_allElements, { frame = frame, label = string.lower(labelText or "") })
-end
-
-local function MkToggle(par, text, default, cb, cfg, cpath, saveId)
+local function MkToggle(par, text, default, cb, cfg, cpath, saveId, orderRef, allElements)
 	local state = default == true
 	if saveId and cfg[saveId] ~= nil then state = cfg[saveId] == true end
 
-	local f = ElBase(par, EL_H)
-	RegEl(f, text)
+	local f = ElBase(par, EL_H, orderRef)
+	table.insert(allElements, { frame = f, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-70,1,0), Position = UDim2.new(0,11,0,0),
@@ -336,12 +318,12 @@ local function MkToggle(par, text, default, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkCheckbox(par, text, default, cb, cfg, cpath, saveId)
+local function MkCheckbox(par, text, default, cb, cfg, cpath, saveId, orderRef, allElements)
 	local state = default == true
 	if saveId and cfg[saveId] ~= nil then state = cfg[saveId] == true end
 
-	local f = ElBase(par, EL_H)
-	RegEl(f, text)
+	local f = ElBase(par, EL_H, orderRef)
+	table.insert(allElements, { frame = f, label = string.lower(text or "") })
 
 	local BSZ = 16
 	local box = N("Frame", {
@@ -388,9 +370,9 @@ local function MkCheckbox(par, text, default, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkButton(par, text, cb)
-	local f = ElBase(par, EL_H)
-	RegEl(f, text)
+local function MkButton(par, text, cb, orderRef, allElements)
+	local f = ElBase(par, EL_H, orderRef)
+	table.insert(allElements, { frame = f, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-36,1,0), Position = UDim2.new(0,11,0,0),
@@ -411,7 +393,7 @@ local function MkButton(par, text, cb)
 	return { Frame = f }
 end
 
-local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
+local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId, orderRef, allElements, connections)
 	minV = minV or 0
 	maxV = maxV or 100
 	local val  = math.clamp(defV or minV, minV, maxV)
@@ -421,8 +403,8 @@ local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 	local pct  = (val - minV) / math.max(maxV - minV, 0.001)
 	local drag = false
 
-	local f = ElBase(par, 48)
-	RegEl(f, text)
+	local f = ElBase(par, 48, orderRef)
+	table.insert(allElements, { frame = f, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-60,0,14), Position = UDim2.new(0,11,0,7),
@@ -500,18 +482,26 @@ local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 		Tw(f, {BackgroundColor3=T.elBg}, 0.1)
 		if not drag then Tw(knob, {Size=UDim2.new(0,KSZ,0,KSZ)}, 0.1, Enum.EasingStyle.Back) end
 	end)
-	UIS.InputEnded:Connect(function(inp)
+
+	local ieConn
+	ieConn = UIS.InputEnded:Connect(function(inp)
+		if not f or not f.Parent then ieConn:Disconnect() return end
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			if drag then Tw(knob, {Size=UDim2.new(0,KSZ,0,KSZ)}, 0.1, Enum.EasingStyle.Back) end
 			drag = false
 		end
 	end)
-	RS.RenderStepped:Connect(function()
+	table.insert(connections, ieConn)
+
+	local rsConn
+	rsConn = RS.RenderStepped:Connect(function()
+		if not f or not f.Parent then rsConn:Disconnect() return end
 		if not drag or not inner then return end
 		local mp = UIS:GetMouseLocation()
 		local ab, sz = inner.AbsolutePosition, inner.AbsoluteSize
 		setVal(minV + (maxV-minV) * math.clamp((mp.X-ab.X)/sz.X, 0, 1))
 	end)
+	table.insert(connections, rsConn)
 
 	return {
 		Set = function(v) setVal(v) end,
@@ -519,19 +509,18 @@ local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
+local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId, orderRef, allElements)
 	local selected = defV or (options and options[1]) or ""
 	if saveId and cfg[saveId] ~= nil then selected = tostring(cfg[saveId]) end
 	options = options or {}
 	local open    = false
 	local ITEM_H  = 28
 
-	_order = _order + 1
 	local wrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
 		BackgroundTransparency = 1,
 		ClipsDescendants = false,
-		LayoutOrder      = _order,
+		LayoutOrder      = orderRef(),
 		ZIndex           = 10,
 		Parent           = par,
 	})
@@ -547,7 +536,7 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	Stroke(header, T.elBorder, 1, 0.28)
 	Grad(header, Color3.fromRGB(28,28,28), Color3.fromRGB(17,17,17), 90)
 	Noise(header, 0.95, 12)
-	RegEl(header, text)
+	table.insert(allElements, { frame = header, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-95,1,0), Position = UDim2.new(0,11,0,0),
@@ -678,15 +667,15 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
+local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId, orderRef, allElements, connections)
 	local key = defKey or Enum.KeyCode.Unknown
 	if saveId and cfg[saveId] then
 		pcall(function() key = Enum.KeyCode[cfg[saveId]] or key end)
 	end
 	local listening = false
 
-	local f = ElBase(par, EL_H)
-	RegEl(f, text)
+	local f = ElBase(par, EL_H, orderRef)
+	table.insert(allElements, { frame = f, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-108,1,0), Position = UDim2.new(0,11,0,0),
@@ -721,7 +710,10 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 		Tw(kStr, {Color=T.white, Transparency=0}, 0.1)
 		Tw(kBox,  {BackgroundColor3=Color3.fromRGB(24,24,24)}, 0.1)
 	end)
-	UIS.InputBegan:Connect(function(inp)
+
+	local kConn
+	kConn = UIS.InputBegan:Connect(function(inp)
+		if not f or not f.Parent then kConn:Disconnect() return end
 		if not listening then return end
 		if inp.UserInputType == Enum.UserInputType.Keyboard then
 			listening = false
@@ -738,6 +730,7 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 			Tw(kBox,  {BackgroundColor3=Color3.fromRGB(16,16,16)}, 0.1)
 		end
 	end)
+	table.insert(connections, kConn)
 	HoverEl(btn, f)
 
 	return {
@@ -750,7 +743,7 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
+local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId, orderRef, allElements, connections)
 	local color = defCol or Color3.fromRGB(255, 80, 80)
 	if saveId and cfg[saveId] then
 		pcall(function() color = Color3.fromHex(cfg[saveId]) end)
@@ -771,12 +764,11 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		+ PREVIEW_H + GAP
 		+ HEX_H + PAD
 
-	_order = _order + 1
 	local wrap = N("Frame", {
 		Size                   = UDim2.new(1, 0, 0, EL_H),
 		BackgroundTransparency = 1,
 		ClipsDescendants       = false,
-		LayoutOrder            = _order,
+		LayoutOrder            = orderRef(),
 		ZIndex                 = 10,
 		Parent                 = par,
 	})
@@ -792,7 +784,7 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Stroke(header, T.elBorder, 1, 0.28)
 	Grad(header, Color3.fromRGB(28,28,28), Color3.fromRGB(17,17,17), 90)
 	Noise(header, 0.95, 12)
-	RegEl(header, text)
+	table.insert(allElements, { frame = header, label = string.lower(text or "") })
 
 	N("TextLabel", {
 		Size = UDim2.new(1,-52,1,0), Position = UDim2.new(0,11,0,0),
@@ -987,7 +979,7 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 			local ab = sl.inner.AbsolutePosition
 			local sz = sl.inner.AbsoluteSize
 			local v  = applySlider(sl, math.clamp((mp.X-ab.X)/sz.X, 0, 1) * 255)
-			setFn(v) ; syncAll(false)
+			setFn(v) syncAll(false)
 		end)
 		sl.hit.MouseEnter:Connect(function()
 			Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ+2,0,sl.KSZ+2)}, 0.1, Enum.EasingStyle.Back)
@@ -997,7 +989,10 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 				Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ,0,sl.KSZ)}, 0.1, Enum.EasingStyle.Back)
 			end
 		end)
-		UIS.InputEnded:Connect(function(inp)
+
+		local slIeConn
+		slIeConn = UIS.InputEnded:Connect(function(inp)
+			if not pickInner or not pickInner.Parent then slIeConn:Disconnect() return end
 			if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 				if dragActive then
 					Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ,0,sl.KSZ)}, 0.1, Enum.EasingStyle.Back)
@@ -1005,14 +1000,19 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 				dragActive = false
 			end
 		end)
-		RS.RenderStepped:Connect(function()
+		table.insert(connections, slIeConn)
+
+		local slRsConn
+		slRsConn = RS.RenderStepped:Connect(function()
+			if not pickInner or not pickInner.Parent then slRsConn:Disconnect() return end
 			if not dragActive or not open then return end
 			local mp = UIS:GetMouseLocation()
 			local ab = sl.inner.AbsolutePosition
 			local sz = sl.inner.AbsoluteSize
 			local v  = applySlider(sl, math.clamp((mp.X-ab.X)/sz.X, 0, 1) * 255)
-			setFn(v) ; syncAll(false)
+			setFn(v) syncAll(false)
 		end)
+		table.insert(connections, slRsConn)
 	end
 
 	wireSlider(sR, function(v) rV = v end)
@@ -1080,33 +1080,33 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	}
 end
 
-local function MkSecObj(scroll, cfg, cpath)
+local function MkSecObj(scroll, cfg, cpath, orderRef, allElements, connections)
 	local obj = {}
 
 	function obj:AddToggle(text, default, callback, saveId)
-		return MkToggle(scroll, text, default, callback, cfg, cpath, saveId)
+		return MkToggle(scroll, text, default, callback, cfg, cpath, saveId, orderRef, allElements)
 	end
 	function obj:AddCheckbox(text, default, callback, saveId)
-		return MkCheckbox(scroll, text, default, callback, cfg, cpath, saveId)
+		return MkCheckbox(scroll, text, default, callback, cfg, cpath, saveId, orderRef, allElements)
 	end
 	function obj:AddButton(text, callback)
-		return MkButton(scroll, text, callback)
+		return MkButton(scroll, text, callback, orderRef, allElements)
 	end
 	function obj:AddSlider(text, minV, maxV, defV, callback, saveId)
-		return MkSlider(scroll, text, minV, maxV, defV, callback, cfg, cpath, saveId)
+		return MkSlider(scroll, text, minV, maxV, defV, callback, cfg, cpath, saveId, orderRef, allElements, connections)
 	end
 	function obj:AddDropdown(text, opts, defV, callback, saveId)
-		return MkDropdown(scroll, text, opts, defV, callback, cfg, cpath, saveId)
+		return MkDropdown(scroll, text, opts, defV, callback, cfg, cpath, saveId, orderRef, allElements)
 	end
 	function obj:AddKeybind(text, defKey, callback, saveId)
-		return MkKeybind(scroll, text, defKey, callback, cfg, cpath, saveId)
+		return MkKeybind(scroll, text, defKey, callback, cfg, cpath, saveId, orderRef, allElements, connections)
 	end
 	function obj:AddColorPicker(text, defCol, callback, saveId)
-		return MkColorPicker(scroll, text, defCol, callback, cfg, cpath, saveId)
+		return MkColorPicker(scroll, text, defCol, callback, cfg, cpath, saveId, orderRef, allElements, connections)
 	end
 	function obj:AddSection(name)
-		MkSection(scroll, name or "Section")
-		return MkSecObj(scroll, cfg, cpath)
+		MkSection(scroll, name or "Section", orderRef)
+		return MkSecObj(scroll, cfg, cpath, orderRef, allElements, connections)
 	end
 
 	return obj
@@ -1132,6 +1132,15 @@ function lib:CreateWindow(opts)
 	local lastSection  = nil
 	local curSW        = SIDE_W
 	local searchActive = false
+
+	local _order       = 0
+	local allElements  = {}
+	local connections  = {}
+
+	local function orderRef()
+		_order = _order + 1
+		return _order
+	end
 
 	local guiParent
 	pcall(function() guiParent = gethui and gethui() end)
@@ -1355,22 +1364,22 @@ function lib:CreateWindow(opts)
 			end
 		end
 
-		local count, order = 0, 0
-		for _, entry in ipairs(_allElements) do
+		local count, ord = 0, 0
+		for _, entry in ipairs(allElements) do
 			if entry.label:find(query, 1, true) and entry.frame and entry.frame.Parent then
-				order = order + 1 ; count = count + 1
+				ord = ord + 1 count = count + 1
 				table.insert(_movedEntries, {
 					frame      = entry.frame,
 					origParent = entry.frame.Parent,
 					origOrder  = entry.frame.LayoutOrder,
 				})
-				entry.frame.LayoutOrder = order
+				entry.frame.LayoutOrder = ord
 				entry.frame.Parent      = searchPage
 			end
 		end
 
 		noResultLbl.Visible     = count == 0
-		noResultLbl.LayoutOrder = order + 1
+		noResultLbl.LayoutOrder = ord + 1
 	end
 
 	searchBox:GetPropertyChangedSignal("Text"):Connect(function() doSearch(searchBox.Text) end)
@@ -1401,7 +1410,7 @@ function lib:CreateWindow(opts)
 		Tw(tab.ico, {ImageColor3=T.white},  0.13)
 		Tw(tab.lbl, {TextColor3=T.tabAct}, 0.13)
 		animUL(tab.ul, instant)
-		cfg.activeTab = tab.name ; saveCfg(cpath, cfg)
+		cfg.activeTab = tab.name saveCfg(cpath, cfg)
 	end
 
 	local function setSide(expanded)
@@ -1435,7 +1444,7 @@ function lib:CreateWindow(opts)
 		colIco.Position = expanded and UDim2.new(1,-15,0.5,-6) or UDim2.new(0.5,-6,0.5,-6)
 		colLbl.Text = expanded and "Collapse" or "Expand"
 		Tw(colLbl, {TextTransparency=hide}, 0.15)
-		cfg.sideExpanded = expanded ; saveCfg(cpath, cfg)
+		cfg.sideExpanded = expanded saveCfg(cpath, cfg)
 	end
 
 	if cfg.sideExpanded == false then setSide(false) end
@@ -1460,22 +1469,29 @@ function lib:CreateWindow(opts)
 	titleBar.InputEnded:Connect(function(inp)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
 	end)
-	RS.RenderStepped:Connect(function()
-		if not dragging or not main then return end
+
+	local dragConn
+	dragConn = RS.RenderStepped:Connect(function()
+		if not main or not main.Parent then dragConn:Disconnect() return end
+		if not dragging then return end
 		local m = UIS:GetMouseLocation()
 		main.Position = UDim2.new(
 			0, m.X-dragOff.X+main.AbsoluteSize.X*0.5,
 			0, m.Y-dragOff.Y+main.AbsoluteSize.Y*0.5
 		)
 	end)
+	table.insert(connections, dragConn)
 
-	UIS.InputBegan:Connect(function(inp, _)
+	local minConn
+	minConn = UIS.InputBegan:Connect(function(inp, _)
+		if not gui or not gui.Parent then minConn:Disconnect() return end
 		if inp.KeyCode == Enum.KeyCode.RightAlt then
 			minimized = not minimized
 			if main then main.Visible = not minimized end
-			cfg.minimized = minimized ; saveCfg(cpath, cfg)
+			cfg.minimized = minimized saveCfg(cpath, cfg)
 		end
 	end)
+	table.insert(connections, minConn)
 
 	local function makeSideLabel(labelText)
 		sideOrder = sideOrder + 1
@@ -1576,18 +1592,23 @@ function lib:CreateWindow(opts)
 		end)
 
 		if #tabs == 1 then selectTab(tab, true) end
-		if cfg.activeTab == tabTitle then selectTab(tab, true) end
+		if cfg.activeTab == tabTitle and cfg.activeTab ~= tabs[1].name then selectTab(tab, true) end
 
-		local tabObj = MkSecObj(scroll, cfg, cpath)
+		local tabObj = MkSecObj(scroll, cfg, cpath, orderRef, allElements, connections)
 		function tabObj:AddSection(sectionName)
 			sectionName = type(sectionName)=="string" and sectionName or "Section"
-			MkSection(scroll, sectionName)
-			return MkSecObj(scroll, cfg, cpath)
+			MkSection(scroll, sectionName, orderRef)
+			return MkSecObj(scroll, cfg, cpath, orderRef, allElements, connections)
 		end
 		return tabObj
 	end
 
 	function window:Destroy()
+		for _, conn in ipairs(connections) do
+			pcall(function() conn:Disconnect() end)
+		end
+		connections = {}
+		allElements = {}
 		pcall(function() gui:Destroy() end)
 	end
 
