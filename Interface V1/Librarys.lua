@@ -1348,34 +1348,62 @@ function lib:CreateWindow(opts)
 		ZIndex=3, Parent=searchPage,
 	})
 
+	-- Tracks frames temporarily moved into searchPage so we can restore them
+	local _movedEntries = {}  -- { frame, origParent, origLayoutOrder }
+
+	local function restoreSearchFrames()
+		for _, m in ipairs(_movedEntries) do
+			pcall(function()
+				m.frame.LayoutOrder = m.origOrder
+				m.frame.Parent      = m.origParent
+			end)
+		end
+		_movedEntries = {}
+	end
+
 	local function doSearch(query)
 		query = string.lower(query or "")
+
+		-- Restore any previously moved frames first
+		restoreSearchFrames()
+
 		if query == "" then
 			searchActive = false
 			searchPage.Visible = false
 			if activeTab and activeTab.page then activeTab.page.Visible = true end
 			return
 		end
+
 		searchActive = true
 		if activeTab and activeTab.page then activeTab.page.Visible = false end
 		searchPage.Visible = true
+
+		-- Clear stale refs from searchPage (UIListLayout/UIPadding/noResultLbl stay)
 		for _, c in ipairs(searchPage:GetChildren()) do
 			if not c:IsA("UIListLayout") and not c:IsA("UIPadding") and c ~= noResultLbl then
 				pcall(function() c.Parent = nil end)
 			end
 		end
+
 		local count, order = 0, 0
 		for _, entry in ipairs(_allElements) do
-			if entry.label:find(query,1,true) and entry.frame and entry.frame.Parent then
+			if entry.label:find(query, 1, true) and entry.frame and entry.frame.Parent then
 				order = order + 1 ; count = count + 1
-				local clone = entry.frame:Clone()
-				clone.LayoutOrder = order
-				clone.Parent = searchPage
+				-- Save original parent & order so we can restore later
+				table.insert(_movedEntries, {
+					frame      = entry.frame,
+					origParent = entry.frame.Parent,
+					origOrder  = entry.frame.LayoutOrder,
+				})
+				entry.frame.LayoutOrder = order
+				entry.frame.Parent      = searchPage
 			end
 		end
+
 		noResultLbl.Visible     = count == 0
 		noResultLbl.LayoutOrder = order + 1
 	end
+
 	searchBox:GetPropertyChangedSignal("Text"):Connect(function() doSearch(searchBox.Text) end)
 
 	local function animUL(ul, instant)
