@@ -741,7 +741,7 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Color Picker (inline — expands inside scroll) ──────────────────────────
+-- ─── Color Picker (inline — expands inside scroll, no invisible-space bug) ──
 local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	local color = defCol or Color3.fromRGB(255, 80, 80)
 	if saveId and cfg[saveId] then
@@ -752,30 +752,33 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	local svDrag = false
 	local hDrag  = false
 
-	-- Picker dimensions
-	local SV_W  = 170
-	local SV_H  = 130
-	local HUE_W = 14
-	local GAP   = 8
-	local HEX_H = 26
-	local PAD   = 8
-	local PICK_H = PAD + SV_H + GAP + HEX_H + PAD
+	-- Layout constants
+	local SV_W   = 180   -- SV box width
+	local SV_H   = 130   -- SV box height
+	local HUE_W  = 14    -- hue bar width
+	local GAP    = 8     -- gap between SV and hue
+	local HEX_H  = 26    -- hex row height
+	local PAD    = 8     -- inner padding
+	local PICK_H = PAD + SV_H + GAP + HEX_H + PAD  -- total picker height
 
-	-- Outer wrapper
+	-- ── Outer wrapper (grows when open) ──────────────────────────────────
 	_order = _order + 1
 	local wrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
 		BackgroundTransparency = 1,
-		ClipsDescendants = false,
+		ClipsDescendants = false,   -- must NOT clip so picker shows below
 		LayoutOrder      = _order,
 		ZIndex           = 10,
 		Parent           = par,
 	})
 
-	-- Header bar
+	-- ── Header (always visible, acts as toggle) ───────────────────────────
 	local header = N("Frame", {
-		Size = UDim2.new(1,0,0,EL_H),
-		BackgroundColor3 = T.elBg, BorderSizePixel = 0, ZIndex = 11, Parent = wrap,
+		Size             = UDim2.new(1, 0, 0, EL_H),
+		BackgroundColor3 = T.elBg,
+		BorderSizePixel  = 0,
+		ZIndex           = 11,
+		Parent           = wrap,
 	})
 	Corner(header, 6)
 	Stroke(header, T.elBorder, 1, 0.28)
@@ -790,7 +793,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
 		ZIndex = 12, Parent = header,
 	})
-
 	local swatch = N("Frame", {
 		Size = UDim2.new(0,22,0,22), Position = UDim2.new(1,-32,0.5,-11),
 		BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = 12, Parent = header,
@@ -798,13 +800,14 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Corner(swatch, 4)
 	Stroke(swatch, Color3.fromRGB(70,70,70), 1, 0)
 
-	-- Picker panel (expands below header)
+	-- ── Picker panel (hidden/shown below header) ───────────────────────────
+	-- ClipsDescendants = true so the knob doesn't bleed outside when closed
 	local pickWrap = N("Frame", {
-		Size             = UDim2.new(1, 0, 0, 0),
+		Size             = UDim2.new(1, 0, 0, 0),   -- starts collapsed
 		Position         = UDim2.new(0, 0, 0, EL_H + 3),
 		BackgroundColor3 = T.dropBg,
 		BorderSizePixel  = 0,
-		ClipsDescendants = true,
+		ClipsDescendants = true,   -- clips knob while animating open/close
 		ZIndex           = 10,
 		Parent           = wrap,
 	})
@@ -812,76 +815,126 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Stroke(pickWrap, T.elBorder, 1, 0.2)
 	Grad(pickWrap, Color3.fromRGB(24,24,24), Color3.fromRGB(14,14,14), 90)
 
+	-- Inner fixed-size container (never changes size)
 	local pickInner = N("Frame", {
-		Size = UDim2.new(1,0,0,PICK_H),
+		Size             = UDim2.new(1, 0, 0, PICK_H),
 		BackgroundTransparency = 1,
-		ZIndex = 11, Parent = pickWrap,
+		ClipsDescendants = false,   -- knob can overflow svBox visually
+		ZIndex           = 11,
+		Parent           = pickWrap,
 	})
 
-	-- SV gradient box
+	-- ── SV gradient box (NO ClipsDescendants so knob is never cut) ────────
 	local svBox = N("Frame", {
-		Size = UDim2.fromOffset(SV_W, SV_H),
-		Position = UDim2.fromOffset(PAD, PAD),
-		BackgroundColor3 = Color3.fromHSV(h,1,1),
-		BorderSizePixel = 0, ClipsDescendants = true,
-		ZIndex = 12, Parent = pickInner,
+		Size             = UDim2.fromOffset(SV_W, SV_H),
+		Position         = UDim2.fromOffset(PAD, PAD),
+		BackgroundColor3 = Color3.fromHSV(h, 1, 1),
+		BorderSizePixel  = 0,
+		ClipsDescendants = false,   -- KEY FIX: knob stays visible at edges
+		ZIndex           = 12,
+		Parent           = pickInner,
 	})
 	Corner(svBox, 5)
 	Stroke(svBox, T.elBorder, 1, 0.25)
-	-- White fade left→right
-	local svW = N("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.new(1,1,1),BorderSizePixel=0,ZIndex=13,Parent=svBox})
-	N("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,0),NumberSequenceKeypoint.new(1,1)}),Parent=svW})
-	-- Black fade top→bottom
-	local svB = N("Frame",{Size=UDim2.fromScale(1,1),BackgroundColor3=Color3.new(0,0,0),BorderSizePixel=0,ZIndex=14,Parent=svBox})
-	N("UIGradient",{Transparency=NumberSequence.new({NumberSequenceKeypoint.new(0,1),NumberSequenceKeypoint.new(1,0)}),Rotation=90,Parent=svB})
 
-	local svKnob = N("Frame",{
-		Size = UDim2.fromOffset(12,12),
-		AnchorPoint = Vector2.new(0.5,0.5),
-		Position = UDim2.new(s,0,1-v,0),
-		BackgroundColor3 = Color3.new(1,1,1),
-		BorderSizePixel = 0, ZIndex = 15, Parent = svBox,
+	-- White saturation gradient (left opaque → right transparent)
+	local svW = N("Frame", {
+		Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.new(1,1,1),
+		BorderSizePixel = 0, ZIndex = 13, Parent = svBox,
 	})
-	Corner(svKnob, 12)
-	N("UIStroke",{Color=Color3.new(1,1,1),Thickness=2,Parent=svKnob})
+	N("UIGradient", {
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		}),
+		Parent = svW,
+	})
+	-- Black value gradient (top transparent → bottom opaque)
+	local svB = N("Frame", {
+		Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.new(0,0,0),
+		BorderSizePixel = 0, ZIndex = 14, Parent = svBox,
+	})
+	N("UIGradient", {
+		Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 0),
+		}),
+		Rotation = 90,
+		Parent = svB,
+	})
 
-	-- Hue bar
-	local hueBar = N("Frame",{
-		Size = UDim2.fromOffset(HUE_W, SV_H),
+	-- Invisible hit area covering svBox (ZIndex above gradients, below knob)
+	local svHit = N("TextButton", {
+		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
+		Text = "", ZIndex = 15, Parent = svBox,
+	})
+
+	-- SV knob — child of svBox but not clipped (ClipsDescendants=false above)
+	local KSZ = 12
+	local svKnob = N("Frame", {
+		Size        = UDim2.fromOffset(KSZ, KSZ),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position    = UDim2.new(s, 0, 1-v, 0),
+		BackgroundColor3 = Color3.new(1,1,1),
+		BorderSizePixel  = 0,
+		ZIndex           = 16,  -- above hit area
+		Parent           = svBox,
+	})
+	Corner(svKnob, KSZ)
+	N("UIStroke", {Color=Color3.fromRGB(30,30,30), Thickness=2, Parent=svKnob})
+
+	-- ── Hue bar ────────────────────────────────────────────────────────────
+	local hueBar = N("Frame", {
+		Size     = UDim2.fromOffset(HUE_W, SV_H),
 		Position = UDim2.fromOffset(PAD + SV_W + GAP, PAD),
-		BorderSizePixel = 0, ZIndex = 12, Parent = pickInner,
+		BorderSizePixel  = 0,
+		ClipsDescendants = false,
+		ZIndex   = 12,
+		Parent   = pickInner,
 	})
 	Corner(hueBar, HUE_W)
 	Stroke(hueBar, T.elBorder, 1, 0.25)
 	local hKeys = {}
-	for i = 0, 6 do table.insert(hKeys, ColorSequenceKeypoint.new(i/6, Color3.fromHSV(i/6,1,1))) end
-	N("UIGradient",{Color=ColorSequence.new(hKeys),Rotation=90,Parent=hueBar})
+	for i = 0, 6 do
+		table.insert(hKeys, ColorSequenceKeypoint.new(i/6, Color3.fromHSV(i/6, 1, 1)))
+	end
+	N("UIGradient", {Color=ColorSequence.new(hKeys), Rotation=90, Parent=hueBar})
 
-	local hueKnob = N("Frame",{
-		Size = UDim2.fromOffset(HUE_W+6, 5),
-		AnchorPoint = Vector2.new(0.5,0.5),
-		Position = UDim2.new(0.5,0,h,0),
+	local hueHit = N("TextButton", {
+		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
+		Text = "", ZIndex = 13, Parent = hueBar,
+	})
+
+	local hueKnob = N("Frame", {
+		Size        = UDim2.fromOffset(HUE_W + 6, 5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position    = UDim2.new(0.5, 0, h, 0),
 		BackgroundColor3 = Color3.new(1,1,1),
-		BorderSizePixel = 0, ZIndex = 13, Parent = hueBar,
+		BorderSizePixel  = 0,
+		ZIndex = 14,
+		Parent = hueBar,
 	})
 	Corner(hueKnob, 3)
-	N("UIStroke",{Color=Color3.fromRGB(180,180,180),Thickness=1.5,Parent=hueKnob})
+	N("UIStroke", {Color=Color3.fromRGB(180,180,180), Thickness=1.5, Parent=hueKnob})
 
-	-- Hex input row
-	local hexRow = N("Frame",{
-		Size = UDim2.fromOffset(SV_W + GAP + HUE_W, HEX_H),
-		Position = UDim2.fromOffset(PAD, PAD + SV_H + GAP),
-		BackgroundColor3 = T.inputBg, BorderSizePixel = 0, ZIndex = 12, Parent = pickInner,
+	-- ── Hex input row ──────────────────────────────────────────────────────
+	local hexRow = N("Frame", {
+		Size             = UDim2.fromOffset(SV_W + GAP + HUE_W, HEX_H),
+		Position         = UDim2.fromOffset(PAD, PAD + SV_H + GAP),
+		BackgroundColor3 = T.inputBg,
+		BorderSizePixel  = 0,
+		ZIndex           = 12,
+		Parent           = pickInner,
 	})
 	Corner(hexRow, 5)
 	Stroke(hexRow, T.elBorder, 1, 0.2)
-	N("TextLabel",{
+	N("TextLabel", {
 		Size=UDim2.new(0,16,1,0), Position=UDim2.fromOffset(6,0),
 		BackgroundTransparency=1, Text="#", TextColor3=T.Accent,
 		TextSize=10, Font=Enum.Font.GothamBold,
 		TextXAlignment=Enum.TextXAlignment.Center, ZIndex=13, Parent=hexRow,
 	})
-	local hexInput = N("TextBox",{
+	local hexInput = N("TextBox", {
 		Size=UDim2.new(1,-46,1,0), Position=UDim2.fromOffset(20,0),
 		BackgroundTransparency=1, Text=color:ToHex():upper(),
 		PlaceholderText="RRGGBB", PlaceholderColor3=T.dim,
@@ -889,31 +942,33 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		TextXAlignment=Enum.TextXAlignment.Left,
 		ClearTextOnFocus=false, ZIndex=13, Parent=hexRow,
 	})
-	local hexSwatch = N("Frame",{
+	local hexSwatch = N("Frame", {
 		Size=UDim2.new(0,14,0,14), Position=UDim2.new(1,-18,0.5,-7),
 		BackgroundColor3=color, BorderSizePixel=0, ZIndex=13, Parent=hexRow,
 	})
 	Corner(hexSwatch, 3)
 	Stroke(hexSwatch, Color3.fromRGB(60,60,60), 1, 0)
 
+	-- ── Update function ────────────────────────────────────────────────────
 	local function updateAll()
 		color = Color3.fromHSV(h, s, v)
 		pcall(function()
 			swatch.BackgroundColor3    = color
 			hexSwatch.BackgroundColor3 = color
-			svBox.BackgroundColor3     = Color3.fromHSV(h,1,1)
-			svKnob.Position            = UDim2.new(s,0,1-v,0)
-			hueKnob.Position           = UDim2.new(0.5,0,h,0)
+			svBox.BackgroundColor3     = Color3.fromHSV(h, 1, 1)
+			svKnob.Position            = UDim2.new(s, 0, 1-v, 0)
+			hueKnob.Position           = UDim2.new(0.5, 0, h, 0)
 			if hexInput then hexInput.Text = color:ToHex():upper() end
 		end)
 		if saveId then cfg[saveId] = color:ToHex() saveCfg(cpath, cfg) end
 		pcall(function() if cb then cb(color) end end)
 	end
 
+	-- Hex input commit on Enter
 	if hexInput then
 		hexInput.FocusLost:Connect(function(enter)
 			if not enter then return end
-			local txt = hexInput.Text:gsub("#","")
+			local txt = hexInput.Text:gsub("#", "")
 			local ok2, c2 = pcall(Color3.fromHex, txt)
 			if ok2 and typeof(c2) == "Color3" then
 				h, s, v = Color3.toHSV(c2)
@@ -924,12 +979,28 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		end)
 	end
 
-	-- Drag inputs (only while pickWrap is visible)
-	local svHit = N("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=16,Parent=svBox})
-	svHit.MouseButton1Down:Connect(function() if open then svDrag=true end end)
+	-- ── Drag logic — guarded by open flag ─────────────────────────────────
+	svHit.MouseButton1Down:Connect(function()
+		if not open then return end
+		svDrag = true
+		-- Immediate update on click
+		local mp = UIS:GetMouseLocation()
+		local ab = svBox.AbsolutePosition
+		local sz = svBox.AbsoluteSize
+		s = math.clamp((mp.X - ab.X) / sz.X, 0, 1)
+		v = 1 - math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
+		updateAll()
+	end)
 
-	local hueHit = N("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=14,Parent=hueBar})
-	hueHit.MouseButton1Down:Connect(function() if open then hDrag=true end end)
+	hueHit.MouseButton1Down:Connect(function()
+		if not open then return end
+		hDrag = true
+		local mp = UIS:GetMouseLocation()
+		local ab = hueBar.AbsolutePosition
+		local sz = hueBar.AbsoluteSize
+		h = math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
+		updateAll()
+	end)
 
 	UIS.InputEnded:Connect(function(inp)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -939,15 +1010,14 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	end)
 
 	RS.RenderStepped:Connect(function()
-		if svDrag and open and svBox then
+		if svDrag and open then
 			local mp = UIS:GetMouseLocation()
 			local ab = svBox.AbsolutePosition
 			local sz = svBox.AbsoluteSize
 			s = math.clamp((mp.X - ab.X) / sz.X, 0, 1)
 			v = 1 - math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
 			updateAll()
-		end
-		if hDrag and open and hueBar then
+		elseif hDrag and open then
 			local mp = UIS:GetMouseLocation()
 			local ab = hueBar.AbsolutePosition
 			local sz = hueBar.AbsoluteSize
@@ -956,22 +1026,30 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		end
 	end)
 
-	local togBtn = N("TextButton",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Text="",ZIndex=15,Parent=header})
+	-- ── Toggle open/close ──────────────────────────────────────────────────
+	local togBtn = N("TextButton", {
+		Size=UDim2.fromScale(1,1), BackgroundTransparency=1, Text="", ZIndex=15, Parent=header,
+	})
 	togBtn.MouseButton1Click:Connect(function()
 		open = not open
 		if open then
-			Tw(pickWrap, {Size=UDim2.new(1,0,0,PICK_H)}, 0.2, Enum.EasingStyle.Quint)
+			Tw(pickWrap, {Size=UDim2.new(1,0,0,PICK_H)},         0.2, Enum.EasingStyle.Quint)
 			Tw(wrap,     {Size=UDim2.new(1,0,0,EL_H+3+PICK_H)}, 0.2, Enum.EasingStyle.Quint)
-			Tw(header,   {BackgroundColor3=T.elBgHov}, 0.12)
+			Tw(header,   {BackgroundColor3=T.elBgHov},            0.12)
 		else
-			svDrag = false hDrag = false
-			Tw(pickWrap, {Size=UDim2.new(1,0,0,0)}, 0.18, Enum.EasingStyle.Quint)
+			svDrag = false
+			hDrag  = false
+			Tw(pickWrap, {Size=UDim2.new(1,0,0,0)},    0.18, Enum.EasingStyle.Quint)
 			Tw(wrap,     {Size=UDim2.new(1,0,0,EL_H)}, 0.18, Enum.EasingStyle.Quint)
-			Tw(header,   {BackgroundColor3=T.elBg}, 0.12)
+			Tw(header,   {BackgroundColor3=T.elBg},     0.12)
 		end
 	end)
-	togBtn.MouseEnter:Connect(function() if not open then Tw(header,{BackgroundColor3=T.elBgHov},0.1) end end)
-	togBtn.MouseLeave:Connect(function() if not open then Tw(header,{BackgroundColor3=T.elBg},0.1) end end)
+	togBtn.MouseEnter:Connect(function()
+		if not open then Tw(header, {BackgroundColor3=T.elBgHov}, 0.1) end
+	end)
+	togBtn.MouseLeave:Connect(function()
+		if not open then Tw(header, {BackgroundColor3=T.elBg}, 0.1) end
+	end)
 
 	return {
 		Set = function(c) color=c h,s,v=Color3.toHSV(c) updateAll() end,
