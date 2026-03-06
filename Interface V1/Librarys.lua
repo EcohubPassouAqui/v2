@@ -1103,6 +1103,14 @@ function lib:CreateWindow(opts)
 		return sec
 	end
 
+	function window:AddSideLabel(labelText)
+		if type(labelText) ~= "string" then
+			print("[EcoHub] AddSideLabel: texto deve ser string")
+			labelText = "Section"
+		end
+		makeSideLabel(labelText)
+	end
+
 	function window:AddTab(opts2)
 		if type(opts2) ~= "table" then
 			print("[EcoHub] AddTab: opts deve ser uma tabela")
@@ -1112,6 +1120,10 @@ function lib:CreateWindow(opts)
 		local tabTitle   = opts2.Title   or "Tab"
 		local tabIcon    = opts2.Icon    or "circle"
 		local tabSection = opts2.Section or nil
+
+		if tabSection then
+			makeSideLabel(tabSection)
+		end
 
 		sideTabOrder += 1
 
@@ -1140,6 +1152,7 @@ function lib:CreateWindow(opts)
 			ZIndex = 30, Visible = false, Parent = btn,
 		})
 		New("UICorner", { CornerRadius = UDim.new(0, 5), Parent = tip })
+
 		local page = New("Frame", {
 			Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1,
 			ClipsDescendants = true, Visible = false, ZIndex = 2, Parent = contentArea,
@@ -1152,6 +1165,10 @@ function lib:CreateWindow(opts)
 		})
 		New("UIListLayout", { SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6), Parent = scroll })
 		New("UIPadding", { PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), Parent = scroll })
+
+		if tabSection then
+			makeContentSection(tabSection, scroll)
+		end
 
 		local tab = { name = tabTitle, btn = btn, ico = ico, lbl = lbl, ul = ul, tip = tip, page = page, scroll = scroll }
 		table.insert(tabs, tab)
@@ -1178,11 +1195,6 @@ function lib:CreateWindow(opts)
 		if cfg.activeTab == tabTitle then selectTab(tab, true) end
 
 		local tabObj = {}
-
-		if tabSection then
-			makeSideLabel(tabSection)
-			makeContentSection(tabSection, scroll)
-		end
 
 		function tabObj:AddSection(sectionName)
 			if type(sectionName) ~= "string" then
