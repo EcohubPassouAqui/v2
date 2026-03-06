@@ -1056,14 +1056,62 @@ function lib:CreateWindow(opts)
 
 	local window = {}
 
+	local function makeSideLabel(labelText)
+		sideTabOrder += 1
+		New("Frame", {
+			Size = UDim2.new(1, 0, 0, 6), BackgroundTransparency = 1,
+			LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
+		})
+		sideTabOrder += 1
+		local row = New("Frame", {
+			Size = UDim2.new(1, 0, 0, 18), BackgroundTransparency = 1,
+			LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
+		})
+		local sideLbl = New("TextLabel", {
+			Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 4, 0, 0),
+			BackgroundTransparency = 1, Text = string.upper(labelText),
+			TextColor3 = T.secText, TextSize = 9, Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6, Parent = row,
+		})
+		table.insert(secLabels, sideLbl)
+	end
+
+	local function makeContentSection(sectionName, scroll)
+		Elements.Section(scroll, sectionName)
+		local sec = {}
+		function sec:AddToggle(text, default, cb)
+			return Elements.Toggle(scroll, text, default, cb)
+		end
+		function sec:AddCheckbox(text, default, cb)
+			return Elements.Checkbox(scroll, text, default, cb)
+		end
+		function sec:AddButton(text, cb)
+			return Elements.Button(scroll, text, cb)
+		end
+		function sec:AddSlider(text, min, max, default, cb)
+			return Elements.Slider(scroll, text, min, max, default, cb)
+		end
+		function sec:AddDropdown(text, options, default, cb)
+			return Elements.Dropdown(scroll, text, options, default, cb)
+		end
+		function sec:AddKeybind(text, default, cb)
+			return Elements.Keybind(scroll, text, default, cb)
+		end
+		function sec:AddColorPicker(text, default, cb)
+			return Elements.ColorPicker(scroll, text, default, cb)
+		end
+		return sec
+	end
+
 	function window:AddTab(opts2)
 		if type(opts2) ~= "table" then
 			print("[EcoHub] AddTab: opts deve ser uma tabela")
 			opts2 = {}
 		end
 
-		local tabTitle = opts2.Title or "Tab"
-		local tabIcon  = opts2.Icon  or "circle"
+		local tabTitle   = opts2.Title   or "Tab"
+		local tabIcon    = opts2.Icon    or "circle"
+		local tabSection = opts2.Section or nil
 
 		sideTabOrder += 1
 
@@ -1126,131 +1174,47 @@ function lib:CreateWindow(opts)
 		end)
 		btn.MouseButton1Click:Connect(function() selectTab(tab) end)
 
-		if #tabs == 1 then
-			selectTab(tab, true)
-		end
-
-		if cfg.activeTab == tabTitle then
-			selectTab(tab, true)
-		end
+		if #tabs == 1 then selectTab(tab, true) end
+		if cfg.activeTab == tabTitle then selectTab(tab, true) end
 
 		local tabObj = {}
+
+		if tabSection then
+			makeSideLabel(tabSection)
+			makeContentSection(tabSection, scroll)
+		end
 
 		function tabObj:AddSection(sectionName)
 			if type(sectionName) ~= "string" then
 				print("[EcoHub] AddSection: nome deve ser string")
 				sectionName = "Section"
 			end
-
-			sideTabOrder += 1
-
-			local spacer = New("Frame", {
-				Size = UDim2.new(1, 0, 0, 6), BackgroundTransparency = 1,
-				LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
-			})
-
-			sideTabOrder += 1
-
-			local row = New("Frame", {
-				Size = UDim2.new(1, 0, 0, 18), BackgroundTransparency = 1,
-				LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
-			})
-			local sideLbl = New("TextLabel", {
-				Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 4, 0, 0),
-				BackgroundTransparency = 1, Text = string.upper(sectionName),
-				TextColor3 = T.secText, TextSize = 9, Font = Enum.Font.GothamBold,
-				TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6, Parent = row,
-			})
-			table.insert(secLabels, sideLbl)
-
-			Elements.Section(scroll, sectionName)
-
-			local section = {}
-
-			function section:AddToggle(text, default, cb)
-				return Elements.Toggle(scroll, text, default, cb)
-			end
-
-			function section:AddCheckbox(text, default, cb)
-				return Elements.Checkbox(scroll, text, default, cb)
-			end
-
-			function section:AddButton(text, cb)
-				return Elements.Button(scroll, text, cb)
-			end
-
-			function section:AddSlider(text, min, max, default, cb)
-				return Elements.Slider(scroll, text, min, max, default, cb)
-			end
-
-			function section:AddDropdown(text, options, default, cb)
-				return Elements.Dropdown(scroll, text, options, default, cb)
-			end
-
-			function section:AddKeybind(text, default, cb)
-				return Elements.Keybind(scroll, text, default, cb)
-			end
-
-			function section:AddColorPicker(text, default, cb)
-				return Elements.ColorPicker(scroll, text, default, cb)
-			end
-
-			return section
+			return makeContentSection(sectionName, scroll)
 		end
 
 		function tabObj:AddToggle(text, default, cb)
 			return Elements.Toggle(scroll, text, default, cb)
 		end
-
 		function tabObj:AddCheckbox(text, default, cb)
 			return Elements.Checkbox(scroll, text, default, cb)
 		end
-
 		function tabObj:AddButton(text, cb)
 			return Elements.Button(scroll, text, cb)
 		end
-
 		function tabObj:AddSlider(text, min, max, default, cb)
 			return Elements.Slider(scroll, text, min, max, default, cb)
 		end
-
 		function tabObj:AddDropdown(text, options, default, cb)
 			return Elements.Dropdown(scroll, text, options, default, cb)
 		end
-
 		function tabObj:AddKeybind(text, default, cb)
 			return Elements.Keybind(scroll, text, default, cb)
 		end
-
 		function tabObj:AddColorPicker(text, default, cb)
 			return Elements.ColorPicker(scroll, text, default, cb)
 		end
 
 		return tabObj
-	end
-
-	function window:AddSideSection(label)
-		if type(label) ~= "string" then
-			print("[EcoHub] AddSideSection: label deve ser string")
-			label = "Section"
-		end
-		sideTabOrder += 1
-		New("Frame", {
-			Size = UDim2.new(1, 0, 0, 6), BackgroundTransparency = 1,
-			LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
-		})
-		sideTabOrder += 1
-		local row = New("Frame", {
-			Size = UDim2.new(1, 0, 0, 18), BackgroundTransparency = 1,
-			LayoutOrder = sideTabOrder, ZIndex = 5, Parent = sideScroll,
-		})
-		local lbl = New("TextLabel", {
-			Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 4, 0, 0),
-			BackgroundTransparency = 1, Text = string.upper(label),
-			TextColor3 = T.secText, TextSize = 9, Font = Enum.Font.GothamBold,
-			TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6, Parent = row,
-		})
-		table.insert(secLabels, lbl)
 	end
 
 	function window:Destroy()
