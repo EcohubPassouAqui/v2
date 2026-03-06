@@ -504,7 +504,7 @@ local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Dropdown (inline — expands inside scroll) ──────────────────────────────
+-- ─── Dropdown (inline) ──────────────────────────────────────────────────────
 local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	local selected = defV or (options and options[1]) or ""
 	if saveId and cfg[saveId] ~= nil then selected = tostring(cfg[saveId]) end
@@ -512,7 +512,6 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	local open    = false
 	local ITEM_H  = 28
 
-	-- Outer wrapper changes height when open/closed
 	_order = _order + 1
 	local wrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
@@ -523,7 +522,6 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 		Parent           = par,
 	})
 
-	-- The header bar (always visible)
 	local header = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
 		BackgroundColor3 = T.elBg,
@@ -561,7 +559,6 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	Stroke(arrowBox, T.elBorder, 1, 0.2)
 	local arrow = Img(icon("chevron-down"), arrowBox, 11, UDim2.new(0.5,-5.5,0.5,-5.5), T.dimLight, 13)
 
-	-- The dropdown list (hidden below header)
 	local listWrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, 0),
 		Position         = UDim2.new(0, 0, 0, EL_H + 3),
@@ -631,7 +628,6 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 				buildItems()
 				if saveId then cfg[saveId] = selected saveCfg(cpath, cfg) end
 				pcall(function() if cb then cb(selected) end end)
-				-- Close
 				open = false
 				Tw(listWrap, {Size=UDim2.new(1,0,0,0)}, 0.18, Enum.EasingStyle.Quint)
 				Tw(wrap,     {Size=UDim2.new(1,0,0,EL_H)}, 0.18, Enum.EasingStyle.Quint)
@@ -741,38 +737,50 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Color Picker (inline — expands inside scroll, no invisible-space bug) ──
+-- ─── Color Picker — RGB Sliders (sem espaço invisível, com input hex) ────────
+--
+--  Quando aberto expande inline mostrando:
+--   • Slider Red   (vermelho)
+--   • Slider Green (verde)
+--   • Slider Blue  (azul)
+--   • Preview block da cor resultante
+--   • Input #RRGGBB com auto-configuração dos sliders
+--
 local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	local color = defCol or Color3.fromRGB(255, 80, 80)
 	if saveId and cfg[saveId] then
 		pcall(function() color = Color3.fromHex(cfg[saveId]) end)
 	end
-	local h, s, v = Color3.toHSV(color)
-	local open   = false
-	local svDrag = false
-	local hDrag  = false
 
-	-- Layout constants
-	local SV_W   = 180   -- SV box width
-	local SV_H   = 130   -- SV box height
-	local HUE_W  = 14    -- hue bar width
-	local GAP    = 8     -- gap between SV and hue
-	local HEX_H  = 26    -- hex row height
-	local PAD    = 8     -- inner padding
-	local PICK_H = PAD + SV_H + GAP + HEX_H + PAD  -- total picker height
+	local open = false
 
-	-- ── Outer wrapper (grows when open) ──────────────────────────────────
+	-- Layout dimensions
+	local PAD       = 10
+	local SLIDER_H  = 34   -- height per slider row
+	local GAP_SL    = 4    -- gap between sliders
+	local PREVIEW_H = 46   -- color preview height
+	local HEX_H     = 28   -- hex input row height
+	local GAP       = 6    -- gap between sections
+	-- Total inner height (3 sliders + preview + hex + padding)
+	local PICK_H = PAD
+		+ SLIDER_H + GAP_SL
+		+ SLIDER_H + GAP_SL
+		+ SLIDER_H + GAP
+		+ PREVIEW_H + GAP
+		+ HEX_H + PAD
+
+	-- ── Outer wrapper (grows when open, no invisible space) ────────────────
 	_order = _order + 1
 	local wrap = N("Frame", {
-		Size             = UDim2.new(1, 0, 0, EL_H),
+		Size                   = UDim2.new(1, 0, 0, EL_H),
 		BackgroundTransparency = 1,
-		ClipsDescendants = false,   -- must NOT clip so picker shows below
-		LayoutOrder      = _order,
-		ZIndex           = 10,
-		Parent           = par,
+		ClipsDescendants       = false,
+		LayoutOrder            = _order,
+		ZIndex                 = 10,
+		Parent                 = par,
 	})
 
-	-- ── Header (always visible, acts as toggle) ───────────────────────────
+	-- ── Header ────────────────────────────────────────────────────────────
 	local header = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
 		BackgroundColor3 = T.elBg,
@@ -793,21 +801,21 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
 		ZIndex = 12, Parent = header,
 	})
-	local swatch = N("Frame", {
+	-- small color swatch on header right
+	local hSwatch = N("Frame", {
 		Size = UDim2.new(0,22,0,22), Position = UDim2.new(1,-32,0.5,-11),
 		BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = 12, Parent = header,
 	})
-	Corner(swatch, 4)
-	Stroke(swatch, Color3.fromRGB(70,70,70), 1, 0)
+	Corner(hSwatch, 4)
+	Stroke(hSwatch, Color3.fromRGB(70,70,70), 1, 0)
 
-	-- ── Picker panel (hidden/shown below header) ───────────────────────────
-	-- ClipsDescendants = true so the knob doesn't bleed outside when closed
+	-- ── Picker panel (collapsed by default) ───────────────────────────────
 	local pickWrap = N("Frame", {
-		Size             = UDim2.new(1, 0, 0, 0),   -- starts collapsed
+		Size             = UDim2.new(1, 0, 0, 0),
 		Position         = UDim2.new(0, 0, 0, EL_H + 3),
 		BackgroundColor3 = T.dropBg,
 		BorderSizePixel  = 0,
-		ClipsDescendants = true,   -- clips knob while animating open/close
+		ClipsDescendants = true,
 		ZIndex           = 10,
 		Parent           = wrap,
 	})
@@ -815,233 +823,259 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Stroke(pickWrap, T.elBorder, 1, 0.2)
 	Grad(pickWrap, Color3.fromRGB(24,24,24), Color3.fromRGB(14,14,14), 90)
 
-	-- Inner fixed-size container (never changes size)
+	-- Fixed-height inner container (never resizes, avoids phantom space)
 	local pickInner = N("Frame", {
-		Size             = UDim2.new(1, 0, 0, PICK_H),
+		Size                   = UDim2.new(1, 0, 0, PICK_H),
 		BackgroundTransparency = 1,
-		ClipsDescendants = false,   -- knob can overflow svBox visually
-		ZIndex           = 11,
-		Parent           = pickWrap,
+		ZIndex                 = 11,
+		Parent                 = pickWrap,
 	})
 
-	-- ── SV gradient box (NO ClipsDescendants so knob is never cut) ────────
-	local svBox = N("Frame", {
-		Size             = UDim2.fromOffset(SV_W, SV_H),
-		Position         = UDim2.fromOffset(PAD, PAD),
-		BackgroundColor3 = Color3.fromHSV(h, 1, 1),
-		BorderSizePixel  = 0,
-		ClipsDescendants = false,   -- KEY FIX: knob stays visible at edges
-		ZIndex           = 12,
-		Parent           = pickInner,
-	})
-	Corner(svBox, 5)
-	Stroke(svBox, T.elBorder, 1, 0.25)
+	-- ── RGB values from initial color ─────────────────────────────────────
+	local rV = math.round(color.R * 255)
+	local gV = math.round(color.G * 255)
+	local bV = math.round(color.B * 255)
 
-	-- White saturation gradient (left opaque → right transparent)
-	local svW = N("Frame", {
-		Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.new(1,1,1),
-		BorderSizePixel = 0, ZIndex = 13, Parent = svBox,
-	})
-	N("UIGradient", {
-		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0),
-			NumberSequenceKeypoint.new(1, 1),
-		}),
-		Parent = svW,
-	})
-	-- Black value gradient (top transparent → bottom opaque)
-	local svB = N("Frame", {
-		Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.new(0,0,0),
-		BorderSizePixel = 0, ZIndex = 14, Parent = svBox,
-	})
-	N("UIGradient", {
-		Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 1),
-			NumberSequenceKeypoint.new(1, 0),
-		}),
-		Rotation = 90,
-		Parent = svB,
-	})
+	-- ── Helper: build one RGB slider row ─────────────────────────────────
+	-- Returns table with references needed to update the visual
+	local function makeRGBRow(labelText, yOff, fillCol, initVal)
+		local RAIL_H = 3
+		local KSZ    = 11
 
-	-- Invisible hit area covering svBox (ZIndex above gradients, below knob)
-	local svHit = N("TextButton", {
-		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
-		Text = "", ZIndex = 15, Parent = svBox,
-	})
+		-- channel label
+		N("TextLabel", {
+			Size = UDim2.new(0,40,0,SLIDER_H),
+			Position = UDim2.fromOffset(PAD, yOff),
+			BackgroundTransparency = 1, Text = labelText,
+			TextColor3 = T.dimLight, TextSize = 10, Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 13, Parent = pickInner,
+		})
 
-	-- SV knob — child of svBox but not clipped (ClipsDescendants=false above)
-	local KSZ = 12
-	local svKnob = N("Frame", {
-		Size        = UDim2.fromOffset(KSZ, KSZ),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position    = UDim2.new(s, 0, 1-v, 0),
-		BackgroundColor3 = Color3.new(1,1,1),
-		BorderSizePixel  = 0,
-		ZIndex           = 16,  -- above hit area
-		Parent           = svBox,
-	})
-	Corner(svKnob, KSZ)
-	N("UIStroke", {Color=Color3.fromRGB(30,30,30), Thickness=2, Parent=svKnob})
+		-- value badge (right side)
+		local badge = N("Frame", {
+			Size = UDim2.new(0,32,0,18),
+			Position = UDim2.new(1, -PAD-32, 0, yOff + (SLIDER_H-18)/2),
+			BackgroundColor3 = Color3.fromRGB(9,9,9), BorderSizePixel = 0, ZIndex = 13, Parent = pickInner,
+		})
+		Corner(badge, 4)
+		Stroke(badge, T.elBorder, 1, 0.15)
+		local valLbl = N("TextLabel", {
+			Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
+			Text = tostring(initVal), TextColor3 = T.Accent,
+			TextSize = 9, Font = Enum.Font.GothamBold,
+			TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 14, Parent = badge,
+		})
 
-	-- ── Hue bar ────────────────────────────────────────────────────────────
-	local hueBar = N("Frame", {
-		Size     = UDim2.fromOffset(HUE_W, SV_H),
-		Position = UDim2.fromOffset(PAD + SV_W + GAP, PAD),
-		BorderSizePixel  = 0,
-		ClipsDescendants = false,
-		ZIndex   = 12,
-		Parent   = pickInner,
-	})
-	Corner(hueBar, HUE_W)
-	Stroke(hueBar, T.elBorder, 1, 0.25)
-	local hKeys = {}
-	for i = 0, 6 do
-		table.insert(hKeys, ColorSequenceKeypoint.new(i/6, Color3.fromHSV(i/6, 1, 1)))
+		-- rail
+		local railOffL = PAD + 44
+		local railOffR = PAD + 44 + PAD + 36   -- distance from right edge taken by badge
+		local rail = N("Frame", {
+			Size = UDim2.new(1, -(railOffL + railOffR - PAD), 0, RAIL_H),
+			Position = UDim2.new(0, railOffL, 0, yOff + (SLIDER_H - RAIL_H)/2),
+			BackgroundColor3 = T.sliderRail, BorderSizePixel = 0, ZIndex = 13, Parent = pickInner,
+		})
+		Corner(rail, RAIL_H)
+		Stroke(rail, T.elBorder, 1, 0.3)
+
+		local pct  = initVal / 255
+		local fill = N("Frame", {
+			Size = UDim2.new(pct, 0, 1, 0),
+			BackgroundColor3 = fillCol,
+			BorderSizePixel = 0, ZIndex = 14, Parent = rail,
+		})
+		Corner(fill, RAIL_H)
+
+		local inner = N("Frame", {
+			Size = UDim2.new(1, -12, 1, 0),
+			Position = UDim2.new(0, 6, 0, 0),
+			BackgroundTransparency = 1, ZIndex = 14, Parent = rail,
+		})
+
+		local knob = N("Frame", {
+			Size = UDim2.new(0, KSZ, 0, KSZ),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.new(pct, 0, 0.5, 0),
+			BackgroundColor3 = T.white,
+			BorderSizePixel = 0, ZIndex = 15, Parent = inner,
+		})
+		Corner(knob, KSZ)
+		N("UIStroke", {Color = fillCol, Thickness = 1.5, Parent = knob})
+
+		-- wider invisible hit area
+		local hit = N("TextButton", {
+			Size = UDim2.new(1, 0, 0, 24),
+			Position = UDim2.new(0, 0, 0, -10),
+			BackgroundTransparency = 1, Text = "", ZIndex = 16, Parent = rail,
+		})
+
+		return {
+			fill = fill, knob = knob, inner = inner,
+			valLbl = valLbl, hit = hit, KSZ = KSZ,
+		}
 	end
-	N("UIGradient", {Color=ColorSequence.new(hKeys), Rotation=90, Parent=hueBar})
 
-	local hueHit = N("TextButton", {
-		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
-		Text = "", ZIndex = 13, Parent = hueBar,
-	})
+	local y1 = PAD
+	local y2 = y1 + SLIDER_H + GAP_SL
+	local y3 = y2 + SLIDER_H + GAP_SL
 
-	local hueKnob = N("Frame", {
-		Size        = UDim2.fromOffset(HUE_W + 6, 5),
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position    = UDim2.new(0.5, 0, h, 0),
-		BackgroundColor3 = Color3.new(1,1,1),
-		BorderSizePixel  = 0,
-		ZIndex = 14,
-		Parent = hueBar,
+	local sR = makeRGBRow("Red",   y1, Color3.fromRGB(220, 60,  60),  rV)
+	local sG = makeRGBRow("Green", y2, Color3.fromRGB(60,  200, 80),  gV)
+	local sB = makeRGBRow("Blue",  y3, Color3.fromRGB(60,  130, 220), bV)
+
+	-- ── Preview block ──────────────────────────────────────────────────────
+	local prevY = y3 + SLIDER_H + GAP
+	local preview = N("Frame", {
+		Size = UDim2.new(1, -(PAD*2), 0, PREVIEW_H),
+		Position = UDim2.fromOffset(PAD, prevY),
+		BackgroundColor3 = color,
+		BorderSizePixel = 0, ZIndex = 12, Parent = pickInner,
 	})
-	Corner(hueKnob, 3)
-	N("UIStroke", {Color=Color3.fromRGB(180,180,180), Thickness=1.5, Parent=hueKnob})
+	Corner(preview, 6)
+	Stroke(preview, T.elBorder, 1, 0.15)
 
 	-- ── Hex input row ──────────────────────────────────────────────────────
+	local hexY = prevY + PREVIEW_H + GAP
 	local hexRow = N("Frame", {
-		Size             = UDim2.fromOffset(SV_W + GAP + HUE_W, HEX_H),
-		Position         = UDim2.fromOffset(PAD, PAD + SV_H + GAP),
+		Size = UDim2.new(1, -(PAD*2), 0, HEX_H),
+		Position = UDim2.fromOffset(PAD, hexY),
 		BackgroundColor3 = T.inputBg,
-		BorderSizePixel  = 0,
-		ZIndex           = 12,
-		Parent           = pickInner,
+		BorderSizePixel = 0, ZIndex = 12, Parent = pickInner,
 	})
 	Corner(hexRow, 5)
 	Stroke(hexRow, T.elBorder, 1, 0.2)
+
 	N("TextLabel", {
-		Size=UDim2.new(0,16,1,0), Position=UDim2.fromOffset(6,0),
-		BackgroundTransparency=1, Text="#", TextColor3=T.Accent,
-		TextSize=10, Font=Enum.Font.GothamBold,
-		TextXAlignment=Enum.TextXAlignment.Center, ZIndex=13, Parent=hexRow,
+		Size = UDim2.new(0,18,1,0), Position = UDim2.fromOffset(6,0),
+		BackgroundTransparency = 1, Text = "#", TextColor3 = T.Accent,
+		TextSize = 11, Font = Enum.Font.GothamBold,
+		TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 13, Parent = hexRow,
 	})
 	local hexInput = N("TextBox", {
-		Size=UDim2.new(1,-46,1,0), Position=UDim2.fromOffset(20,0),
-		BackgroundTransparency=1, Text=color:ToHex():upper(),
-		PlaceholderText="RRGGBB", PlaceholderColor3=T.dim,
-		TextColor3=T.white, TextSize=10, Font=Enum.Font.GothamBold,
-		TextXAlignment=Enum.TextXAlignment.Left,
-		ClearTextOnFocus=false, ZIndex=13, Parent=hexRow,
+		Size = UDim2.new(1,-50,1,0), Position = UDim2.fromOffset(22,0),
+		BackgroundTransparency = 1,
+		Text = color:ToHex():upper(),
+		PlaceholderText = "RRGGBB", PlaceholderColor3 = T.dim,
+		TextColor3 = T.white, TextSize = 10, Font = Enum.Font.GothamBold,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ClearTextOnFocus = false, ZIndex = 13, Parent = hexRow,
 	})
 	local hexSwatch = N("Frame", {
-		Size=UDim2.new(0,14,0,14), Position=UDim2.new(1,-18,0.5,-7),
-		BackgroundColor3=color, BorderSizePixel=0, ZIndex=13, Parent=hexRow,
+		Size = UDim2.new(0,16,0,16),
+		Position = UDim2.new(1,-22,0.5,-8),
+		BackgroundColor3 = color,
+		BorderSizePixel = 0, ZIndex = 13, Parent = hexRow,
 	})
 	Corner(hexSwatch, 3)
 	Stroke(hexSwatch, Color3.fromRGB(60,60,60), 1, 0)
 
-	-- ── Update function ────────────────────────────────────────────────────
-	local function updateAll()
-		color = Color3.fromHSV(h, s, v)
+	-- ── Sync all visuals from rV/gV/bV ────────────────────────────────────
+	local function syncAll(skipHexUpdate)
+		color = Color3.fromRGB(rV, gV, bV)
 		pcall(function()
-			swatch.BackgroundColor3    = color
+			hSwatch.BackgroundColor3  = color
+			preview.BackgroundColor3  = color
 			hexSwatch.BackgroundColor3 = color
-			svBox.BackgroundColor3     = Color3.fromHSV(h, 1, 1)
-			svKnob.Position            = UDim2.new(s, 0, 1-v, 0)
-			hueKnob.Position           = UDim2.new(0.5, 0, h, 0)
-			if hexInput then hexInput.Text = color:ToHex():upper() end
+			if not skipHexUpdate and hexInput then
+				hexInput.Text = color:ToHex():upper()
+			end
 		end)
 		if saveId then cfg[saveId] = color:ToHex() saveCfg(cpath, cfg) end
 		pcall(function() if cb then cb(color) end end)
 	end
 
-	-- Hex input commit on Enter
+	-- Apply one slider visually and return clamped int value
+	local function applySlider(sl, rawVal)
+		local v = math.clamp(math.round(rawVal), 0, 255)
+		local p = v / 255
+		sl.fill.Size     = UDim2.new(p, 0, 1, 0)
+		sl.knob.Position = UDim2.new(p, 0, 0.5, 0)
+		sl.valLbl.Text   = tostring(v)
+		return v
+	end
+
+	-- Wire a slider's drag behavior
+	local function wireSlider(sl, setFn)
+		local dragActive = false
+		sl.hit.MouseButton1Down:Connect(function()
+			dragActive = true
+			local mp = UIS:GetMouseLocation()
+			local ab = sl.inner.AbsolutePosition
+			local sz = sl.inner.AbsoluteSize
+			local v  = applySlider(sl, math.clamp((mp.X-ab.X)/sz.X, 0, 1) * 255)
+			setFn(v) ; syncAll(false)
+		end)
+		sl.hit.MouseEnter:Connect(function()
+			Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ+2,0,sl.KSZ+2)}, 0.1, Enum.EasingStyle.Back)
+		end)
+		sl.hit.MouseLeave:Connect(function()
+			if not dragActive then
+				Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ,0,sl.KSZ)}, 0.1, Enum.EasingStyle.Back)
+			end
+		end)
+		UIS.InputEnded:Connect(function(inp)
+			if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+				if dragActive then
+					Tw(sl.knob, {Size=UDim2.new(0,sl.KSZ,0,sl.KSZ)}, 0.1, Enum.EasingStyle.Back)
+				end
+				dragActive = false
+			end
+		end)
+		RS.RenderStepped:Connect(function()
+			if not dragActive or not open then return end
+			local mp = UIS:GetMouseLocation()
+			local ab = sl.inner.AbsolutePosition
+			local sz = sl.inner.AbsoluteSize
+			local v  = applySlider(sl, math.clamp((mp.X-ab.X)/sz.X, 0, 1) * 255)
+			setFn(v) ; syncAll(false)
+		end)
+	end
+
+	wireSlider(sR, function(v) rV = v end)
+	wireSlider(sG, function(v) gV = v end)
+	wireSlider(sB, function(v) bV = v end)
+
+	-- ── Hex input → update sliders automatically ───────────────────────────
 	if hexInput then
 		hexInput.FocusLost:Connect(function(enter)
 			if not enter then return end
-			local txt = hexInput.Text:gsub("#", "")
+			-- strip non-hex characters
+			local txt = hexInput.Text:gsub("[^%x]","")
+			-- support shorthand #RGB
+			if #txt == 3 then
+				txt = txt:sub(1,1):rep(2) .. txt:sub(2,2):rep(2) .. txt:sub(3,3):rep(2)
+			end
 			local ok2, c2 = pcall(Color3.fromHex, txt)
 			if ok2 and typeof(c2) == "Color3" then
-				h, s, v = Color3.toHSV(c2)
-				updateAll()
+				rV = math.round(c2.R * 255)
+				gV = math.round(c2.G * 255)
+				bV = math.round(c2.B * 255)
+				applySlider(sR, rV)
+				applySlider(sG, gV)
+				applySlider(sB, bV)
+				syncAll(true)
+				-- update input to canonical uppercase
+				hexInput.Text = color:ToHex():upper()
 			else
 				hexInput.Text = color:ToHex():upper()
 			end
 		end)
 	end
 
-	-- ── Drag logic — guarded by open flag ─────────────────────────────────
-	svHit.MouseButton1Down:Connect(function()
-		if not open then return end
-		svDrag = true
-		-- Immediate update on click
-		local mp = UIS:GetMouseLocation()
-		local ab = svBox.AbsolutePosition
-		local sz = svBox.AbsoluteSize
-		s = math.clamp((mp.X - ab.X) / sz.X, 0, 1)
-		v = 1 - math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
-		updateAll()
-	end)
-
-	hueHit.MouseButton1Down:Connect(function()
-		if not open then return end
-		hDrag = true
-		local mp = UIS:GetMouseLocation()
-		local ab = hueBar.AbsolutePosition
-		local sz = hueBar.AbsoluteSize
-		h = math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
-		updateAll()
-	end)
-
-	UIS.InputEnded:Connect(function(inp)
-		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-			svDrag = false
-			hDrag  = false
-		end
-	end)
-
-	RS.RenderStepped:Connect(function()
-		if svDrag and open then
-			local mp = UIS:GetMouseLocation()
-			local ab = svBox.AbsolutePosition
-			local sz = svBox.AbsoluteSize
-			s = math.clamp((mp.X - ab.X) / sz.X, 0, 1)
-			v = 1 - math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
-			updateAll()
-		elseif hDrag and open then
-			local mp = UIS:GetMouseLocation()
-			local ab = hueBar.AbsolutePosition
-			local sz = hueBar.AbsoluteSize
-			h = math.clamp((mp.Y - ab.Y) / sz.Y, 0, 1)
-			updateAll()
-		end
-	end)
-
-	-- ── Toggle open/close ──────────────────────────────────────────────────
+	-- ── Toggle open / close ────────────────────────────────────────────────
 	local togBtn = N("TextButton", {
-		Size=UDim2.fromScale(1,1), BackgroundTransparency=1, Text="", ZIndex=15, Parent=header,
+		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
+		Text = "", ZIndex = 15, Parent = header,
 	})
 	togBtn.MouseButton1Click:Connect(function()
 		open = not open
 		if open then
-			Tw(pickWrap, {Size=UDim2.new(1,0,0,PICK_H)},         0.2, Enum.EasingStyle.Quint)
-			Tw(wrap,     {Size=UDim2.new(1,0,0,EL_H+3+PICK_H)}, 0.2, Enum.EasingStyle.Quint)
-			Tw(header,   {BackgroundColor3=T.elBgHov},            0.12)
+			Tw(pickWrap, {Size = UDim2.new(1,0,0,PICK_H)},         0.2, Enum.EasingStyle.Quint)
+			Tw(wrap,     {Size = UDim2.new(1,0,0,EL_H+3+PICK_H)}, 0.2, Enum.EasingStyle.Quint)
+			Tw(header,   {BackgroundColor3 = T.elBgHov},            0.12)
 		else
-			svDrag = false
-			hDrag  = false
-			Tw(pickWrap, {Size=UDim2.new(1,0,0,0)},    0.18, Enum.EasingStyle.Quint)
-			Tw(wrap,     {Size=UDim2.new(1,0,0,EL_H)}, 0.18, Enum.EasingStyle.Quint)
-			Tw(header,   {BackgroundColor3=T.elBg},     0.12)
+			Tw(pickWrap, {Size = UDim2.new(1,0,0,0)},    0.18, Enum.EasingStyle.Quint)
+			Tw(wrap,     {Size = UDim2.new(1,0,0,EL_H)}, 0.18, Enum.EasingStyle.Quint)
+			Tw(header,   {BackgroundColor3 = T.elBg},     0.12)
 		end
 	end)
 	togBtn.MouseEnter:Connect(function()
@@ -1052,13 +1086,22 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	end)
 
 	return {
-		Set = function(c) color=c h,s,v=Color3.toHSV(c) updateAll() end,
+		Set = function(c)
+			color = c
+			rV = math.round(c.R * 255)
+			gV = math.round(c.G * 255)
+			bV = math.round(c.B * 255)
+			applySlider(sR, rV)
+			applySlider(sG, gV)
+			applySlider(sB, bV)
+			syncAll(false)
+		end,
 		Get = function() return color end,
 	}
 end
 
 -- ══════════════════════════════════════════════════════════════════════════════
--- SECTION OBJECT (returned by AddTab / AddSection)
+-- SECTION OBJECT
 -- ══════════════════════════════════════════════════════════════════════════════
 
 local function MkSecObj(scroll, cfg, cpath)
@@ -1117,7 +1160,6 @@ function lib:CreateWindow(opts)
 	local curSW        = SIDE_W
 	local searchActive = false
 
-	-- ── GUI root ──────────────────────────────────────────────────────────
 	local guiParent
 	pcall(function() guiParent = gethui and gethui() end)
 	guiParent = guiParent or game:GetService("CoreGui")
@@ -1131,7 +1173,6 @@ function lib:CreateWindow(opts)
 		Parent         = guiParent,
 	})
 
-	-- ── Main panel ────────────────────────────────────────────────────────
 	local main = N("Frame", {
 		AnchorPoint      = Vector2.new(0.5,0.5),
 		Size             = UDim2.new(0,PANEL_W,0,PANEL_H),
@@ -1143,7 +1184,6 @@ function lib:CreateWindow(opts)
 		Parent           = gui,
 	})
 
-	-- ── Title bar ─────────────────────────────────────────────────────────
 	local titleBar = N("Frame",{
 		Size=UDim2.new(1,0,0,TITLE_H),
 		BackgroundColor3=T.surface, BorderSizePixel=0, ZIndex=8, Parent=main,
@@ -1169,7 +1209,6 @@ function lib:CreateWindow(opts)
 		})
 	end
 
-	-- ── Sidebar ───────────────────────────────────────────────────────────
 	local sidebar = N("Frame",{
 		Size=UDim2.new(0,curSW,1,-TITLE_H), Position=UDim2.new(0,0,0,TITLE_H),
 		BackgroundColor3=T.sidebar, BorderSizePixel=0, ClipsDescendants=true,
@@ -1183,7 +1222,6 @@ function lib:CreateWindow(opts)
 		BackgroundColor3=T.divider, BorderSizePixel=0, ZIndex=5, Parent=main,
 	})
 
-	-- Logo area
 	local logoArea = N("Frame",{
 		Size=UDim2.new(1,0,0,LOGO_H), BackgroundTransparency=1, ZIndex=5, Parent=sidebar,
 	})
@@ -1196,7 +1234,6 @@ function lib:CreateWindow(opts)
 		BackgroundColor3=T.divider, BorderSizePixel=0, ZIndex=5, Parent=logoArea,
 	})
 
-	-- Tab scroll
 	local sideScroll = N("ScrollingFrame",{
 		Size=UDim2.new(1,0,1,-(LOGO_H+72)), Position=UDim2.new(0,0,0,LOGO_H+2),
 		BackgroundTransparency=1, ScrollBarThickness=0,
@@ -1206,13 +1243,11 @@ function lib:CreateWindow(opts)
 	N("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,1),Parent=sideScroll})
 	N("UIPadding",{PaddingLeft=UDim.new(0,5),PaddingRight=UDim.new(0,5),PaddingTop=UDim.new(0,3),Parent=sideScroll})
 
-	-- Sidebar divider line above bottom controls
 	N("Frame",{
 		Size=UDim2.new(1,-10,0,1), Position=UDim2.new(0,5,1,-66),
 		BackgroundColor3=T.divider, BorderSizePixel=0, ZIndex=5, Parent=sidebar,
 	})
 
-	-- Collapse button
 	local colBtn = N("TextButton",{
 		Size=UDim2.new(1,-10,0,22), Position=UDim2.new(0,5,1,-60),
 		BackgroundColor3=T.tabBgHov, BackgroundTransparency=1,
@@ -1227,7 +1262,6 @@ function lib:CreateWindow(opts)
 		TextXAlignment=Enum.TextXAlignment.Left, ZIndex=6, Parent=colBtn,
 	})
 
-	-- Avatar card
 	local avFrame = N("Frame",{
 		Size=UDim2.new(1,-10,0,32), Position=UDim2.new(0,5,1,-34),
 		BackgroundColor3=T.avatarBg, BorderSizePixel=0, ZIndex=5, Parent=sidebar,
@@ -1260,14 +1294,12 @@ function lib:CreateWindow(opts)
 		if ok and avImg then avImg.Image = url end
 	end)
 
-	-- ── Page area ─────────────────────────────────────────────────────────
 	local pageArea = N("Frame",{
 		Size=UDim2.new(1,-(curSW+1),1,-TITLE_H), Position=UDim2.new(0,curSW+1,0,TITLE_H),
 		BackgroundColor3=T.pageBg, BorderSizePixel=0, ClipsDescendants=true,
 		ZIndex=2, Parent=main,
 	})
 
-	-- Search bar
 	local searchBar = N("Frame",{
 		Size=UDim2.new(1,-14,0,26), Position=UDim2.new(0,7,0,7),
 		BackgroundColor3=T.searchBg, BorderSizePixel=0, ZIndex=5, Parent=pageArea,
@@ -1285,20 +1317,17 @@ function lib:CreateWindow(opts)
 		ClearTextOnFocus=false, ZIndex=7, Parent=searchBar,
 	})
 
-	-- Divider under search
 	N("Frame",{
 		Size=UDim2.new(1,-14,0,1), Position=UDim2.new(0,7,0,41),
 		BackgroundColor3=T.divider, BorderSizePixel=0, ZIndex=4, Parent=pageArea,
 	})
 
-	-- Content area (tabs + search results live here)
 	local contentArea = N("Frame",{
 		Size=UDim2.new(1,0,1,-42), Position=UDim2.new(0,0,0,42),
 		BackgroundColor3=T.pageBg, BorderSizePixel=0, ClipsDescendants=true,
 		ZIndex=2, Parent=pageArea,
 	})
 
-	-- Search results page
 	local searchPage = N("ScrollingFrame",{
 		Size=UDim2.fromScale(1,1), BackgroundTransparency=1,
 		ScrollBarThickness=3, ScrollBarImageColor3=T.Accent,
@@ -1319,7 +1348,6 @@ function lib:CreateWindow(opts)
 		ZIndex=3, Parent=searchPage,
 	})
 
-	-- ── Search logic ──────────────────────────────────────────────────────
 	local function doSearch(query)
 		query = string.lower(query or "")
 		if query == "" then
@@ -1331,32 +1359,25 @@ function lib:CreateWindow(opts)
 		searchActive = true
 		if activeTab and activeTab.page then activeTab.page.Visible = false end
 		searchPage.Visible = true
-
 		for _, c in ipairs(searchPage:GetChildren()) do
 			if not c:IsA("UIListLayout") and not c:IsA("UIPadding") and c ~= noResultLbl then
 				pcall(function() c.Parent = nil end)
 			end
 		end
-
 		local count, order = 0, 0
 		for _, entry in ipairs(_allElements) do
 			if entry.label:find(query,1,true) and entry.frame and entry.frame.Parent then
-				order = order + 1
-				count = count + 1
+				order = order + 1 ; count = count + 1
 				local clone = entry.frame:Clone()
 				clone.LayoutOrder = order
 				clone.Parent = searchPage
 			end
 		end
-		noResultLbl.Visible    = count == 0
+		noResultLbl.Visible     = count == 0
 		noResultLbl.LayoutOrder = order + 1
 	end
+	searchBox:GetPropertyChangedSignal("Text"):Connect(function() doSearch(searchBox.Text) end)
 
-	searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-		doSearch(searchBox.Text)
-	end)
-
-	-- ── Tab underline animation ───────────────────────────────────────────
 	local function animUL(ul, instant)
 		if not ul then return end
 		ul.Size = UDim2.new(0,0,0,2) ul.Visible = true
@@ -1364,7 +1385,6 @@ function lib:CreateWindow(opts)
 		else Tw(ul, {Size=UDim2.new(1,-8,0,2)}, 0.22) end
 	end
 
-	-- ── Tab selection ─────────────────────────────────────────────────────
 	local function selectTab(tab, instant)
 		if not tab then return end
 		for _, t in ipairs(tabs) do
@@ -1384,11 +1404,9 @@ function lib:CreateWindow(opts)
 		Tw(tab.ico, {ImageColor3=T.white},  0.13)
 		Tw(tab.lbl, {TextColor3=T.tabAct}, 0.13)
 		animUL(tab.ul, instant)
-		cfg.activeTab = tab.name
-		saveCfg(cpath, cfg)
+		cfg.activeTab = tab.name ; saveCfg(cpath, cfg)
 	end
 
-	-- ── Sidebar expand/collapse ───────────────────────────────────────────
 	local function setSide(expanded)
 		sideExpanded = expanded
 		local sw = expanded and SIDE_W or SIDE_MINI
@@ -1420,31 +1438,26 @@ function lib:CreateWindow(opts)
 		colIco.Position = expanded and UDim2.new(1,-15,0.5,-6) or UDim2.new(0.5,-6,0.5,-6)
 		colLbl.Text = expanded and "Collapse" or "Expand"
 		Tw(colLbl, {TextTransparency=hide}, 0.15)
-		cfg.sideExpanded = expanded
-		saveCfg(cpath, cfg)
+		cfg.sideExpanded = expanded ; saveCfg(cpath, cfg)
 	end
 
 	if cfg.sideExpanded == false then setSide(false) end
 
-	-- Collapse button events
 	colBtn.MouseButton1Click:Connect(function() setSide(not sideExpanded) end)
 	colBtn.MouseEnter:Connect(function()
-		Tw(colBtn, {BackgroundTransparency=0, BackgroundColor3=T.tabBgHov}, 0.1)
-		Tw(colIco,  {ImageColor3=T.white},  0.1)
-		Tw(colLbl,  {TextColor3=T.white},   0.1)
+		Tw(colBtn,{BackgroundTransparency=0,BackgroundColor3=T.tabBgHov},0.1)
+		Tw(colIco,{ImageColor3=T.white},0.1) Tw(colLbl,{TextColor3=T.white},0.1)
 	end)
 	colBtn.MouseLeave:Connect(function()
-		Tw(colBtn, {BackgroundTransparency=1}, 0.1)
-		Tw(colIco,  {ImageColor3=T.dimLight}, 0.1)
-		Tw(colLbl,  {TextColor3=T.dimLight},  0.1)
+		Tw(colBtn,{BackgroundTransparency=1},0.1)
+		Tw(colIco,{ImageColor3=T.dimLight},0.1) Tw(colLbl,{TextColor3=T.dimLight},0.1)
 	end)
 
-	-- ── Drag ──────────────────────────────────────────────────────────────
 	titleBar.InputBegan:Connect(function(inp)
 		if inp.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
-			local p  = main.AbsolutePosition
-			dragOff  = Vector2.new(inp.Position.X-p.X, inp.Position.Y-p.Y)
+			local p = main.AbsolutePosition
+			dragOff = Vector2.new(inp.Position.X-p.X, inp.Position.Y-p.Y)
 		end
 	end)
 	titleBar.InputEnded:Connect(function(inp)
@@ -1454,22 +1467,19 @@ function lib:CreateWindow(opts)
 		if not dragging or not main then return end
 		local m = UIS:GetMouseLocation()
 		main.Position = UDim2.new(
-			0, m.X - dragOff.X + main.AbsoluteSize.X * 0.5,
-			0, m.Y - dragOff.Y + main.AbsoluteSize.Y * 0.5
+			0, m.X-dragOff.X+main.AbsoluteSize.X*0.5,
+			0, m.Y-dragOff.Y+main.AbsoluteSize.Y*0.5
 		)
 	end)
 
-	-- ── RightAlt toggle ───────────────────────────────────────────────────
 	UIS.InputBegan:Connect(function(inp, _)
 		if inp.KeyCode == Enum.KeyCode.RightAlt then
 			minimized = not minimized
 			if main then main.Visible = not minimized end
-			cfg.minimized = minimized
-			saveCfg(cpath, cfg)
+			cfg.minimized = minimized ; saveCfg(cpath, cfg)
 		end
 	end)
 
-	-- ── Sidebar section labels ────────────────────────────────────────────
 	local function makeSideLabel(labelText)
 		sideOrder = sideOrder + 1
 		N("Frame",{Size=UDim2.new(1,0,0,4),BackgroundTransparency=1,LayoutOrder=sideOrder,ZIndex=5,Parent=sideScroll})
@@ -1484,7 +1494,6 @@ function lib:CreateWindow(opts)
 		table.insert(secLabels, lbl)
 	end
 
-	-- ── Window object ─────────────────────────────────────────────────────
 	local window = {}
 
 	function window:AddTab(opts2)
@@ -1496,7 +1505,6 @@ function lib:CreateWindow(opts)
 		if tabSection then makeSideLabel(tabSection) end
 		sideOrder = sideOrder + 1
 
-		-- Sidebar tab button
 		local btn = N("TextButton",{
 			Size=UDim2.new(1,0,0,26),
 			BackgroundColor3=T.tabBgAct, BackgroundTransparency=1,
@@ -1527,7 +1535,6 @@ function lib:CreateWindow(opts)
 		Corner(tip, 5)
 		Stroke(tip, T.elBorder, 1, 0)
 
-		-- Tab page + scroll
 		local page = N("Frame",{
 			Size=UDim2.fromScale(1,1), BackgroundColor3=T.pageBg,
 			BorderSizePixel=0, ClipsDescendants=true,
@@ -1551,22 +1558,20 @@ function lib:CreateWindow(opts)
 
 		btn.MouseEnter:Connect(function()
 			if activeTab ~= tab then
-				Tw(btn, {BackgroundTransparency=0, BackgroundColor3=T.tabBgHov}, 0.1)
-				Tw(ico, {ImageColor3=T.tabHov}, 0.1)
-				Tw(lbl, {TextColor3=T.tabHov},  0.1)
+				Tw(btn,{BackgroundTransparency=0,BackgroundColor3=T.tabBgHov},0.1)
+				Tw(ico,{ImageColor3=T.tabHov},0.1) Tw(lbl,{TextColor3=T.tabHov},0.1)
 			end
 			if not sideExpanded and tip then tip.Visible = true end
 		end)
 		btn.MouseLeave:Connect(function()
 			if activeTab ~= tab then
-				Tw(btn, {BackgroundTransparency=1}, 0.1)
-				Tw(ico, {ImageColor3=T.tabIdle}, 0.1)
-				Tw(lbl, {TextColor3=T.tabIdle},  0.1)
+				Tw(btn,{BackgroundTransparency=1},0.1)
+				Tw(ico,{ImageColor3=T.tabIdle},0.1) Tw(lbl,{TextColor3=T.tabIdle},0.1)
 			end
 			if tip then tip.Visible = false end
 		end)
 		btn.MouseButton1Click:Connect(function()
-			if searchActive then searchBox.Text = "" doSearch("") end
+			if searchActive then searchBox.Text="" doSearch("") end
 			selectTab(tab)
 		end)
 
@@ -1575,7 +1580,7 @@ function lib:CreateWindow(opts)
 
 		local tabObj = MkSecObj(scroll, cfg, cpath)
 		function tabObj:AddSection(sectionName)
-			sectionName = type(sectionName) == "string" and sectionName or "Section"
+			sectionName = type(sectionName)=="string" and sectionName or "Section"
 			MkSection(scroll, sectionName)
 			return MkSecObj(scroll, cfg, cpath)
 		end
