@@ -1,7 +1,3 @@
--- ╔══════════════════════════════════════════╗
--- ║           EcoHub UI Library v7           ║
--- ╚══════════════════════════════════════════╝
-
 local UIS     = game:GetService("UserInputService")
 local TS      = game:GetService("TweenService")
 local RS      = game:GetService("RunService")
@@ -9,16 +5,14 @@ local Players = game:GetService("Players")
 local HTTP    = game:GetService("HttpService")
 local lp      = Players.LocalPlayer
 
--- ─── Mobile block ───────────────────────────────────────────────────────────
 do
 	local mobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
 	if mobile then
-		pcall(function() lp:Kick("[EcoHub] Unsupported device.") end)
+		pcall(function() lp:Kick("[EcoHub] Mobile devices are not supported.") end)
 		return
 	end
 end
 
--- ─── Cleanup old GUIs ───────────────────────────────────────────────────────
 local function cleanOld(parent)
 	if not parent then return end
 	for _, v in ipairs(parent:GetChildren()) do
@@ -30,18 +24,17 @@ end
 pcall(function() cleanOld(game:GetService("CoreGui")) end)
 pcall(function() if gethui then cleanOld(gethui()) end end)
 
--- ─── Icons ──────────────────────────────────────────────────────────────────
 local _iconsOk, _iconsData = pcall(function()
 	return loadstring(game:HttpGet(
 		"https://raw.githubusercontent.com/EcohubPassouAqui/v2/refs/heads/main/icons"
 	))()
 end)
+if not _iconsOk then print("[EcoHub] Failed to load icons: " .. tostring(_iconsData)) end
 local _iconReg = (_iconsOk and type(_iconsData) == "table" and _iconsData.assets) or {}
 local function icon(name)
 	return _iconReg["lucide-" .. tostring(name)] or "rbxassetid://0"
 end
 
--- ─── Config helpers ─────────────────────────────────────────────────────────
 local _gameName = tostring(game.Name):gsub("[^%w%s%-_]",""):gsub("%s+","_"):sub(1,40)
 if _gameName == "" then _gameName = "unknown" end
 
@@ -71,14 +64,13 @@ local function readCfg(path)
 end
 
 local function saveCfg(path, d)
-	pcall(function() mkFolders(path) writefile(path, HTTP:JSONEncode(d)) end)
+	local ok2, err = pcall(function() mkFolders(path) writefile(path, HTTP:JSONEncode(d)) end)
+	if not ok2 then print("[EcoHub] saveCfg error: " .. tostring(err)) end
 end
 
--- ─── Asset IDs ──────────────────────────────────────────────────────────────
 local LOGO_ID  = "rbxassetid://134382458890933"
 local NOISE_ID = "rbxassetid://9968344919"
 
--- ─── Layout constants ───────────────────────────────────────────────────────
 local PANEL_W   = 580
 local PANEL_H   = 460
 local TITLE_H   = 36
@@ -87,7 +79,6 @@ local SIDE_MINI = 42
 local LOGO_H    = 100
 local EL_H      = 36
 
--- ─── Color palette ──────────────────────────────────────────────────────────
 local T = {
 	Accent     = Color3.fromRGB(220, 220, 220),
 	AccentDim  = Color3.fromRGB(160, 160, 160),
@@ -120,7 +111,6 @@ local T = {
 	sliderRail = Color3.fromRGB(24,  24,  24),
 }
 
--- ─── Instance factory ───────────────────────────────────────────────────────
 local function N(cls, props)
 	local ok, o = pcall(Instance.new, cls)
 	if not ok then return nil end
@@ -131,7 +121,6 @@ local function N(cls, props)
 	return o
 end
 
--- ─── Tween shorthand ────────────────────────────────────────────────────────
 local function Tw(obj, goal, t, style, dir)
 	if not obj then return end
 	pcall(function()
@@ -142,7 +131,6 @@ local function Tw(obj, goal, t, style, dir)
 	end)
 end
 
--- ─── UI helpers ─────────────────────────────────────────────────────────────
 local function Corner(par, r)
 	N("UICorner", { CornerRadius = UDim.new(0, r or 8), Parent = par })
 end
@@ -176,11 +164,9 @@ local function Img(id, par, sz, pos, col, zi)
 	})
 end
 
--- ─── Layout order counter ───────────────────────────────────────────────────
 local _order = 0
 local function NextOrder() _order = _order + 1 return _order end
 
--- ─── Element base frame ─────────────────────────────────────────────────────
 local function ElBase(par, h)
 	local f = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, h or EL_H),
@@ -198,14 +184,12 @@ local function ElBase(par, h)
 	return f
 end
 
--- ─── Hover effect ───────────────────────────────────────────────────────────
 local function HoverEl(btn, frame)
 	if not btn or not frame then return end
 	btn.MouseEnter:Connect(function() Tw(frame, {BackgroundColor3 = T.elBgHov}, 0.1) end)
 	btn.MouseLeave:Connect(function() Tw(frame, {BackgroundColor3 = T.elBg},    0.1) end)
 end
 
--- ─── Section divider ────────────────────────────────────────────────────────
 local function MkSection(par, text)
 	_order = _order + 1
 	local wrap = N("Frame", {
@@ -234,18 +218,12 @@ local function MkSection(par, text)
 	return wrap
 end
 
--- ─── Global element registry (for search) ───────────────────────────────────
 local _allElements = {}
 
 local function RegEl(frame, labelText)
 	table.insert(_allElements, { frame = frame, label = string.lower(labelText or "") })
 end
 
--- ══════════════════════════════════════════════════════════════════════════════
--- ELEMENTS
--- ══════════════════════════════════════════════════════════════════════════════
-
--- ─── Toggle ─────────────────────────────────────────────────────────────────
 local function MkToggle(par, text, default, cb, cfg, cpath, saveId)
 	local state = default == true
 	if saveId and cfg[saveId] ~= nil then state = cfg[saveId] == true end
@@ -318,7 +296,6 @@ local function MkToggle(par, text, default, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Checkbox ───────────────────────────────────────────────────────────────
 local function MkCheckbox(par, text, default, cb, cfg, cpath, saveId)
 	local state = default == true
 	if saveId and cfg[saveId] ~= nil then state = cfg[saveId] == true end
@@ -371,7 +348,6 @@ local function MkCheckbox(par, text, default, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Button ─────────────────────────────────────────────────────────────────
 local function MkButton(par, text, cb)
 	local f = ElBase(par, EL_H)
 	RegEl(f, text)
@@ -395,7 +371,6 @@ local function MkButton(par, text, cb)
 	return { Frame = f }
 end
 
--- ─── Slider ─────────────────────────────────────────────────────────────────
 local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 	minV = minV or 0
 	maxV = maxV or 100
@@ -504,7 +479,6 @@ local function MkSlider(par, text, minV, maxV, defV, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Dropdown (inline) ──────────────────────────────────────────────────────
 local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	local selected = defV or (options and options[1]) or ""
 	if saveId and cfg[saveId] ~= nil then selected = tostring(cfg[saveId]) end
@@ -536,7 +510,7 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	RegEl(header, text)
 
 	N("TextLabel", {
-		Size = UDim2.new(1,-130,1,0), Position = UDim2.new(0,11,0,0),
+		Size = UDim2.new(1,-95,1,0), Position = UDim2.new(0,11,0,0),
 		BackgroundTransparency = 1, Text = text, TextColor3 = T.white,
 		TextSize = 11, Font = Enum.Font.Gotham,
 		TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
@@ -664,7 +638,6 @@ local function MkDropdown(par, text, options, defV, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Keybind ─────────────────────────────────────────────────────────────────
 local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 	local key = defKey or Enum.KeyCode.Unknown
 	if saveId and cfg[saveId] then
@@ -737,15 +710,6 @@ local function MkKeybind(par, text, defKey, cb, cfg, cpath, saveId)
 	}
 end
 
--- ─── Color Picker — RGB Sliders (sem espaço invisível, com input hex) ────────
---
---  Quando aberto expande inline mostrando:
---   • Slider Red   (vermelho)
---   • Slider Green (verde)
---   • Slider Blue  (azul)
---   • Preview block da cor resultante
---   • Input #RRGGBB com auto-configuração dos sliders
---
 local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	local color = defCol or Color3.fromRGB(255, 80, 80)
 	if saveId and cfg[saveId] then
@@ -754,14 +718,12 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 
 	local open = false
 
-	-- Layout dimensions
 	local PAD       = 10
-	local SLIDER_H  = 34   -- height per slider row
-	local GAP_SL    = 4    -- gap between sliders
-	local PREVIEW_H = 46   -- color preview height
-	local HEX_H     = 28   -- hex input row height
-	local GAP       = 6    -- gap between sections
-	-- Total inner height (3 sliders + preview + hex + padding)
+	local SLIDER_H  = 34
+	local GAP_SL    = 4
+	local PREVIEW_H = 46
+	local HEX_H     = 28
+	local GAP       = 6
 	local PICK_H = PAD
 		+ SLIDER_H + GAP_SL
 		+ SLIDER_H + GAP_SL
@@ -769,7 +731,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		+ PREVIEW_H + GAP
 		+ HEX_H + PAD
 
-	-- ── Outer wrapper (grows when open, no invisible space) ────────────────
 	_order = _order + 1
 	local wrap = N("Frame", {
 		Size                   = UDim2.new(1, 0, 0, EL_H),
@@ -780,7 +741,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		Parent                 = par,
 	})
 
-	-- ── Header ────────────────────────────────────────────────────────────
 	local header = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, EL_H),
 		BackgroundColor3 = T.elBg,
@@ -801,7 +761,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		TextXAlignment = Enum.TextXAlignment.Left, TextTruncate = Enum.TextTruncate.AtEnd,
 		ZIndex = 12, Parent = header,
 	})
-	-- small color swatch on header right
 	local hSwatch = N("Frame", {
 		Size = UDim2.new(0,22,0,22), Position = UDim2.new(1,-32,0.5,-11),
 		BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = 12, Parent = header,
@@ -809,7 +768,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Corner(hSwatch, 4)
 	Stroke(hSwatch, Color3.fromRGB(70,70,70), 1, 0)
 
-	-- ── Picker panel (collapsed by default) ───────────────────────────────
 	local pickWrap = N("Frame", {
 		Size             = UDim2.new(1, 0, 0, 0),
 		Position         = UDim2.new(0, 0, 0, EL_H + 3),
@@ -823,7 +781,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Stroke(pickWrap, T.elBorder, 1, 0.2)
 	Grad(pickWrap, Color3.fromRGB(24,24,24), Color3.fromRGB(14,14,14), 90)
 
-	-- Fixed-height inner container (never resizes, avoids phantom space)
 	local pickInner = N("Frame", {
 		Size                   = UDim2.new(1, 0, 0, PICK_H),
 		BackgroundTransparency = 1,
@@ -831,18 +788,14 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		Parent                 = pickWrap,
 	})
 
-	-- ── RGB values from initial color ─────────────────────────────────────
 	local rV = math.round(color.R * 255)
 	local gV = math.round(color.G * 255)
 	local bV = math.round(color.B * 255)
 
-	-- ── Helper: build one RGB slider row ─────────────────────────────────
-	-- Returns table with references needed to update the visual
 	local function makeRGBRow(labelText, yOff, fillCol, initVal)
 		local RAIL_H = 3
 		local KSZ    = 11
 
-		-- channel label
 		N("TextLabel", {
 			Size = UDim2.new(0,40,0,SLIDER_H),
 			Position = UDim2.fromOffset(PAD, yOff),
@@ -851,7 +804,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 			TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 13, Parent = pickInner,
 		})
 
-		-- value badge (right side)
 		local badge = N("Frame", {
 			Size = UDim2.new(0,32,0,18),
 			Position = UDim2.new(1, -PAD-32, 0, yOff + (SLIDER_H-18)/2),
@@ -866,9 +818,8 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 			TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 14, Parent = badge,
 		})
 
-		-- rail
 		local railOffL = PAD + 44
-		local railOffR = PAD + 44 + PAD + 36   -- distance from right edge taken by badge
+		local railOffR = PAD + 44 + PAD + 36
 		local rail = N("Frame", {
 			Size = UDim2.new(1, -(railOffL + railOffR - PAD), 0, RAIL_H),
 			Position = UDim2.new(0, railOffL, 0, yOff + (SLIDER_H - RAIL_H)/2),
@@ -901,7 +852,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		Corner(knob, KSZ)
 		N("UIStroke", {Color = fillCol, Thickness = 1.5, Parent = knob})
 
-		-- wider invisible hit area
 		local hit = N("TextButton", {
 			Size = UDim2.new(1, 0, 0, 24),
 			Position = UDim2.new(0, 0, 0, -10),
@@ -922,7 +872,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	local sG = makeRGBRow("Green", y2, Color3.fromRGB(60,  200, 80),  gV)
 	local sB = makeRGBRow("Blue",  y3, Color3.fromRGB(60,  130, 220), bV)
 
-	-- ── Preview block ──────────────────────────────────────────────────────
 	local prevY = y3 + SLIDER_H + GAP
 	local preview = N("Frame", {
 		Size = UDim2.new(1, -(PAD*2), 0, PREVIEW_H),
@@ -933,7 +882,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Corner(preview, 6)
 	Stroke(preview, T.elBorder, 1, 0.15)
 
-	-- ── Hex input row ──────────────────────────────────────────────────────
 	local hexY = prevY + PREVIEW_H + GAP
 	local hexRow = N("Frame", {
 		Size = UDim2.new(1, -(PAD*2), 0, HEX_H),
@@ -968,7 +916,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	Corner(hexSwatch, 3)
 	Stroke(hexSwatch, Color3.fromRGB(60,60,60), 1, 0)
 
-	-- ── Sync all visuals from rV/gV/bV ────────────────────────────────────
 	local function syncAll(skipHexUpdate)
 		color = Color3.fromRGB(rV, gV, bV)
 		pcall(function()
@@ -983,7 +930,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		pcall(function() if cb then cb(color) end end)
 	end
 
-	-- Apply one slider visually and return clamped int value
 	local function applySlider(sl, rawVal)
 		local v = math.clamp(math.round(rawVal), 0, 255)
 		local p = v / 255
@@ -993,7 +939,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		return v
 	end
 
-	-- Wire a slider's drag behavior
 	local function wireSlider(sl, setFn)
 		local dragActive = false
 		sl.hit.MouseButton1Down:Connect(function()
@@ -1034,13 +979,10 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	wireSlider(sG, function(v) gV = v end)
 	wireSlider(sB, function(v) bV = v end)
 
-	-- ── Hex input → update sliders automatically ───────────────────────────
 	if hexInput then
 		hexInput.FocusLost:Connect(function(enter)
 			if not enter then return end
-			-- strip non-hex characters
 			local txt = hexInput.Text:gsub("[^%x]","")
-			-- support shorthand #RGB
 			if #txt == 3 then
 				txt = txt:sub(1,1):rep(2) .. txt:sub(2,2):rep(2) .. txt:sub(3,3):rep(2)
 			end
@@ -1053,7 +995,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 				applySlider(sG, gV)
 				applySlider(sB, bV)
 				syncAll(true)
-				-- update input to canonical uppercase
 				hexInput.Text = color:ToHex():upper()
 			else
 				hexInput.Text = color:ToHex():upper()
@@ -1061,7 +1002,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 		end)
 	end
 
-	-- ── Toggle open / close ────────────────────────────────────────────────
 	local togBtn = N("TextButton", {
 		Size = UDim2.fromScale(1,1), BackgroundTransparency = 1,
 		Text = "", ZIndex = 15, Parent = header,
@@ -1100,10 +1040,6 @@ local function MkColorPicker(par, text, defCol, cb, cfg, cpath, saveId)
 	}
 end
 
--- ══════════════════════════════════════════════════════════════════════════════
--- SECTION OBJECT
--- ══════════════════════════════════════════════════════════════════════════════
-
 local function MkSecObj(scroll, cfg, cpath)
 	local obj = {}
 
@@ -1136,10 +1072,6 @@ local function MkSecObj(scroll, cfg, cpath)
 	return obj
 end
 
--- ══════════════════════════════════════════════════════════════════════════════
--- LIBRARY  —  CreateWindow
--- ══════════════════════════════════════════════════════════════════════════════
-
 local lib = {}
 
 function lib:CreateWindow(opts)
@@ -1157,6 +1089,7 @@ function lib:CreateWindow(opts)
 	local activeTab    = nil
 	local secLabels    = {}
 	local sideOrder    = 0
+	local lastSection  = nil
 	local curSW        = SIDE_W
 	local searchActive = false
 
@@ -1334,7 +1267,7 @@ function lib:CreateWindow(opts)
 		CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y,
 		Visible=false, ZIndex=2, Parent=contentArea,
 	})
-	N("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,5),Parent=searchPage})
+	N("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8),Parent=searchPage})
 	N("UIPadding",{
 		PaddingTop=UDim.new(0,8), PaddingBottom=UDim.new(0,10),
 		PaddingLeft=UDim.new(0,9), PaddingRight=UDim.new(0,9),
@@ -1348,8 +1281,7 @@ function lib:CreateWindow(opts)
 		ZIndex=3, Parent=searchPage,
 	})
 
-	-- Tracks frames temporarily moved into searchPage so we can restore them
-	local _movedEntries = {}  -- { frame, origParent, origLayoutOrder }
+	local _movedEntries = {}
 
 	local function restoreSearchFrames()
 		for _, m in ipairs(_movedEntries) do
@@ -1364,7 +1296,6 @@ function lib:CreateWindow(opts)
 	local function doSearch(query)
 		query = string.lower(query or "")
 
-		-- Restore any previously moved frames first
 		restoreSearchFrames()
 
 		if query == "" then
@@ -1378,7 +1309,6 @@ function lib:CreateWindow(opts)
 		if activeTab and activeTab.page then activeTab.page.Visible = false end
 		searchPage.Visible = true
 
-		-- Clear stale refs from searchPage (UIListLayout/UIPadding/noResultLbl stay)
 		for _, c in ipairs(searchPage:GetChildren()) do
 			if not c:IsA("UIListLayout") and not c:IsA("UIPadding") and c ~= noResultLbl then
 				pcall(function() c.Parent = nil end)
@@ -1389,7 +1319,6 @@ function lib:CreateWindow(opts)
 		for _, entry in ipairs(_allElements) do
 			if entry.label:find(query, 1, true) and entry.frame and entry.frame.Parent then
 				order = order + 1 ; count = count + 1
-				-- Save original parent & order so we can restore later
 				table.insert(_movedEntries, {
 					frame      = entry.frame,
 					origParent = entry.frame.Parent,
@@ -1530,7 +1459,10 @@ function lib:CreateWindow(opts)
 		local tabIcon    = opts2.Icon    or "circle"
 		local tabSection = opts2.Section or nil
 
-		if tabSection then makeSideLabel(tabSection) end
+		if tabSection and tabSection ~= lastSection then
+			makeSideLabel(tabSection)
+			lastSection = tabSection
+		end
 		sideOrder = sideOrder + 1
 
 		local btn = N("TextButton",{
@@ -1574,7 +1506,7 @@ function lib:CreateWindow(opts)
 			CanvasSize=UDim2.new(0,0,0,0), AutomaticCanvasSize=Enum.AutomaticSize.Y,
 			ZIndex=2, Parent=page,
 		})
-		N("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,5),Parent=scroll})
+		N("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8),Parent=scroll})
 		N("UIPadding",{
 			PaddingTop=UDim.new(0,8), PaddingBottom=UDim.new(0,10),
 			PaddingLeft=UDim.new(0,9), PaddingRight=UDim.new(0,9),
